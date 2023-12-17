@@ -1,5 +1,7 @@
 from django.urls import path
 
-app_name = 'product'
+app_name = 'user'
 
-urlpatterns = []
+urlpatterns = [
+    
+]

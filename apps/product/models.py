@@ -27,7 +27,7 @@ class Product(models.Model):
         return self.article_number
 
 
-class ProductBarcode(models.Model):
+class Barcode(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=128, unique=True)
 
