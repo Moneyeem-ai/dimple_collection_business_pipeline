@@ -1,16 +1,16 @@
-from django.shortcuts import render
 from django.views import generic
 from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
 
 from apps.product.models import Product
-from .forms import ProductForm
+from apps.product.forms import ProductForm
+
 
 class ProductListView(generic.ListView):
     model = Product
-    template_name = 'pages/product/list.html'
+    template_name = 'pages/product/product_list.html'
     # login_url = "users:account_login"
-    context_object_name = "groups"
+    context_object_name = "products"
 
 
 class ProductEntryView(CreateView):
