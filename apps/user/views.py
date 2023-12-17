@@ -7,6 +7,3 @@ class IsUserAuthenticatedMixin:
             return redirect("work:work_review")
         form = self.form_class()
         return render(request, self.template_name, {"form": form})
-
-
-

@@ -8,7 +8,6 @@ from .managers import CustomUserManager
 class User(AbstractUser):
     username = None
     email = models.EmailField(_('email address'), unique=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
