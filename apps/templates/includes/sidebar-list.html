@@ -41,8 +41,8 @@
     {% endif %}
 
     {% if request.user.is_authenticated %}
-    <li class="nav-item {% if 'extra' in parent %} menu-open {% endif %}">
-      <a href="#" class="nav-link {% if 'extra' in parent %} active {% endif %}">
+    <li class="nav-item {% if 'product' in parent %} menu-open {% endif %}">
+      <a href="#" class="nav-link {% if 'product' in parent %} active {% endif %}">
         <i class="nav-icon fas fa-th"></i>
         <p>
           Product
@@ -51,13 +51,13 @@
       </a>
       <ul class="nav nav-treeview">
         <li class="nav-item">
-            <a href="{% url 'product:product_list' %}" class="nav-link {% if 'legacy_user' in segment %} active {% endif %}">
+            <a href="{% url 'product:product_list' %}" class="nav-link {% if 'product_list' in segment %} active {% endif %}">
               <i class="far fa-plus-square nav-icon"></i>
-              <p>Product Entry</p>
+              <p>Product List & Entry</p>
             </a>
           </li>
           <li class="nav-item">
-            <a href="#" class="nav-link {% if 'legacy_user' in segment %} active {% endif %}">
+            <a href="{% url 'product:barcode_list' %}" class="nav-link {% if 'barcode_list' in segment %} active {% endif %}">
               <i class="fas fa-table nav-icon"></i>
               <p>Barcode List</p>
             </a>
