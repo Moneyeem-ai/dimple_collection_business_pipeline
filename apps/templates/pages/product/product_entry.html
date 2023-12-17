@@ -5,13 +5,70 @@
 
 {% block content %}
 <div class="contentarea">
-  <div class="camera">
-    <video id="video" class="scanner-input-video">Video stream not available.</video>
-    <button type="button" class="btn btn-block btn-primary take-photo-btn" id="startbutton">Take photo</button>
-    <div class="output">
-      <img id="photo" alt="The screen capture will appear in this box." />
+  <div class="row">
+    <div class="camera">
+      <video id="video" class="scanner-input-video">Video stream not available.</video>
+      <button type="button" class="btn btn-block btn-primary take-photo-btn" id="startbutton">Take photo</button>
+      <div class="output">
+        <img id="photo" alt="The screen capture will appear in this box." />
+      </div>
     </div>
+    <!-- II -->
+    <div class="card card-primary product-details-form">
+      <div class="card-header">
+        <h3 class="card-title">Product Details</h3>
+      </div>
+      <!-- /.card-header -->
+      <!-- form start -->
+      <form>
+        <div class="card-body">
+          <div class="form-group">
+            <label for="exampleInputEmail1">Department</label>
+            {{form.department}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Category</label>
+            {{form.category}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Brand</label>
+            {{form.brand}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Color</label>
+            {{form.color}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Article Number</label>
+            {{form.article_number}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Size</label>
+            {{form.size}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">WSP</label>
+            {{form.wsp}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">MRP</label>
+            {{form.mrp}}
+          </div>
+          <div class="form-group">
+            <label for="exampleInputFile">Image</label>
+            {{form.image}}
+          </div>
+        </div>
+        <!-- /.card-body -->
+
+        <div class="card-footer">
+          <button type="submit" class="btn btn-primary">Submit Details</button>
+        </div>
+      </form>
+    </div>
+
   </div>
+  
   <canvas id="canvas"> </canvas>
 </div>
 <style>
@@ -40,6 +97,7 @@
 .camera {
   width: 40%;
   display: inline-block;
+  margin: 0 auto;
 }
 
 .output {
@@ -53,6 +111,12 @@
   display: flex;
   flex-direction: column;
   margin-left: 20px;
+  padding-top: 20px 0;
+}
+
+.product-details-form{
+  width: 40%;
+  margin: 0 auto;
 }
 
 </style>
