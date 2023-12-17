@@ -1,0 +1,95 @@
+{% load i18n static admin_adminlte %}
+
+<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+    <!-- Add icons to the links using the .nav-icon class
+           with font-awesome or any other icon font library -->
+
+    {% admin_get_menu as app_list %}
+    {% if app_list %}
+    {% for app in app_list %}
+    {% if app.has_perms and not app.pinned %}
+    <li class="nav-item {% if 'dashboard' in parent %} menu-open {% endif %}">
+      <a class="nav-link {% if app_label != app.label and app.url not in request.path|urlencode  %} collapsed{% endif %}"
+        data-bs-toggle="collapse" data-bs-target="#submenu-{{ app.app_label }}" href="{{ app.url }}">
+        <i class="nav-icon {{ app.icon }}"></i>
+        <p>
+          {{ app.label|slice:10 }}{% if app.label|length > 10 %}..{% endif %}
+          <i class="right fas fa-angle-left"></i>
+        </p>
+      </a>
+
+      {% if app.models %}
+      <ul class="nav nav-treeview">
+        {% for model in app.models %}
+        {% if model.url %}
+        <li class="nav-item">
+          <a class="nav-link {% if 'bootstrap-tables' in segment or model.url in request.path|urlencode %} active {% endif %}"
+            href="{{ model.url }}">
+            <i class="far fa-circle nav-icon"></i>
+            <p>{{ model.label }}</p>
+          </a>
+        </li>
+        {% else %}
+        <li class="nav-item">{{ model.label }}</li>
+        {% endif %}
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </li>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
+    {% if request.user.is_authenticated %}
+    <li class="nav-item {% if 'extra' in parent %} menu-open {% endif %}">
+      <a href="#" class="nav-link {% if 'extra' in parent %} active {% endif %}">
+        <i class="nav-icon fas fa-th"></i>
+        <p>
+          Product
+          <i class="fas fa-angle-left right"></i>
+        </p>
+      </a>
+      <ul class="nav nav-treeview">
+        <li class="nav-item">
+            <a href="#" class="nav-link {% if 'legacy_user' in segment %} active {% endif %}">
+              <i class="far fa-plus-square nav-icon"></i>
+              <p>Product Entry</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#" class="nav-link {% if 'legacy_user' in segment %} active {% endif %}">
+              <i class="fas fa-table nav-icon"></i>
+              <p>Barcode List</p>
+            </a>
+          </li>
+      </ul>
+    </li>
+    {% endif %}
+    <li class="nav-item">
+        <a href="{% url 'legacy_user_menu' %}" class="nav-link {% if 'legacy_user' in segment %} active {% endif %}">
+          <i class="far fa-circle nav-icon"></i>
+          <p>Original Sidebar</p>
+        </a>
+      </li>
+    {% if request.user.is_authenticated %}
+    <li class="nav-item">
+      <a href="{% url 'logout' %}" class="nav-link">
+        <i class="fa fa-sign-out-alt nav-icon"></i>
+        <p>Logout</p>
+      </a>
+    </li>
+    {% else %}
+    <li class="nav-item">
+      <a href="{% url 'login' %}" class="nav-link">
+        <i class="fa fa-sign-in-alt nav-icon"></i>
+        <p>Login</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="{% url 'register' %}" class="nav-link">
+        <i class="fa fa-user-plus nav-icon"></i>
+        <p>Register</p>
+      </a>
+    </li>        
+    {% endif %}        
+  </ul>
