@@ -11,6 +11,7 @@ urlpatterns = [
     path('', include('apps.admin_adminlte.urls')),
     path('product/', include('apps.product.urls')),
     path('department/', include('apps.department.urls')),
+    path('user/', include('apps.user.urls')),
     path('test/', TemplateView.as_view(template_name='pages/test.html'))
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
