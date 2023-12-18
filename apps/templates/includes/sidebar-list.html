@@ -73,20 +73,20 @@
       </li>
     {% if request.user.is_authenticated %}
     <li class="nav-item">
-      <a href="{% url 'logout' %}" class="nav-link">
+      <a href="{% url 'user:logout' %}" class="nav-link">
         <i class="fa fa-sign-out-alt nav-icon"></i>
         <p>Logout</p>
       </a>
     </li>
     {% else %}
     <li class="nav-item">
-      <a href="{% url 'login' %}" class="nav-link">
+      <a href="{% url 'user:login' %}" class="nav-link">
         <i class="fa fa-sign-in-alt nav-icon"></i>
         <p>Login</p>
       </a>
     </li>
     <li class="nav-item">
-      <a href="{% url 'register' %}" class="nav-link">
+      <a href="{% url 'user:register' %}" class="nav-link">
         <i class="fa fa-user-plus nav-icon"></i>
         <p>Register</p>
       </a>

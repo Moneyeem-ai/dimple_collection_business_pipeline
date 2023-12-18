@@ -70,7 +70,7 @@ AUTH_USER_MODEL = "user.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 # LOGIN_REDIRECT_URL = "users:redirect"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
-# LOGIN_URL = "users:account_login"
+# LOGIN_URL = "users:login"
 
 SESSION_COOKIE_AGE = 43200
 SESSION_SAVE_EVERY_REQUEST = True

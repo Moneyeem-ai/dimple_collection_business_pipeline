@@ -11,7 +11,7 @@ from apps.product.forms import ProductForm
 class ProductListView(SideBarSelectedMixin, generic.ListView):
     model = Product
     template_name = 'pages/product/product_list.html'
-    # login_url = "users:account_login"
+    login_url = "user:login"
     context_object_name = "products"
     parent = "product"
     segment = "product_list"
@@ -29,7 +29,7 @@ class ProductEntryView(SideBarSelectedMixin, CreateView):
 class BarcodeListView(SideBarSelectedMixin, generic.ListView):
     model = Barcode
     template_name = 'pages/product/barcode_list.html'
-    # login_url = "users:account_login"
+    login_url = "user:login"
     context_object_name = "barcodes"
     parent = "product"
     segment = "barcode_list"

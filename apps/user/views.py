@@ -20,7 +20,7 @@ class IsUserAuthenticatedMixin:
 
 class UserLoginView(IsUserAuthenticatedMixin, View):
     form_class = LoginForm
-    template_name = "accounts/login.html"
+    template_name = "pages/user/login.html"
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST)
@@ -31,7 +31,7 @@ class UserLoginView(IsUserAuthenticatedMixin, View):
             status = User.objects.filter(email=email)
             if user is not None:
                 login(request, user)
-                return redirect("work:work_review")
+                return redirect("product:product_list")
             elif status.values() and not status.values()[0]["is_active"]:
                 form.add_error(None, "Your account is not been verified")
             else:
@@ -40,17 +40,10 @@ class UserLoginView(IsUserAuthenticatedMixin, View):
 
 
 class UserRegisterView(IsUserAuthenticatedMixin, CreateView):
-    template_name = "accounts/register.html"
+    template_name = "pages/user/register.html"
     form_class = SignUpForm
-    success_url = reverse_lazy("users:account_login")
+    success_url = reverse_lazy("user:login")
     
     
 class UserLogoutView(LogoutView):
-    next_page = "users:account_login"
-    
-    def dispatch(self, request, *args, **kwargs):
-        user = request.user
-        # UserAttendance.objects.create(user=user, islogin=False)
-        return super().dispatch(request, *args, **kwargs)
-
-
+    next_page = "user:login"
