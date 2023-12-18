@@ -242,10 +242,8 @@
     context.fillRect(0, 0, canvas.width, canvas.height);
 
     const data = canvas.toDataURL("image/png");
-    console.log("this is take picture data",data);
 
     photo.setAttribute("src", data);
-    console.log("this is take picture data photo",photo);
   }
 
   // Capture a photo by fetching the current contents of the video
@@ -278,7 +276,6 @@
         const imageData = canvas.toDataURL("image/png");
         var formData = new FormData();
         formData.append("image", imageData);
-        console.log("this is a file",formData);
 
         fetch('/product/image_upload/', {
             method: 'POST',
@@ -290,8 +287,14 @@
             body: formData,
         })
         .then(response => response.json())
-        .then(data => {
-            console.log(data);
+        .then(response_data => {
+            var form = document.querySelector('form');
+        for (var key in response_data.context) {
+            var field = document.getElementsByName(key)[0];
+            if (field) {
+                field.value = response_data.context[key];
+            }
+        }
         })
         .catch(error => {
             console.error('Error uploading image:', error);

@@ -49,15 +49,17 @@ class ImageUploadView(View):
             decoded_image_data = base64.b64decode(image_data)
             image_name = uuid.uuid4()
             image_file = ContentFile(decoded_image_data, name=f'{image_name}.png')
-            TagImage.objects.create(image=image_file, task_id="task13")
+            TagImage.objects.create(image=image_file, task_id=image_name)
             context = {
-                "department":"Half Sleeves",
-                "brand":"Addidas",
-                "color":"Red",
-                "article_number":"FDKMKNANF231",
-                "size":"M",
-                "wsp":123.9,
-                "mrp":150.9
+                "department": "Half Sleeves",
+                "category": "Category",
+                "subcategory": "Subcategory",
+                "brand": "Addidas",
+                "color": "Red",
+                "article_number": "FDKMKNANF231",
+                "size": 43,
+                "wsp": 123.9,
+                "mrp": 150.9
             }
             return JsonResponse({'status': 'success',"context":context})
         except Exception as e:
