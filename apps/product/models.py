@@ -42,3 +42,11 @@ class ProductQuantity(models.Model):
 
     def __str__(self):
         return self.quantity
+
+
+class TagImage(models.Model):
+    image = models.ImageField(upload_to='media/product_raw_image/')
+    task_id = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return f'{self.task_id}'
