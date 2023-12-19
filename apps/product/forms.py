@@ -15,5 +15,5 @@ class ProductForm(forms.ModelForm):
             'size': forms.NumberInput(attrs={'class': 'form-control'}),
             'wsp': forms.NumberInput(attrs={'class': 'form-control'}),
             'mrp': forms.NumberInput(attrs={'class': 'form-control'}),
-            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            # 'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
