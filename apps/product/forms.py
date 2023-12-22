@@ -6,14 +6,13 @@ class ProductForm(forms.ModelForm):
         model = Product
         fields = '__all__'
         widgets = {
-            'department': forms.Select(attrs={'class': 'form-control'}),
-            'category': forms.Select(attrs={'class': 'form-control'}),
-            'subcategory': forms.Select(attrs={'class': 'form-control'}),
-            'brand': forms.Select(attrs={'class': 'form-control'}),
-            'color': forms.Select(attrs={'class': 'form-control'}),
+            'department': forms.TextInput(attrs={'class': 'form-control'}),
+            'category': forms.TextInput(attrs={'class': 'form-control'}),
+            'subcategory': forms.TextInput(attrs={'class': 'form-control'}),
+            'brand': forms.TextInput(attrs={'class': 'form-control'}),
+            'color': forms.TextInput(attrs={'class': 'form-control'}),
             'article_number': forms.TextInput(attrs={'class': 'form-control'}),
             'size': forms.NumberInput(attrs={'class': 'form-control'}),
-            'wsp': forms.NumberInput(attrs={'class': 'form-control'}),
-            'mrp': forms.NumberInput(attrs={'class': 'form-control'}),
-            # 'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'wsp': forms.TextInput(attrs={'class': 'form-control'}),
+            'mrp': forms.TextInput(attrs={'class': 'form-control'}),
         }

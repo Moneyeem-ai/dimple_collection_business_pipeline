@@ -25,13 +25,6 @@ class ProductListView(SideBarSelectedMixin, generic.ListView):
     segment = "product_list"
 
 
-class ProductEntryView(SideBarSelectedMixin, generic.TemplateView):
-    template_name = 'pages/product/product_entry_tag_photo.html'
-    form_class = ProductForm
-    parent = "product"
-    segment = "product_list"
-
-
 class ProductBarcodeListView(SideBarSelectedMixin, generic.ListView):
     model = ProductBarcode
     template_name = 'pages/product/barcode_list.html'
@@ -41,24 +34,73 @@ class ProductBarcodeListView(SideBarSelectedMixin, generic.ListView):
     segment = "barcode_list"
 
 
-class ImageUploadView(View):
+class ProductEntryView(SideBarSelectedMixin, generic.TemplateView):
+    template_name = 'pages/product/product_entry_photo.html'
+    form_class = ProductForm
+    parent = "product"
+    segment = "product_list"
+
+    def get_context_data(self):
+        data = self.request.GET
+        context = super().get_context_data()
+        context["photo"] = "Cloth" if data.get("page") == "2" else "Tag"
+        if data.get("page") == '3':
+            id = data.get("id")
+            product = Product.objects.get(id=id)
+            context["form"] = self.form_class(instance=product)
+            context["product"] = product
+        return context
+
+    def get(self, request):
+        if request.GET.get("page") == '3':
+            context = self.get_context_data()
+            self.template_name = 'pages/product/product_entry.html'
+            return self.render_to_response(context=context)
+        return super().get(request=request)
+
+
+class ExtractProductInfoView(View):
     def post(self, request, *args, **kwargs):
         try:
-            print("data")
             image_data = request.body.decode('utf-8').split(',')[1]
-            print(image_data)
+            while len(image_data) % 4 != 0:
+                image_data += '='
             decoded_image_data = base64.b64decode(image_data)
+            print(decoded_image_data)
             image_name = str(uuid.uuid4())
             print(image_name)
             image_file = ContentFile(decoded_image_data, name=f'{image_name}.png')
             print("image_file")
             product = Product.objects.create(tag_image=image_file)
-            print(product)
             try:
                 data = extract_data_from_tag(f'{image_name}.png')
                 for key, value in data.items():
                     setattr(product, key, value)
                 product.meta_data = data
+                product.save()
+                context = {
+                    "product_id": product.id
+                }
+            except Exception as e:
+                print(e)
+                context = {}
+            return JsonResponse({'status': 'success',"context": context})
+        except Exception as e:
+            print(e)
+            return JsonResponse({'status': 'error', 'message': str(e)})
+
+
+class ProductImageUploadView(View):
+    def post(self, request, *args, **kwargs):
+        id = kwargs.get("id") 
+        try:
+            image_data = request.body.decode('utf-8').split(',')[1]
+            decoded_image_data = base64.b64decode(image_data)
+            image_name = str(uuid.uuid4())
+            image_file = ContentFile(decoded_image_data, name=f'{image_name}.png')
+            try:
+                product = Product.objects.get(id=id)
+                product.product_image = image_file
                 product.save()
                 context = {
                     "product_id": product.id

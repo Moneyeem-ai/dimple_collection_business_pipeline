@@ -5,73 +5,94 @@
 
 {% block content %}
     <!-- Content Header (Page header) -->
-    <div class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1 class="m-0">Take Tag Photo</h1>
-          </div><!-- /.col -->
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Take Tag Photo</li>
-            </ol>
-          </div><!-- /.col -->
-        </div><!-- /.row -->
-      </div><!-- /.container-fluid -->
-    </div>
-    <!-- /.content-header -->
-
-    <!-- Main content -->
-    <div class="content">
-    {% csrf_token %}
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-header border-0">
-                <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Camera</h3>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="d-flex flex-row justify-content-center">
-                  <video id="video" class="scanner-input-video"></video>
-                </div>
-              </div>
-            </div>
-            <!-- /.card -->
-          </div>
-          <!-- /.col-md-6 -->
-          <div class="col-lg-6">
-            <div class="card">
-              <div class="card-header border-0">
-                <div class="d-flex justify-content-between">
-                  <h3 class="card-title">Captured Image</h3>
-                </div>
-              </div>
-              <div class="card-body">
-                <div class="d-flex flex-row justify-content-center">
-                  <img id="photo" alt="The screen capture will appear in this box." />
-                  <canvas id="canvas" style="display: none;"> </canvas>
-                </div>
-              </div>
-            </div>
-
-          </div>
-          <!-- /.col-md-6 -->
-        </div>
-        <!-- /.row -->
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0">Take {{photo}} Photo</h1>
+            </div><!-- /.col -->
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="#">Home</a></li>
+                <li class="breadcrumb-item active">Take Tag Photo</li>
+              </ol>
+            </div><!-- /.col -->
+          </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
       </div>
-      <!-- /.container-fluid -->
-      <button type="button" class="btn btn-block btn-success take-photo-btn" id="startbutton">Take photo</button>
-      <button type="button" class="btn btn-block btn-primary take-photo-btn" id="submitButton">Next</button>
-    </div>
+      <!-- /.content-header -->
+
+      <!-- Main content -->
+      <div class="content">
+      {% csrf_token %}
+        <div class="container-fluid">
+          <div class="row">
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">Camera</h3>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex flex-row justify-content-center">
+                    <video id="video" class="scanner-input-video"></video>
+                  </div>
+                </div>
+              </div>
+              <!-- /.card -->
+            </div>
+            <!-- /.col-md-6 -->
+            <div class="col-lg-6">
+              <div class="card">
+                <div class="card-header border-0">
+                  <div class="d-flex justify-content-between">
+                    <h3 class="card-title">Captured Image</h3>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex flex-row justify-content-center">
+                    <img id="photo" alt="The screen capture will appear in this box." />
+                    <canvas id="canvas" style="display: none;"> </canvas>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <!-- /.col-md-6 -->
+          </div>
+          <!-- /.row -->
+        </div>
+        <!-- /.container-fluid -->
+        <button type="button" class="btn btn-block btn-success take-photo-btn" id="startbutton">Take photo</button>
+        <button type="button" class="btn btn-block btn-primary take-photo-btn" id="submitButton">Next</button>
+      </div>
 {% endblock content %}
 {% block extra_scripts %}
 <!-- DataTables  & Plugins -->
 <!-- Page specific script -->
 <script>
+
+function showOverlay() {
+    // Create overlay elements
+    var overlayWrapper = document.createElement('div');
+    overlayWrapper.className = 'overlay-wrapper';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'overlay dark';
+    overlay.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i><div class="text-bold pt-2">Loading...</div>';
+
+    // Append overlay elements to the body
+    overlayWrapper.appendChild(overlay);
+    document.body.appendChild(overlayWrapper);
+  }
+
+function hideOverlay() {
+    // Remove overlay elements from the body
+    var overlayWrapper = document.querySelector('.overlay-wrapper');
+    overlayWrapper.parentNode.removeChild(overlayWrapper);
+  }
+
 (() => {
   // The width and height of the captured photo. We will set the
   // width to the value defined here, but the height will be
@@ -214,31 +235,64 @@
         const imageData = canvas.toDataURL("image/png");
         var formData = new FormData();
         formData.append("image", imageData);
-
-        fetch('/product/image_upload/', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': cstfToken
-            },
-            credentials: 'include',
-            body: formData,
-        })
-        .then(response => response.json())
-        .then(response_data => {
-          //var form = document.querySelector('form');
-          //for (var key in response_data.context) {
-          //    var field = document.getElementsByName(key)[0];
-          //    if (field) {
-          //        field.value = response_data.context[key];
-          //    }
-          //}
-          console.log(response_data.context);
-        })
-        .catch(error => {
-            console.error('Error uploading image:', error);
-            alert(error);
-        });
+        showOverlay();
+        var queryString = window.location.search;
+        var urlParams = new URLSearchParams(queryString);
+        var page_number = urlParams.get('page');
+        console.log("=======================================")
+        console.log(page_number);
+        console.log("=======================================")
+        if(page_number==='2'){
+          var id = urlParams.get('id');
+          fetch(`/product/upload_image/${id}/`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': cstfToken
+              },
+              credentials: 'include',
+              body: formData,
+          })
+          .then(response => response.json())
+          .then(response_data => {
+            hideOverlay();
+            console.log(response_data.context);
+            if (response_data.status == "success") {
+              window.location.href = `/product/entry/?page=3&id=${response_data.context.product_id}`;
+            } else {
+              alert("Please try again");
+            }
+          })
+          .catch(error => {
+              console.error('Error uploading image:', error);
+              alert(error);
+          });
+        }
+        else{
+          fetch('/product/extract_info/', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': cstfToken
+              },
+              credentials: 'include',
+              body: formData,
+          })
+          .then(response => response.json())
+          .then(response_data => {
+            hideOverlay();
+            console.log(response_data.context);
+            if (response_data.status == "success") {
+              window.location.href = `/product/entry/?page=2&id=${response_data.context.product_id}`;
+            } else {
+              alert("Please try again");
+            }
+          })
+          .catch(error => {
+              console.error('Error uploading image:', error);
+              alert(error);
+          });
+        }
     }
 
     function dataURLtoFile(dataURL, fileName) {
