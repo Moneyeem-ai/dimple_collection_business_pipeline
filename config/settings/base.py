@@ -45,7 +45,6 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = []
 
 LOCAL_APPS = [
-    'apps.admin_adminlte',
     'apps.user',
     'apps.product',
     'apps.department',

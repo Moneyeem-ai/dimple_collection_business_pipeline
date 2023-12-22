@@ -3,7 +3,6 @@
 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
     <!-- Add icons to the links using the .nav-icon class
            with font-awesome or any other icon font library -->
-
     {% admin_get_menu as app_list %}
     {% if app_list %}
     {% for app in app_list %}
@@ -65,12 +64,6 @@
       </ul>
     </li>
     {% endif %}
-    <li class="nav-item">
-        <a href="{% url 'legacy_user_menu' %}" class="nav-link {% if 'legacy_user' in segment %} active {% endif %}">
-          <i class="far fa-circle nav-icon"></i>
-          <p>Original Sidebar</p>
-        </a>
-      </li>
     {% if request.user.is_authenticated %}
     <li class="nav-item">
       <a href="{% url 'user:logout' %}" class="nav-link">

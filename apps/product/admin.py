@@ -1,5 +1,5 @@
 from django.contrib import admin
 
-from .models import TagImage
+from .models import Product
 
-admin.site.register(TagImage)
+admin.site.register(Product)
