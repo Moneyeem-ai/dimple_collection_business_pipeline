@@ -239,9 +239,6 @@ function hideOverlay() {
         var queryString = window.location.search;
         var urlParams = new URLSearchParams(queryString);
         var page_number = urlParams.get('page');
-        console.log("=======================================")
-        console.log(page_number);
-        console.log("=======================================")
         if(page_number==='2'){
           var id = urlParams.get('id');
           fetch(`/product/upload_image/${id}/`, {
