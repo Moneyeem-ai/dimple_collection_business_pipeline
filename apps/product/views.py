@@ -17,6 +17,13 @@ from apps.product.models import Product, ProductBarcode
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 
+from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
+from django.urls import reverse_lazy
+
+from funky_sheets.formsets import HotView
+
+from .models import Movie
+
 
 class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
     model = Product
@@ -115,3 +122,63 @@ class ProductImageUploadView(View):
         except Exception as e:
             print(e)
             return JsonResponse({'status': 'error', 'message': str(e)})
+
+class CreateMovieView(HotView):
+    # Define model to be used by the view
+    model = Movie
+    # Define template
+    template_name = 'pages/test/test.html'
+    # Define custom characters/strings for checked/unchecked checkboxes
+    checkbox_checked = 'yes' # default: true
+    checkbox_unchecked = 'no' # default: false
+    # Define prefix for the formset which is constructed from Handsontable spreadsheet on submission
+    prefix = 'table'
+    # Define success URL
+    success_url = reverse_lazy('update')
+    # Define fields to be included as columns into the Handsontable spreadsheet
+    fields = (
+        'id',
+        'title',
+        'director',
+        'release_date',
+        'parents_guide',
+        'imdb_rating',
+        'genre',
+        'imdb_link',
+    )
+    # Define extra formset factory kwargs
+    factory_kwargs = {
+        'widgets': {
+            'release_date': DateInput(attrs={'type': 'date'}),
+            'genre': CheckboxSelectMultiple(),
+            'parents_guide': CheckboxInput(),
+        }
+    }
+    # Define Handsontable settings as defined in Handsontable docs
+    hot_settings = {
+        'contextMenu': 'true',
+        'autoWrapRow': 'true',
+        'rowHeaders': 'true',
+        'contextMenu': 'true',
+        'search': 'true',
+        # When value is dictionary don't wrap it in quotes
+        'headerTooltips': {
+            'rows': 'false',
+            'columns': 'true'
+        },
+        # When value is list don't wrap it in quotes
+        'dropdownMenu': [
+            'remove_col',
+            '---------',
+            'make_read_only',
+            '---------',
+            'alignment'
+        ]
+    }
+
+class UpdateMovieView(CreateMovieView):
+  template_name = 'pages/test/update.html'
+  # Define 'update' action
+  action = 'update'
+  # Define 'update' button
+  button_text = 'Update'

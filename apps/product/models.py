@@ -51,3 +51,18 @@ class ProductBarcode(models.Model):
 
     def __str__(self):
         return self.barcode
+
+
+class Movie(models.Model):
+    id = models.AutoField(primary_key=True)  # Auto-generated primary key
+    title = models.CharField(max_length=255)
+    director = models.CharField(max_length=255)
+    release_date = models.DateField()
+    parents_guide = models.BooleanField()
+    imdb_rating = models.DecimalField(max_digits=4, decimal_places=2)
+    genre = models.ManyToManyField('Genre')  # Assuming a separate Genre model
+    imdb_link = models.URLField()
+
+# Assuming a separate Genre model for clarity and flexibility
+class Genre(models.Model):
+    name = models.CharField(max_length=100)
