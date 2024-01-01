@@ -42,7 +42,7 @@ DJANGO_APPS = [
     "django.forms",
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = ['funky_sheets']
 
 LOCAL_APPS = [
     'apps.user',
