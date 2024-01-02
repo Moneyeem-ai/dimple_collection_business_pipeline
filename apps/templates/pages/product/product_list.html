@@ -51,7 +51,10 @@
                   <tr>
                     <th>Article Number</th>
                     <th>Department</th>
-                    <th>Category</th>
+                    <th>Brand</th>
+                    <th>Color</th>
+                    <th>Size</th>
+                    <th>MRP</th>
                   </tr>
                   </thead>
                   <tbody>
@@ -64,9 +67,17 @@
                             <h6 class="mb-1">{{ item.department }}</h6>
                         </td>
                         <td>
-                            <h6 class="mb-1">{{ item.category }}</h6>
+                            <h6 class="mb-1">{{ item.brand }}</h6>
                         </td>
-                        
+                        <td>
+                          <h6 class="mb-1">{{ item.color }}</h6>
+                      </td>
+                      <td>
+                          <h6 class="mb-1">{{ item.size }}</h6>
+                      </td>
+                      <td>
+                        <h6 class="mb-1">{{ item.mrp }}</h6>
+                      </td>
                     </tr>
                 {% endfor %}
                   </tbody>
