@@ -136,7 +136,7 @@ class CreateMovieView(HotView):
     # Define prefix for the formset which is constructed from Handsontable spreadsheet on submission
     prefix = 'table'
     # Define success URL
-    success_url = reverse_lazy('update')
+    success_url = reverse_lazy('product:create')
     # Define fields to be included as columns into the Handsontable spreadsheet
     fields = (
         'id',
@@ -145,7 +145,6 @@ class CreateMovieView(HotView):
         'release_date',
         'parents_guide',
         'imdb_rating',
-        'genre',
         'imdb_link',
     )
     # Define extra formset factory kwargs
