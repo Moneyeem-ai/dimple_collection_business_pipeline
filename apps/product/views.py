@@ -105,7 +105,7 @@ class ProductImageUploadView(View):
                 data = extract_data_from_tag(tag_image)
                 for key, value in data.items():
                     setattr(product, key, value)
-                product.meta_data = data
+                product.metadata = data
                 product.save()
                 context = {
                     "product_id": product.id
