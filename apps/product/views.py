@@ -55,7 +55,7 @@ class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.Templat
     def get_context_data(self):
         data = self.request.GET
         context = super().get_context_data()
-        context["photo"] = "Cloth" if data.get("page") == "2" else "Tag"
+        context["photo"] = "Cloth" if data.get("page") == "1" else "Tag"
         if data.get("page") == "3":
             id = data.get("id")
             product = Product.objects.get(id=id)
