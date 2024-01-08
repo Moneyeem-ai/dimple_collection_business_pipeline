@@ -42,7 +42,7 @@ DJANGO_APPS = [
     "django.forms",
 ]
 
-THIRD_PARTY_APPS = []
+THIRD_PARTY_APPS = ['funky_sheets']
 
 LOCAL_APPS = [
     'apps.user',
@@ -230,3 +230,12 @@ LOGGING = {
 
 # handler404 = 'apps.errors.views.handler404'
 # handler500 = 'apps.errors.views.handler500'
+
+CELERY_BROKER_URL = "pyamqp://manas:1234@localhost:5672/"
+CELERY_RESULT_BACKEND = "rpc://manas:1234@localhost:5672/"
+CELERY_RESULT_EXTENDED = True
+CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
+CELERY_RESULT_BACKEND_MAX_RETRIES = 10
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"

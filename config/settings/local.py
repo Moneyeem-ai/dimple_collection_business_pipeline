@@ -39,13 +39,6 @@ EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 EMAIL_USE_SSL = False
 
-# Celery
-# ------------------------------------------------------------------------------
-CELERY_BROKER_URL = "redis://127.0.0.1:6379/"
-CELERY_ACCEPT_CONTENT = ["application/json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-
 # ------------------------------------------------------------------------------
 
 # django-debug-toolbar

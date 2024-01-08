@@ -15,7 +15,7 @@ DEBUG = True
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = [ "0.0.0.0", "arcconsultants.in", "13.232.183.66"]
+ALLOWED_HOSTS = [ "0.0.0.0"]
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -42,3 +42,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 EMAIL_USE_SSL = False
+
