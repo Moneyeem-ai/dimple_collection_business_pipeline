@@ -1,6 +1,6 @@
-from django.db import models
+import hashlib
 
-from apps.department.models import Department, Category, SubCategory
+from django.db import models
 
 
 class ProductImages(models.Model):
@@ -25,7 +25,25 @@ class Product(models.Model):
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
     processed = models.CharField(max_length=20, default=ProcessingStatus.PENDING, choices=ProcessingStatus.choices)
+    hash_value = models.CharField(max_length=64, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.department or not self.brand or not self.article_number:
+            self.hash_value = None
+        else:
+            # Calculate hash using SHA256
+            hash_string = f"{self.department}{self.brand}{self.article_number}"
+            hash_value = hashlib.sha256(hash_string.encode()).hexdigest()
+            self.hash_value = hash_value
 
+        existing_entry = Product.objects.filter(hash_value=hash_value).first()
+
+        if existing_entry:
+            return existing_entry.id
+        else:
+            super().save(*args, **kwargs)
+            return self.id
+    
 
 class PTStatus(models.TextChoices):
     PROCESSING = 'PROCESSING'
