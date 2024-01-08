@@ -7,6 +7,7 @@ import cv2
 
 
 def extract_data_from_tag(image_path):
+    print("debug_is_on")
     genai.configure(api_key="AIzaSyAHs5fgDlrSyGLyw1eUPvXSrEWacqnR94s")
 
     # Set up the model
