@@ -2,8 +2,8 @@ import json
 
 from pathlib import Path
 import google.generativeai as genai
-
-import cv2
+from django.conf import settings
+import cv2,os
 
 
 def extract_data_from_tag(image_path):
@@ -42,8 +42,8 @@ def extract_data_from_tag(image_path):
                                 safety_settings=safety_settings)
 
     # Validate that an image is present
-    PATH = f"/Users/kushagraagarwal/Documents/dimple_collection/dimple_collection_business_pipeline/apps/media/tag_images/{image_path}"
-
+    PATH = os.path.join(settings.MEDIA_ROOT, 'tag_images', image_path)
+    
     # img = cv2.imread(PATH)
     # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # ret, thresh1 = cv2.threshold(gray, 0, 255, cv2.THRESH_OTSU | cv2.THRESH_BINARY_INV)
