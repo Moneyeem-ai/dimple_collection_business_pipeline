@@ -100,6 +100,8 @@ class ProductImageUploadView(View):
         id = kwargs.get("id") 
         try:
             image_data = request.body.decode('utf-8').split(',')[1]
+            while len(image_data) % 4 != 0:
+                image_data += '='
             decoded_image_data = base64.b64decode(image_data)
             image_name = str(uuid.uuid4())
             image_file = ContentFile(decoded_image_data, name=f'{image_name}.png')
@@ -110,7 +112,7 @@ class ProductImageUploadView(View):
                 data = extract_data_from_tag(tag_image)
                 for key, value in data.items():
                     setattr(product, key, value)
-                product.meta_data = data
+                product.metadata = data
                 product.save()
                 context = {
                     "product_id": product.id

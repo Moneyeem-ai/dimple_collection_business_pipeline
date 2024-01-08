@@ -18,3 +18,5 @@ django-celery-beat==2.5.0
 XlsxWriter==3.1.0
 zipp==3.15.0
 python-decouple==3.8
+google-generativeai
+opencv-python
