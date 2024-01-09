@@ -1,6 +1,12 @@
+from __future__ import absolute_import, unicode_literals
+import os
+import logging
+import hashlib
+
 from django.db import models
 
-from apps.department.models import Department, Category, SubCategory
+
+logger = logging.getLogger(__name__)
 
 
 class ProductTagImage(models.Model):
@@ -28,11 +34,26 @@ class Product(models.Model):
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
-    processed = models.CharField(
-        max_length=20,
-        default=ProcessingStatus.PENDING,
-        choices=ProcessingStatus.choices,
-    )
+    processed = models.CharField(max_length=20, default=ProcessingStatus.PENDING, choices=ProcessingStatus.choices)
+    hash_value = models.CharField(max_length=64, null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        existing_entry = None
+        if self.brand and self.article_number:
+            # Calculate hash using SHA256
+            hash_string = f"{self.department}{self.brand}{self.article_number}"
+            hash_value = hashlib.sha256(hash_string.encode()).hexdigest()
+            self.hash_value = hash_value
+            try:
+                existing_entry = Product.objects.get(hash_value=hash_value)
+            except Exception as e:
+                existing_entry = None
+                logger.info(f"Error: {e}")
+        if existing_entry and not self.pk:
+            logger.info(existing_entry)
+            return existing_entry
+        else:
+            return super().save(*args, **kwargs)
 
 
 class PTStatus(models.TextChoices):

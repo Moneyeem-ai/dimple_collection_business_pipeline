@@ -23,7 +23,11 @@ from django.urls import reverse_lazy
 
 from funky_sheets.formsets import HotView
 
-# from .models import Movie
+from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
+from django.urls import reverse_lazy
+
+from funky_sheets.formsets import HotView
+
 
 
 class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
@@ -109,12 +113,12 @@ class ProductTagImageView(View):
             image_name = str(uuid.uuid4())
             image_file = ContentFile(decoded_image_data, name=f"{image_name}.png")
             try:
-                product_instance = ProductTagImage.objects.get(id=product_id)
-                product_instance.tag_image = image_file
-                product_instance.save()
-                tag_image = product_instance.tag_image.name.split("/")[1]
+                product_image_instance = ProductTagImage.objects.get(id=product_id)
+                product_image_instance.tag_image = image_file
+                product_image_instance.save()
+                tag_image = product_image_instance.tag_image.name.split("/")[1]
                 print("tag_image",tag_image)
-                process_image_data.delay(tag_image)
+                process_image_data.delay(tag_image, product_image_instance.id)
                 print("product_id_after", "done save product")
                 context = {}
             except Exception as e:
