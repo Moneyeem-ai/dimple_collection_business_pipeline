@@ -14,7 +14,7 @@
             <div class="col-sm-6">
               <ol class="breadcrumb float-sm-right">
                 <li class="breadcrumb-item"><a href="#">Home</a></li>
-                <li class="breadcrumb-item active">Take Tag Photo</li>
+                <li class="breadcrumb-item active">Take {{photo}} Photo</li>
               </ol>
             </div><!-- /.col -->
           </div><!-- /.row -->
@@ -241,8 +241,8 @@ function hideOverlay() {
         var page_number = urlParams.get('page');
         if(page_number==='2'){
           var id = urlParams.get('id');
-          fetch(`/product/upload_image/${id}/`, {
-              method: 'POST',
+          fetch(`/product/upload_tag_image/${id}/`, {
+              method: 'PATCH',
               headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': cstfToken
@@ -255,7 +255,7 @@ function hideOverlay() {
             hideOverlay();
             console.log(response_data.context);
             if (response_data.status == "success") {
-              window.location.href = `/product/entry/?page=3&id=${response_data.context.product_id}`;
+              window.location.href = `/product/entry/?page=1`;
             } else {
               alert("Please try again");
             }
@@ -266,7 +266,7 @@ function hideOverlay() {
           });
         }
         else{
-          fetch('/product/extract_info/', {
+          fetch('/product/upload_product_image/', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

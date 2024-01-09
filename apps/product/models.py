@@ -1,17 +1,25 @@
+from __future__ import absolute_import, unicode_literals
+import os
+import logging
 import hashlib
 
 from django.db import models
 
 
-class ProductImages(models.Model):
-    product_image = models.ImageField(upload_to='product_images/', null=True, blank=True)
-    tag_image = models.ImageField(upload_to='tag_images/', null=True, blank=True)
+logger = logging.getLogger(__name__)
+
+
+class ProductTagImage(models.Model):
+    product_image = models.ImageField(
+        upload_to="product_images/", null=True, blank=True
+    )
+    tag_image = models.ImageField(upload_to="tag_images/", null=True, blank=True)
 
 
 class ProcessingStatus(models.TextChoices):
-    PENDING = 'PENDING'
-    IN_PROGRESS = 'IN_PROGRESS'
-    COMPLETED = 'COMPLETED'
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
 
 
 class Product(models.Model):
@@ -20,7 +28,9 @@ class Product(models.Model):
     subcategory = models.CharField(max_length=64, null=True, blank=True)
     brand = models.CharField(max_length=64, null=True, blank=True)
     article_number = models.CharField(max_length=128, null=True, blank=True)
-    product_images = models.ForeignKey(ProductImages, null=True, blank=True, on_delete=models.CASCADE)
+    product_images = models.ForeignKey(
+        ProductTagImage, null=True, blank=True, on_delete=models.CASCADE
+    )
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
@@ -28,33 +38,36 @@ class Product(models.Model):
     hash_value = models.CharField(max_length=64, null=True, blank=True)
     
     def save(self, *args, **kwargs):
-        if not self.department or not self.brand or not self.article_number:
-            self.hash_value = None
-        else:
+        existing_entry = None
+        if self.brand and self.article_number:
             # Calculate hash using SHA256
             hash_string = f"{self.department}{self.brand}{self.article_number}"
             hash_value = hashlib.sha256(hash_string.encode()).hexdigest()
             self.hash_value = hash_value
-
-        existing_entry = Product.objects.filter(hash_value=hash_value).first()
-
-        if existing_entry:
-            return existing_entry.id
+            try:
+                existing_entry = Product.objects.get(hash_value=hash_value)
+            except Exception as e:
+                existing_entry = None
+                logger.info(f"Error: {e}")
+        if existing_entry and not self.pk:
+            logger.info(existing_entry)
+            return existing_entry
         else:
-            super().save(*args, **kwargs)
-            return self.id
-    
+            return super().save(*args, **kwargs)
+
 
 class PTStatus(models.TextChoices):
-    PROCESSING = 'PROCESSING'
-    PENDING = 'PENDING'
-    COMPLETED = 'COMPLETED'
+    PROCESSING = "PROCESSING"
+    PENDING = "PENDING"
+    COMPLETED = "COMPLETED"
 
 
 # actual PT file data is in this model
 class PTFileData(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    status = models.CharField(max_length=64, default=PTStatus.PROCESSING, choices=PTStatus.choices)
+    status = models.CharField(
+        max_length=64, default=PTStatus.PROCESSING, choices=PTStatus.choices
+    )
     size = models.CharField(max_length=128, null=True, blank=True)
     quantity = models.IntegerField()
     color = models.CharField(max_length=64, null=True, blank=True)
@@ -72,18 +85,3 @@ class ProductBarcode(models.Model):
 
     def __str__(self):
         return self.barcode
-
-
-class Movie(models.Model):
-    id = models.AutoField(primary_key=True)  # Auto-generated primary key
-    title = models.CharField(max_length=255)
-    director = models.CharField(max_length=255)
-    release_date = models.DateField()
-    parents_guide = models.BooleanField()
-    imdb_rating = models.DecimalField(max_digits=4, decimal_places=2)
-    genre = models.ManyToManyField('Genre')  # Assuming a separate Genre model
-    imdb_link = models.URLField()
-
-# Assuming a separate Genre model for clarity and flexibility
-class Genre(models.Model):
-    name = models.CharField(max_length=100)
