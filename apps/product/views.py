@@ -7,13 +7,14 @@ from django.urls import reverse_lazy
 from django.views.generic.edit import CreateView
 from django.http import JsonResponse
 from django.views import View
+from django.views.generic import ListView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from apps.utils.utils import SideBarSelectedMixin
-from apps.product.models import Product, ProductTagImage, ProductBarcode
+from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
@@ -157,3 +158,15 @@ class ProductImageUploadView(View):
         except Exception as e:
             print(e)
             return JsonResponse({"status": "error", "message": str(e)})
+
+
+class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
+    model = PTFileEntry
+    template_name = "pages/product/pt_list.html" 
+    login_url = "user:login"
+    context_object_name = "pt_file_data_list"
+    parent = "product"
+    segment = "ptfile_list"
+
+    def get_queryset(self):
+        return PTFileEntry.objects.all()

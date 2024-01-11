@@ -4,6 +4,8 @@ import logging
 import hashlib
 
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 logger = logging.getLogger(__name__)
@@ -51,9 +53,12 @@ class Product(models.Model):
                 logger.info(f"Error: {e}")
         if existing_entry and not self.pk:
             logger.info(existing_entry)
+            pt_file_data = PTFileEntry.objects.create(product=existing_entry)
             return existing_entry
         else:
-            return super().save(*args, **kwargs)
+            product = super().save(*args, **kwargs)
+            pt_file_data = PTFileEntry.objects.create(product=product)
+            return product
 
 
 class PTStatus(models.TextChoices):
@@ -63,23 +68,33 @@ class PTStatus(models.TextChoices):
 
 
 # actual PT file data is in this model
-class PTFileData(models.Model):
+class PTFileEntry(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     status = models.CharField(
         max_length=64, default=PTStatus.PROCESSING, choices=PTStatus.choices
     )
     size = models.CharField(max_length=128, null=True, blank=True)
-    quantity = models.IntegerField()
+    quantity = models.IntegerField(default=0)
     color = models.CharField(max_length=64, null=True, blank=True)
     wsp = models.CharField(max_length=128, null=True, blank=True)
     mrp = models.CharField(max_length=128, null=True, blank=True)
 
     def __str__(self):
-        return self.quantity
+        return self.product.article_number
+
+    def save(self, *args, **kwargs):
+        if self.product.metadata:
+            metadata = self.product.metadata
+            self.size = metadata.get('size', self.size)
+            self.quantity = metadata.get('quantity', self.quantity)
+            self.color = metadata.get('color', self.color)
+            self.mrp = metadata.get('mrp', self.mrp)
+
+        super().save(*args, **kwargs)
 
 
 class ProductBarcode(models.Model):
-    product = models.ForeignKey(PTFileData, on_delete=models.CASCADE)
+    product = models.ForeignKey(PTFileEntry, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=128, unique=True)
     sold = models.BooleanField(default=False)
 
