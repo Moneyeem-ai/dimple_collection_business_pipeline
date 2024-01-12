@@ -231,8 +231,8 @@ LOGGING = {
 # handler404 = 'apps.errors.views.handler404'
 # handler500 = 'apps.errors.views.handler500'
 
-CELERY_BROKER_URL = "pyamqp://ash:1234@localhost:5672/"
-CELERY_RESULT_BACKEND = "rpc://ash:1234@localhost:5672/"
+CELERY_BROKER_URL = "pyamqp://kushagra1:1234@localhost:5672/"
+CELERY_RESULT_BACKEND = "rpc://kushagra1:1234@localhost:5672/"
 CELERY_RESULT_EXTENDED = True
 CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
 CELERY_RESULT_BACKEND_MAX_RETRIES = 10

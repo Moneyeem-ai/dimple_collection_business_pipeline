@@ -12,23 +12,16 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
+from django.urls import reverse_lazy
+
+from funky_sheets.formsets import HotView
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
-
-from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
-from django.urls import reverse_lazy
-
-from funky_sheets.formsets import HotView
-
-from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
-from django.urls import reverse_lazy
-
-from funky_sheets.formsets import HotView
-
 from .models import Movie
 from .forms import PTFileEntryFormSet
 
@@ -211,7 +204,6 @@ class CreateMovieView(HotView):
         'contextMenu': 'true',
         'autoWrapRow': 'true',
         'rowHeaders': 'true',
-        'contextMenu': 'true',
         'search': 'true',
         # When value is dictionary don't wrap it in quotes
         'headerTooltips': {
@@ -236,38 +228,16 @@ class UpdateMovieView(CreateMovieView):
   button_text = 'Update'
 
 
-class PTFileEntryListExcelView(HotView):
+class PTFileEntryListExcelView(generic.TemplateView):
     model = PTFileEntry 
     template_name = 'pages/test/pt_list.html'
-    context_object_name = 'pt_file_entry_formset'
-    formset = PTFileEntryFormSet
-    prefix = 'table'
-    success_url = reverse_lazy('product:ptfile_list')  # Update with your success URL
-    fields = (
-        # 'product__department',
-        'size',
-        'mrp',
-        # 'product__article_number',
-
-    )
-    hot_settings = {
-        'contextMenu': 'true',
-        'autoWrapRow': 'true',
-        'rowHeaders': 'true',
-        'contextMenu': 'true',
-        'search': 'true',
-        'headerTooltips': {
-            'rows': 'false',
-            'columns': 'true'
-        },
-        'dropdownMenu': [
-            'remove_col',
-            '---------',
-            'make_read_only',
-            '---------',
-            'alignment'
+    
+    def get(self, request):
+        data = [
+            ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+            ['2019', 10, 11, 12, 13],
+            ['2020', 20, 11, 14, 13],
+            ['2021', 30, 15, 12, 13]
         ]
-    }
-
-    def get_queryset(self):
-        return PTFileEntry.objects.select_related('product').all()
+        context = {'data': data}
+        return self.render_to_response(context=context)

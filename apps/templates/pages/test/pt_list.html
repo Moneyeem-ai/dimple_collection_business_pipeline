@@ -3,49 +3,54 @@
 
 {% block title %}test{% endblock title %}
 {% block extrastyle %}
-<!-- DataTables -->
-<link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+ <!-- Include Handsontable CSS -->
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
 {% endblock extrastyle %}
 {% block content %}
-{% include hot_template %}
-{% for form in pt_file_entry_formset %}
-    {{ form.product.department }}
-{% endfor %}
-
-    
+    <!-- Main content -->
+    <section class="content">
+      <div id="example"></div>
+    </section>
+    <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
-<!-- DataTables  & Plugins -->
-<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
-<script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
-<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
-<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
-<script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
-<script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<!-- Include Handsontable JS -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <!-- Page specific script -->
 <script>
-  $(function () {
-    $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false,
-      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-    $('#example2').DataTable({
-      "paging": true,
-      "lengthChange": false,
-      "searching": false,
-      "ordering": true,
-      "info": true,
-      "autoWidth": false,
-      "responsive": true,
-    });
+  const container = document.querySelector('#example');
+  const data = [
+    { pk: '2019', company: 10, name: 11, sellDate: 12, inStock: 13, qty: 13 },
+    { pk: '2020', company: 20, name: 11, sellDate: 14, inStock: 13, qty: 13 },
+    { pk: '2021', company: 30, name: 15, sellDate: 12, inStock: 13, qty: 13 },
+    ...Array.from({ length: 27 }, () => ({ pk: null }))
+  ];
+  const hot = new Handsontable(container, {
+    height: 450,
+    colWidths: [170, 222, 130, 120, 120],
+    colHeaders: [
+      "Company name",
+      "Name",
+      "Sell date",
+      "In stock",
+      "Qty"
+    ],
+    data: data,
+    columns: [
+      { data: 'company' },
+      { data: 'name' },
+      { data: 'sellDate' },
+      { data: 'inStock' },
+      { data: 'qty' }
+    ],
+    rowHeaders: true,
+    contextMenu: true,
+    autoWrapRow: true,
+    search: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
   });
 </script>
+
 {% endblock extra_scripts %}

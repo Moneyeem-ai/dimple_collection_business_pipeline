@@ -3,6 +3,7 @@ from django.forms import inlineformset_factory
 
 from .models import Product, PTFileEntry
 
+
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
