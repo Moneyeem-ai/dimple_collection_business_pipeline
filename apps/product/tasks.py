@@ -5,7 +5,7 @@ import logging
 from celery import shared_task
 
 from apps.product.utils import extract_data_from_tag
-from apps.product.models import Product, ProductTagImage
+from apps.product.models import Product, ProductTagImage, PTFileEntry
 
 
 logger = logging.getLogger(__name__)
@@ -22,6 +22,9 @@ def process_image_data(image_data, product_image_id):
         valid_data["metadata"] = data
         valid_data["product_images"] = ProductTagImage.objects.get(id=product_image_id)
         product = Product.objects.create(**valid_data)
+        if product:
+            pt_file_data = PTFileEntry.objects.create(product=product)
+
         logger.info("Product saved successfully.")
         logger.info(f"Product ID: {product}")
     except Exception as e:

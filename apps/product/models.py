@@ -41,6 +41,7 @@ class Product(models.Model):
     
     def save(self, *args, **kwargs):
         existing_entry = None
+        logger.info(existing_entry)
         if self.brand and self.article_number:
             # Calculate hash using SHA256
             hash_string = f"{self.department}{self.brand}{self.article_number}"
@@ -50,6 +51,7 @@ class Product(models.Model):
                 existing_entry = Product.objects.get(hash_value=hash_value)
             except Exception as e:
                 existing_entry = None
+                logger.info("!!!!!!!")
                 logger.info(f"Error: {e}")
         if existing_entry and not self.pk:
             logger.info(existing_entry)
@@ -57,7 +59,6 @@ class Product(models.Model):
             return existing_entry
         else:
             product = super().save(*args, **kwargs)
-            pt_file_data = PTFileEntry.objects.create(product=product)
             return product
 
 
@@ -83,14 +84,25 @@ class PTFileEntry(models.Model):
         return self.product.article_number
 
     def save(self, *args, **kwargs):
-        if self.product.metadata:
-            metadata = self.product.metadata
-            self.size = metadata.get('size', self.size)
-            self.quantity = metadata.get('quantity', self.quantity)
-            self.color = metadata.get('color', self.color)
-            self.mrp = metadata.get('mrp', self.mrp)
+        if self.product:
+            if not self.product.pk:
+                self.product.save()
+            if self.product.metadata:
+                metadata = self.product.metadata
+                self.size = metadata.get('size', self.size)
+                self.quantity = metadata.get('quantity', self.quantity)
+                self.color = metadata.get('color', self.color)
+                self.mrp = metadata.get('mrp', self.mrp)
 
         super().save(*args, **kwargs)
+
+    @receiver(post_save, sender=Product)
+    def update_ptfileentry_on_product_save(sender, instance, **kwargs):
+        try:
+            pt_file_entry = PTFileEntry.objects.get(product=instance)
+            pt_file_entry.save()
+        except PTFileEntry.DoesNotExist:
+            pass
 
 
 class ProductBarcode(models.Model):
