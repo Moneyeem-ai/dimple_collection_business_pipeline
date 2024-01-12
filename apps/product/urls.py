@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import ProductListView, ProductEntryView, ProductBarcodeListView, ProductTagImageView, PTFileEntryListView
+from .views import ProductListView, ProductEntryView, ProductBarcodeListView, ProductTagImageView, PTFileEntryListView, UpdateMovieView, CreateMovieView, PTFileEntryListExcelView
 
 app_name = 'product'
 
@@ -11,6 +11,7 @@ urlpatterns = [
     path('upload_product_image/', ProductTagImageView.as_view(), name='upload_product_image'),
     path('upload_tag_image/<int:id>/', ProductTagImageView.as_view(), name="upload_tag_image"),
     path('ptfile_list/', PTFileEntryListView.as_view(), name='ptfile_list'),
-    # path('create/', CreateMovieView.as_view(), name='create'),
-    # path('update/', UpdateMovieView.as_view(), name='update')
+    path('create/', CreateMovieView.as_view(), name='create'),
+    path('update/', UpdateMovieView.as_view(), name='update'),
+    path('excel_pt/', PTFileEntryListExcelView.as_view(), name='excel_pt'),
 ]
