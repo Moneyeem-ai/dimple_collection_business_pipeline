@@ -1,5 +1,8 @@
 from django import forms
-from .models import Product
+from django.forms import inlineformset_factory
+
+from .models import Product, PTFileEntry
+
 
 class ProductForm(forms.ModelForm):
     class Meta:

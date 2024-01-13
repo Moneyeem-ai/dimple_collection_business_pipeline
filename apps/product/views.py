@@ -1,18 +1,12 @@
 import uuid
 import base64
-import openpyxl
 
 from django.shortcuts import redirect
 from django.views import generic
-from django.urls import reverse_lazy
-from django.views.generic.edit import CreateView
 from django.http import JsonResponse
 from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import render
 from django.views.generic.edit import FormView
 
 from apps.utils.utils import SideBarSelectedMixin
@@ -21,13 +15,19 @@ from apps.product.forms import ProductForm,UploadFileForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
 
-from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
-from django.urls import reverse_lazy
-
-from funky_sheets.formsets import HotView
+from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 from openpyxl import load_workbook
 
-# from .models import Movie
+from apps.utils.utils import SideBarSelectedMixin
+from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry, PTStatus
+from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer
+from apps.product.forms import ProductForm
+from apps.product.utils import extract_data_from_tag
+from apps.product.tasks import process_image_data
+
 
 
 class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
@@ -119,12 +119,12 @@ class ProductTagImageView(View):
             image_name = str(uuid.uuid4())
             image_file = ContentFile(decoded_image_data, name=f"{image_name}.png")
             try:
-                product_instance = ProductTagImage.objects.get(id=product_id)
-                product_instance.tag_image = image_file
-                product_instance.save()
-                tag_image = product_instance.tag_image.name.split("/")[1]
+                product_image_instance = ProductTagImage.objects.get(id=product_id)
+                product_image_instance.tag_image = image_file
+                product_image_instance.save()
+                tag_image = product_image_instance.tag_image.name.split("/")[1]
                 print("tag_image",tag_image)
-                process_image_data.delay(tag_image)
+                process_image_data.delay(tag_image, product_image_instance.id)
                 print("product_id_after", "done save product")
                 context = {}
             except Exception as e:
@@ -174,12 +174,99 @@ class UploadFileView(FormView):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES['file']
-            workbook = openpyxl.load_workbook(uploaded_file, read_only=True)
+            workbook = load_workbook(uploaded_file, read_only=True)
             sheet = workbook.active
-            for row in sheet.iter_rows():
-                attributes = [cell.value for cell in row]
-                print("Attributes:", attributes)
+            
+            processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
+            for product in processing_entries:
+                count=product.quantity
+            
+                for row in sheet.iter_rows():
+                    if all(cell.value in (None, '') for cell in row):
+                        continue
+                    
+                    attributes = [cell.value for cell in row]
+                    matched_products=[]
+                    if (
+                        product.department.lower()==attributes[0].lower() and 
+                        product.brand.lower() ==attributes[6].lower() and 
+                        product.article_number.lower()==attributes[3].lower()
+                        ):
+                        count=count-1
+                        matched_products.append({"product":product,"barcode":attributes[9],"sold":False})
+                        
+                    print("count",count)
+                    
+                    if count == 0:
+                        for match_item in matched_products:
+                            ProductBarcode.create(product=match_item["product"], barcode=match_item["barcode"],sold=match_item["sold"])
+                        
 
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
+class PTFileEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
+    model = PTFileEntry 
+    template_name = 'pages/product/pt_entry.html'
+    parent = "product"
+    segment = "ptfile_entry"
+
+
+class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
+    model = PTFileEntry 
+    template_name = 'pages/product/pt_list.html'
+    parent = "product"
+    segment = "ptfile_list"
+
+
+class PTFileEntryAPIView(generics.ListAPIView):
+    queryset = PTFileEntry.objects.filter(status='PROCESSING')
+    serializer_class = PTFileEntrySerializer
+
+
+class PTFileEntryListAPIView(generics.ListAPIView):
+    queryset = PTFileEntry.objects.filter(status='PENDING')
+    serializer_class = PTFileEntrySerializer
+
+
+class PTFileEntryUpdateAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data_list= request.data
+            print("!!!!!!!!!!!")
+            print(data_list)
+            existing_entries = PTFileEntry.objects.filter(status=PTStatus.PROCESSING)
+
+            existing_ids = [entry.id for entry in existing_entries]
+            print(existing_ids)
+
+            incoming_ids = [ int(entry[0]) if entry[0] else None for entry in data_list]
+            print(incoming_ids)
+
+            ids_to_delete = list(set(existing_ids) - set(incoming_ids))
+            print(ids_to_delete)
+            PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
+
+            for data in data_list:
+                entry_id = data[0]
+                print(data)
+                print(entry_id)
+                if entry_id:
+                    try:
+                        pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                        serializer = PTFileEntrySerializer(pt_file_entry, data={'size': data[7],'quantity': data[8], 'color': data[9], 'mrp': data[10], 'wsp': data[11]})
+                    except PTFileEntry.DoesNotExist:
+                        return Response({'error': f'PTFileEntry not found for ID {entry_id}'}, status=status.HTTP_404_NOT_FOUND)
+                else:
+                    serializer = PTFileEntryCreateSerializer(data={'product': data[1] , 'size': data[7],'quantity': data[8], 'color': data[9], 'mrp': data[10], 'wsp': data[11]}, many=False)
+
+                print(serializer.is_valid())
+                if serializer.is_valid():
+                    serializer.save(status=PTStatus.PENDING)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({'message': 'Data updated successfully', 'success': True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            # Handle other exceptions
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
