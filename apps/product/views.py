@@ -16,9 +16,14 @@ from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
 from django.urls import reverse_lazy
 
 from funky_sheets.formsets import HotView
+from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 from apps.utils.utils import SideBarSelectedMixin
-from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry
+from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry, PTStatus
+from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
@@ -231,13 +236,61 @@ class UpdateMovieView(CreateMovieView):
 class PTFileEntryListExcelView(generic.TemplateView):
     model = PTFileEntry 
     template_name = 'pages/test/pt_list.html'
-    
-    def get(self, request):
-        data = [
-            ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
-            ['2019', 10, 11, 12, 13],
-            ['2020', 20, 11, 14, 13],
-            ['2021', 30, 15, 12, 13]
-        ]
-        context = {'data': data}
-        return self.render_to_response(context=context)
+
+
+class ZorderFileEntryListExcelView(generic.TemplateView):
+    model = PTFileEntry 
+    template_name = 'pages/test/zorder_list.html'
+
+
+class PTFileEntryListAPIView(generics.ListAPIView):
+    queryset = PTFileEntry.objects.filter(status='PROCESSING')
+    serializer_class = PTFileEntrySerializer
+
+
+class ZorderEntryListAPIView(generics.ListAPIView):
+    queryset = PTFileEntry.objects.filter(status='PENDING')
+    serializer_class = PTFileEntrySerializer
+
+
+class PTFileEntryUpdateAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data_list= request.data
+            print("!!!!!!!!!!!")
+            print(data_list)
+            existing_entries = PTFileEntry.objects.filter(status=PTStatus.PROCESSING)
+
+            existing_ids = [entry.id for entry in existing_entries]
+            print(existing_ids)
+
+            incoming_ids = [ int(entry[0]) if entry[0] else None for entry in data_list]
+            print(incoming_ids)
+
+            ids_to_delete = list(set(existing_ids) - set(incoming_ids))
+            print(ids_to_delete)
+            PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
+
+            for data in data_list:
+                entry_id = data[0]
+                print(data)
+                print(entry_id)
+                if entry_id:
+                    try:
+                        pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                        serializer = PTFileEntrySerializer(pt_file_entry, data={'mrp': data[4]}, partial=True)
+                    except PTFileEntry.DoesNotExist:
+                        return Response({'error': f'PTFileEntry not found for ID {entry_id}'}, status=status.HTTP_404_NOT_FOUND)
+                else:
+                    serializer = PTFileEntryCreateSerializer(data={'product': data[1] , 'mrp': data[4]}, many=False)
+
+                print(serializer.is_valid())
+                if serializer.is_valid():
+                    serializer.save(status=PTStatus.PENDING)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({'message': 'Data updated successfully', 'success': True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            # Handle other exceptions
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

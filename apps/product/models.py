@@ -41,7 +41,7 @@ class Product(models.Model):
     
     def save(self, *args, **kwargs):
         existing_entry = None
-        logger.info(existing_entry)
+        # logger.info(existing_entry)
         if self.brand and self.article_number:
             # Calculate hash using SHA256
             hash_string = f"{self.department}{self.brand}{self.article_number}"
@@ -84,25 +84,17 @@ class PTFileEntry(models.Model):
         return self.product.article_number
 
     def save(self, *args, **kwargs):
-        if self.product:
-            if not self.product.pk:
-                self.product.save()
+        logger.info(self.product)
+        if self.product and not self.pk:
+            logger.info(self.product.metadata)
             if self.product.metadata:
                 metadata = self.product.metadata
-                self.size = metadata.get('size', self.size)
-                self.quantity = metadata.get('quantity', self.quantity)
-                self.color = metadata.get('color', self.color)
-                self.mrp = metadata.get('mrp', self.mrp)
-
-        super().save(*args, **kwargs)
-
-    @receiver(post_save, sender=Product)
-    def update_ptfileentry_on_product_save(sender, instance, **kwargs):
-        try:
-            pt_file_entry = PTFileEntry.objects.get(product=instance)
-            pt_file_entry.save()
-        except PTFileEntry.DoesNotExist:
-            pass
+                self.size = metadata.get('size', 0)
+                self.quantity = metadata.get('quantity', 0)
+                self.color = metadata.get('color', '')
+                self.mrp = metadata.get('mrp', 0)
+                logger.info(self)
+        return super().save(*args, **kwargs)
 
 
 class ProductBarcode(models.Model):

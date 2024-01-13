@@ -42,7 +42,10 @@ DJANGO_APPS = [
     "django.forms",
 ]
 
-THIRD_PARTY_APPS = ['funky_sheets']
+THIRD_PARTY_APPS = [
+    'funky_sheets',
+    'rest_framework',
+]
 
 LOCAL_APPS = [
     'apps.user',
@@ -231,11 +234,22 @@ LOGGING = {
 # handler404 = 'apps.errors.views.handler404'
 # handler500 = 'apps.errors.views.handler500'
 
-CELERY_BROKER_URL = "pyamqp://kushagra1:1234@localhost:5672/"
-CELERY_RESULT_BACKEND = "rpc://kushagra1:1234@localhost:5672/"
+CELERY_BROKER_URL = "pyamqp://ash:1234@localhost:5672/"
+CELERY_RESULT_BACKEND = "rpc://ash:1234@localhost:5672/"
 CELERY_RESULT_EXTENDED = True
 CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
 CELERY_RESULT_BACKEND_MAX_RETRIES = 10
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}

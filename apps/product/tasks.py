@@ -22,7 +22,9 @@ def process_image_data(image_data, product_image_id):
         valid_data["metadata"] = data
         valid_data["product_images"] = ProductTagImage.objects.get(id=product_image_id)
         product = Product.objects.create(**valid_data)
-        if product:
+        logger.info(f"product: {product}")
+        logger.info(str(product.id is None))
+        if product.id is not None:
             pt_file_data = PTFileEntry.objects.create(product=product)
 
         logger.info("Product saved successfully.")
