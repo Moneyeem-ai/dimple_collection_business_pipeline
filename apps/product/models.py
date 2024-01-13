@@ -41,6 +41,7 @@ class Product(models.Model):
     
     def save(self, *args, **kwargs):
         existing_entry = None
+        # logger.info(existing_entry)
         if self.brand and self.article_number:
             # Calculate hash using SHA256
             hash_string = f"{self.department}{self.brand}{self.article_number}"
@@ -50,6 +51,7 @@ class Product(models.Model):
                 existing_entry = Product.objects.get(hash_value=hash_value)
             except Exception as e:
                 existing_entry = None
+                logger.info("!!!!!!!")
                 logger.info(f"Error: {e}")
         if existing_entry and not self.pk:
             logger.info(existing_entry)
@@ -57,7 +59,6 @@ class Product(models.Model):
             return existing_entry
         else:
             product = super().save(*args, **kwargs)
-            pt_file_data = PTFileEntry.objects.create(product=product)
             return product
 
 
@@ -83,14 +84,17 @@ class PTFileEntry(models.Model):
         return self.product.article_number
 
     def save(self, *args, **kwargs):
-        if self.product.metadata:
-            metadata = self.product.metadata
-            self.size = metadata.get('size', self.size)
-            self.quantity = metadata.get('quantity', self.quantity)
-            self.color = metadata.get('color', self.color)
-            self.mrp = metadata.get('mrp', self.mrp)
-
-        super().save(*args, **kwargs)
+        logger.info(self.product)
+        if self.product and not self.pk:
+            logger.info(self.product.metadata)
+            if self.product.metadata:
+                metadata = self.product.metadata
+                self.size = metadata.get('size', 0)
+                self.quantity = metadata.get('quantity', 0)
+                self.color = metadata.get('color', '')
+                self.mrp = metadata.get('mrp', 0)
+                logger.info(self)
+        return super().save(*args, **kwargs)
 
 
 class ProductBarcode(models.Model):
@@ -100,3 +104,18 @@ class ProductBarcode(models.Model):
 
     def __str__(self):
         return self.barcode
+
+
+class Movie(models.Model):
+    id = models.AutoField(primary_key=True)  # Auto-generated primary key
+    title = models.CharField(max_length=255)
+    director = models.CharField(max_length=255)
+    release_date = models.DateField()
+    parents_guide = models.BooleanField()
+    imdb_rating = models.DecimalField(max_digits=4, decimal_places=2)
+    genre = models.ManyToManyField('Genre')  # Assuming a separate Genre model
+    imdb_link = models.URLField()
+
+# Assuming a separate Genre model for clarity and flexibility
+class Genre(models.Model):
+    name = models.CharField(max_length=100)

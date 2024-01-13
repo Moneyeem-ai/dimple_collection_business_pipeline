@@ -12,22 +12,23 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
+from django.urls import reverse_lazy
+
+from funky_sheets.formsets import HotView
+from rest_framework import generics
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 from apps.utils.utils import SideBarSelectedMixin
-from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry
+from apps.product.models import Product, ProductTagImage, ProductBarcode, PTFileEntry, PTStatus
+from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
-
-from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
-from django.urls import reverse_lazy
-
-from funky_sheets.formsets import HotView
-
-from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
-from django.urls import reverse_lazy
-
-from funky_sheets.formsets import HotView
+from .models import Movie
+from .forms import PTFileEntryFormSet
 
 
 
@@ -170,3 +171,126 @@ class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin, generic.List
 
     def get_queryset(self):
         return PTFileEntry.objects.all()
+
+
+class CreateMovieView(HotView):
+    # Define model to be used by the view
+    model = Movie
+    # Define template
+    template_name = 'pages/test/test.html'
+    # Define custom characters/strings for checked/unchecked checkboxes
+    checkbox_checked = 'yes' # default: true
+    checkbox_unchecked = 'no' # default: false
+    # Define prefix for the formset which is constructed from Handsontable spreadsheet on submission
+    prefix = 'table'
+    # Define success URL
+    success_url = reverse_lazy('update')
+    # Define fields to be included as columns into the Handsontable spreadsheet
+    fields = (
+        'id',
+        'title',
+        'director',
+        'release_date',
+        'parents_guide',
+        'imdb_rating',
+        'genre',
+        'imdb_link',
+    )
+    # Define extra formset factory kwargs
+    factory_kwargs = {
+        'widgets': {
+            'release_date': DateInput(attrs={'type': 'date'}),
+            'genre': CheckboxSelectMultiple(),
+            'parents_guide': CheckboxInput(),
+        }
+    }
+    # Define Handsontable settings as defined in Handsontable docs
+    hot_settings = {
+        'contextMenu': 'true',
+        'autoWrapRow': 'true',
+        'rowHeaders': 'true',
+        'search': 'true',
+        # When value is dictionary don't wrap it in quotes
+        'headerTooltips': {
+            'rows': 'false',
+            'columns': 'true'
+        },
+        # When value is list don't wrap it in quotes
+        'dropdownMenu': [
+            'remove_col',
+            '---------',
+            'make_read_only',
+            '---------',
+            'alignment'
+        ]
+    }
+
+class UpdateMovieView(CreateMovieView):
+  template_name = 'pages/test/update.html'
+  # Define 'update' action
+  action = 'update'
+  # Define 'update' button
+  button_text = 'Update'
+
+
+class PTFileEntryListExcelView(generic.TemplateView):
+    model = PTFileEntry 
+    template_name = 'pages/test/pt_list.html'
+
+
+class ZorderFileEntryListExcelView(generic.TemplateView):
+    model = PTFileEntry 
+    template_name = 'pages/test/zorder_list.html'
+
+
+class PTFileEntryListAPIView(generics.ListAPIView):
+    queryset = PTFileEntry.objects.filter(status='PROCESSING')
+    serializer_class = PTFileEntrySerializer
+
+
+class ZorderEntryListAPIView(generics.ListAPIView):
+    queryset = PTFileEntry.objects.filter(status='PENDING')
+    serializer_class = PTFileEntrySerializer
+
+
+class PTFileEntryUpdateAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            data_list= request.data
+            print("!!!!!!!!!!!")
+            print(data_list)
+            existing_entries = PTFileEntry.objects.filter(status=PTStatus.PROCESSING)
+
+            existing_ids = [entry.id for entry in existing_entries]
+            print(existing_ids)
+
+            incoming_ids = [ int(entry[0]) if entry[0] else None for entry in data_list]
+            print(incoming_ids)
+
+            ids_to_delete = list(set(existing_ids) - set(incoming_ids))
+            print(ids_to_delete)
+            PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
+
+            for data in data_list:
+                entry_id = data[0]
+                print(data)
+                print(entry_id)
+                if entry_id:
+                    try:
+                        pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                        serializer = PTFileEntrySerializer(pt_file_entry, data={'mrp': data[4]}, partial=True)
+                    except PTFileEntry.DoesNotExist:
+                        return Response({'error': f'PTFileEntry not found for ID {entry_id}'}, status=status.HTTP_404_NOT_FOUND)
+                else:
+                    serializer = PTFileEntryCreateSerializer(data={'product': data[1] , 'mrp': data[4]}, many=False)
+
+                print(serializer.is_valid())
+                if serializer.is_valid():
+                    serializer.save(status=PTStatus.PENDING)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response({'message': 'Data updated successfully', 'success': True}, status=status.HTTP_200_OK)
+        except Exception as e:
+            # Handle other exceptions
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

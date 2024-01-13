@@ -1,0 +1,109 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}test{% endblock title %}
+{% block extrastyle %}
+ <!-- Include Handsontable CSS -->
+ <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
+{% endblock extrastyle %}
+{% block content %}
+    <!-- Main content -->
+    
+    <section class="content">
+        {% csrf_token %}
+      <div id="example"></div>
+      <button id="updateDataButton">Update Data</button>
+    </section>
+    <!-- /.content -->
+{% endblock content %}
+{% block extra_scripts %}
+<!-- Include Handsontable JS -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<!-- Page specific script -->
+<script>
+    window.onload = function (){
+        console.log("cookie:",document.cookie)
+    const container = document.querySelector('#example');
+  function fetchDataWithCSRFToken(url) {
+    try {
+    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found.');
+    }
+    fetch(url, {
+      method: 'GET',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(response => response.json())
+      .then(data => {
+        // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
+        const hot = new Handsontable(container, {
+          height: 450,
+          colWidths: [170, 222, 130],  // Adjust the width of columns as needed
+          colHeaders: [
+            "Id",
+            "Product ID",
+            "Article Number",
+            "Department",
+            "MRP"
+          ],
+          data: data,
+          columns: [
+          { data: 'id' },
+          {data: 'product.id'},
+            { data: 'product.article_number' },
+            { data: 'product.department' },
+            { data: 'mrp' }
+          ],
+          rowHeaders: true,
+          contextMenu: true,
+          autoWrapRow: true,
+          search: true,
+          height: 'auto',
+          licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
+        });
+        const updateDataButton = document.getElementById('updateDataButton');
+                        updateDataButton.addEventListener('click', function () {
+                            // Get the data from the Handsontable instance
+                            const updatedData = hot.getData();
+                            console.log(updatedData)
+                            
+                            // Make a POST request to the PTFileEntryUpdateAPIView
+                            fetch('/product/api/excel_update/', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': csrfToken,
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(updatedData),
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log('Data updated successfully:', data);
+                                    if (data.success) {
+                                         window.location.href = '/product/zorder/';
+                                    } else {
+                                        console.error('Error updating data:', data.error);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error updating data:', error);
+                                });
+                        });
+      });
+    }
+    catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  fetchDataWithCSRFToken('/product/api/excel_pt/');
+};
+  </script>
+
+{% endblock extra_scripts %}
