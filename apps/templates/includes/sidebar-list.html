@@ -56,9 +56,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a href="{% url 'product:ptfile_list' %}" class="nav-link {% if 'ptfile_list' in segment %} active {% endif %}">
+            <a href="{% url 'product:ptfile_entry' %}" class="nav-link {% if 'ptfile_entry' in segment %} active {% endif %}">
               <i class="far fa-plus-square nav-icon"></i>
               <p>PTFile Entry</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'product:ptfile_list' %}" class="nav-link {% if 'ptfile_list' in segment %} active {% endif %}">
+              <i class="far fa-plus-square nav-icon"></i>
+              <p>PTFile List</p>
             </a>
           </li>
           <li class="nav-item">

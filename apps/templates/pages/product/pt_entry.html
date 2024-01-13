@@ -12,6 +12,7 @@
     <section class="content">
         {% csrf_token %}
       <div id="example"></div>
+      <button id="updateDataButton">Update Data</button>
     </section>
     <!-- /.content -->
 {% endblock content %}
@@ -45,7 +46,8 @@
           height: 450,
           colWidths: [170, 222, 130],  // Adjust the width of columns as needed
           colHeaders: [
-            "ID",
+            "Id",
+            "Product ID",
             "Article Number",
             "Department",
             "MRP"
@@ -53,6 +55,7 @@
           data: data,
           columns: [
           { data: 'id' },
+          {data: 'product.id'},
             { data: 'product.article_number' },
             { data: 'product.department' },
             { data: 'mrp' }
@@ -64,6 +67,34 @@
           height: 'auto',
           licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
         });
+        const updateDataButton = document.getElementById('updateDataButton');
+                        updateDataButton.addEventListener('click', function () {
+                            // Get the data from the Handsontable instance
+                            const updatedData = hot.getData();
+                            console.log(updatedData)
+                            
+                            // Make a POST request to the PTFileEntryUpdateAPIView
+                            fetch('/product/api/excel_update/', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': csrfToken,
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(updatedData),
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log('Data updated successfully:', data);
+                                    if (data.success) {
+                                         window.location.href = '/product/ptfile_list/';
+                                    } else {
+                                        console.error('Error updating data:', data.error);
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error updating data:', error);
+                                });
+                        });
       });
     }
     catch (error) {
@@ -71,7 +102,7 @@
     }
   }
 
-  fetchDataWithCSRFToken('/product/api/excel_zorder/');
+  fetchDataWithCSRFToken('/product/api/excel_pt/');
 };
   </script>
 
