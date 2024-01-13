@@ -174,12 +174,12 @@ class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin, generic.Temp
     segment = "ptfile_list"
 
 
-class PTFileEntryListAPIView(generics.ListAPIView):
+class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status='PROCESSING')
     serializer_class = PTFileEntrySerializer
 
 
-class ZorderEntryListAPIView(generics.ListAPIView):
+class PTFileEntryListAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status='PENDING')
     serializer_class = PTFileEntrySerializer
 

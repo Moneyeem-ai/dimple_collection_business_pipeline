@@ -74,7 +74,7 @@
                             console.log(updatedData)
                             
                             // Make a POST request to the PTFileEntryUpdateAPIView
-                            fetch('/product/api/excel_update/', {
+                            fetch('/product/api/ptfile_update/', {
                                 method: 'POST',
                                 headers: {
                                     'X-CSRFToken': csrfToken,
@@ -102,7 +102,7 @@
     }
   }
 
-  fetchDataWithCSRFToken('/product/api/excel_pt/');
+  fetchDataWithCSRFToken('/product/api/ptfile_entry/');
 };
   </script>
 

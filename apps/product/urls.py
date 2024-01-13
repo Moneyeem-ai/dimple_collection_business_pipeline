@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import ProductListView, ProductEntryView, ProductBarcodeListView, ProductTagImageView, PTFileEntryListView, PTFileEntryListAPIView, PTFileEntryListView, PTFileEntryUpdateAPIView, ZorderEntryListAPIView, PTFileEntryView
+from .views import ProductListView, ProductEntryView, ProductBarcodeListView, ProductTagImageView, PTFileEntryListView, PTFileEntryListAPIView, PTFileEntryListView, PTFileEntryUpdateAPIView, PTFileEntryAPIView, PTFileEntryView
 
 app_name = 'product'
 
@@ -12,7 +12,7 @@ urlpatterns = [
     path('upload_tag_image/<int:id>/', ProductTagImageView.as_view(), name="upload_tag_image"),
     path('ptfile_entry/', PTFileEntryView.as_view(), name='ptfile_entry'),
     path('ptfile_list/', PTFileEntryListView.as_view(), name='ptfile_list'),
-    path('api/excel_pt/', PTFileEntryListAPIView.as_view(), name='excel_pt'),
-    path('api/excel_update/', PTFileEntryUpdateAPIView.as_view(), name='excel_update'),
-    path('api/excel_zorder/', ZorderEntryListAPIView.as_view(), name='excel_zorder'),
+    path('api/ptfile_entry/', PTFileEntryAPIView.as_view(), name='api_ptfile_entry'),
+    path('api/ptfile_update/', PTFileEntryUpdateAPIView.as_view(), name='api_ptfile_update'),
+    path('api/ptfile_list/', PTFileEntryListAPIView.as_view(), name='api_ptfile_list'),
 ]
