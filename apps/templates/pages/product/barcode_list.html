@@ -38,9 +38,14 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="card-title">DataTable with default features</h3>
                     <div>
-                        <a href="{% url 'product:product_entry' %}">
-                            <button type="button" class="btn btn-block btn-primary">Add Product</button>
-                        </a>
+                        <button
+                          type="button"
+                          data-toggle="modal"
+                          data-target="#modal-default"
+                          class="btn btn-block btn-primary"
+                        >
+                        Upload Fiile
+                        </button>
                     </div>
                 </div>
               </div>
@@ -82,6 +87,39 @@
       </div>
       <!-- /.container-fluid -->
     </section>
+    <div class="modal fade" id="modal-default">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title">Upload File</h4>
+            
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' %}">
+            {% csrf_token %}
+            {{ upload_form.file }}
+            
+            
+            <div class="modal-footer justify-content-between">
+              <button type="button" class="btn btn-default" data-dismiss="modal">
+                Close
+              </button>
+              <button type="submit" class="btn btn-primary">Upload File</button>
+            </div>
+            
+          </form>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}

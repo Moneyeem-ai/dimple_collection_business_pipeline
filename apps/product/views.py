@@ -1,5 +1,6 @@
 import uuid
 import base64
+import openpyxl
 
 from django.shortcuts import redirect
 from django.views import generic
@@ -11,10 +12,12 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import render
+from django.views.generic.edit import FormView
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductTagImage, ProductBarcode
-from apps.product.forms import ProductForm
+from apps.product.forms import ProductForm,UploadFileForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
 
@@ -22,6 +25,7 @@ from django.forms import CheckboxSelectMultiple, CheckboxInput, DateInput
 from django.urls import reverse_lazy
 
 from funky_sheets.formsets import HotView
+from openpyxl import load_workbook
 
 # from .models import Movie
 
@@ -44,6 +48,12 @@ class ProductBarcodeListView(
     context_object_name = "barcodes"
     parent = "product"
     segment = "barcode_list"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        upload_form = UploadFileForm()
+        context['upload_form'] = upload_form
+        return context
 
 
 class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -153,3 +163,23 @@ class ProductImageUploadView(View):
         except Exception as e:
             print(e)
             return JsonResponse({"status": "error", "message": str(e)})
+
+
+class UploadFileView(FormView):
+    template_name = 'pages/product/barcode_list.html'
+    form_class = UploadFileForm
+    success_url = 'product:barcode_list' 
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        if form.is_valid():
+            uploaded_file = request.FILES['file']
+            workbook = openpyxl.load_workbook(uploaded_file, read_only=True)
+            sheet = workbook.active
+            for row in sheet.iter_rows():
+                attributes = [cell.value for cell in row]
+                print("Attributes:", attributes)
+
+            return redirect(self.success_url)
+        else:
+            return self.form_invalid(form)
