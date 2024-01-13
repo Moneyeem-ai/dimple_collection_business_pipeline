@@ -43,19 +43,33 @@
         // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
         const hot = new Handsontable(container, {
           height: 450,
-          colWidths: [170, 222, 130],  // Adjust the width of columns as needed
+          colWidths: [50, 130, 150, 150, 150, 150, 130, 130, 130, 130,130],  // Adjust the width of columns as needed
           colHeaders: [
-            "ID",
+            "Id",
             "Article Number",
             "Department",
-            "MRP"
+            "Category",
+            "Sub-Category",
+            "Brand",
+            "Size",
+            "Quantity",
+            "Color",
+            "MRP",
+            "WSP"
           ],
           data: data,
           columns: [
           { data: 'id' },
-            { data: 'product.article_number' },
-            { data: 'product.department' },
-            { data: 'mrp' }
+          { data: 'product.article_number' },
+          { data: 'product.department' },
+          {data: 'product.category'},
+          {data: 'product.subcategory'},
+          {data: 'product.brand'},
+          {data: 'size'},
+          {data: 'quantity'},
+          {data: 'color'},
+          { data: 'mrp' },
+          {data: 'wsp'}
           ],
           rowHeaders: true,
           contextMenu: true,

@@ -209,11 +209,11 @@ class PTFileEntryUpdateAPIView(APIView):
                 if entry_id:
                     try:
                         pt_file_entry = PTFileEntry.objects.get(id=entry_id)
-                        serializer = PTFileEntrySerializer(pt_file_entry, data={'mrp': data[4]}, partial=True)
+                        serializer = PTFileEntrySerializer(pt_file_entry, data={'mrp': data[9]}, partial=True)
                     except PTFileEntry.DoesNotExist:
                         return Response({'error': f'PTFileEntry not found for ID {entry_id}'}, status=status.HTTP_404_NOT_FOUND)
                 else:
-                    serializer = PTFileEntryCreateSerializer(data={'product': data[1] , 'mrp': data[4]}, many=False)
+                    serializer = PTFileEntryCreateSerializer(data={'product': data[1] , 'mrp': data[9]}, many=False)
 
                 print(serializer.is_valid())
                 if serializer.is_valid():
