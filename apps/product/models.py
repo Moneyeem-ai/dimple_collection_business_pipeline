@@ -98,7 +98,7 @@ class PTFileEntry(models.Model):
 
 
 class ProductBarcode(models.Model):
-    product = models.ForeignKey(PTFileEntry, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=128, unique=True)
     sold = models.BooleanField(default=False)
 

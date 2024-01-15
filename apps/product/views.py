@@ -53,6 +53,7 @@ class ProductBarcodeListView(
         context = super().get_context_data(**kwargs)
         upload_form = UploadFileForm()
         context['upload_form'] = upload_form
+        context['barcode_list']=ProductBarcode.objects.filter(sold=False)
         return context
 
 
@@ -178,28 +179,39 @@ class UploadFileView(FormView):
             sheet = workbook.active
             
             processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
-            for product in processing_entries:
-                count=product.quantity
+            for entry in processing_entries:
+                count=entry.quantity
+                matched_products=[]
             
-                for row in sheet.iter_rows():
+                for index, row in enumerate(sheet.iter_rows()):
+                    if index ==1:
+                        continue
+                    
                     if all(cell.value in (None, '') for cell in row):
                         continue
                     
                     attributes = [cell.value for cell in row]
-                    matched_products=[]
+                    
                     if (
-                        product.department.lower()==attributes[0].lower() and 
-                        product.brand.lower() ==attributes[6].lower() and 
-                        product.article_number.lower()==attributes[3].lower()
+                        entry.product.department.lower() == attributes[0].lower() and
+                        entry.product.brand.lower() == attributes[6].lower() and
+                        entry.product.article_number.lower() == str(int(attributes[3]))
                         ):
                         count=count-1
-                        matched_products.append({"product":product,"barcode":attributes[9],"sold":False})
+                        matched_products.append({"product":entry.product,"barcode":attributes[9],"sold":False})
                         
                     print("count",count)
                     
                     if count == 0:
                         for match_item in matched_products:
-                            ProductBarcode.create(product=match_item["product"], barcode=match_item["barcode"],sold=match_item["sold"])
+                            existing_record = ProductBarcode.objects.filter(barcode=match_item["barcode"]).first()
+                            if existing_record:
+                                # Update existing record
+                                existing_record.product = match_item["product"]
+                                existing_record.sold = match_item["sold"]
+                                existing_record.save()
+                            else:
+                                ProductBarcode.objects.create(product=match_item["product"], barcode=match_item["barcode"],sold=match_item["sold"])
                         
 
             return redirect(self.success_url)
