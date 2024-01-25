@@ -244,35 +244,51 @@ class PTFileEntryListAPIView(generics.ListAPIView):
 class PTFileEntryUpdateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            data_list= request.data
-            print("!!!!!!!!!!!")
-            print(data_list)
+            data_list = request.data
             existing_entries = PTFileEntry.objects.filter(status=PTStatus.PROCESSING)
-
+            print("!!!!!!!!!!1")
             existing_ids = [entry.id for entry in existing_entries]
             print(existing_ids)
-
             incoming_ids = [ int(entry[0]) if entry[0] else None for entry in data_list]
             print(incoming_ids)
 
             ids_to_delete = list(set(existing_ids) - set(incoming_ids))
             print(ids_to_delete)
             PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
-
+            # Update PTFileEntry and Product
             for data in data_list:
-                entry_id = data[0]
-                print(data)
-                print(entry_id)
-                if entry_id:
-                    try:
-                        pt_file_entry = PTFileEntry.objects.get(id=entry_id)
-                        serializer = PTFileEntrySerializer(pt_file_entry, data={'size': data[7],'quantity': data[8], 'color': data[9], 'mrp': data[10], 'wsp': data[11]})
-                    except PTFileEntry.DoesNotExist:
-                        return Response({'error': f'PTFileEntry not found for ID {entry_id}'}, status=status.HTTP_404_NOT_FOUND)
-                else:
-                    serializer = PTFileEntryCreateSerializer(data={'product': data[1] , 'size': data[7],'quantity': data[8], 'color': data[9], 'mrp': data[10], 'wsp': data[11]}, many=False)
+                print("#########")
+                entry_id = data[0]  # PTFileEntry ID
+                product_data = {
+                    # 'id': data[1],
+                    'article_number': data[2],
+                    'department': data[3],
+                    'category': data[4],
+                    'subcategory': data[5],
+                    'brand': data[6],
+                }
+                ptfile_entry_data = {
+                    'size': data[7],
+                    'quantity': data[8],
+                    'color': data[9],
+                    'mrp': data[10],
+                    'wsp': data[11]
+                }
 
-                print(serializer.is_valid())
+                if entry_id:
+                    # Update existing PTFileEntry and its associated Product
+                    pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                    product = pt_file_entry.product
+                    for key, value in product_data.items():
+                        setattr(product, key, value)
+                    product.save()
+                    serializer = PTFileEntrySerializer(pt_file_entry, data=ptfile_entry_data, partial=True)
+                else:
+                    # Create new PTFileEntry and Product
+                    product = Product.objects.create(**product_data)
+                    ptfile_entry_data['product'] = product.id
+                    serializer = PTFileEntryCreateSerializer(data=ptfile_entry_data)
+
                 if serializer.is_valid():
                     serializer.save(status=PTStatus.PENDING)
                 else:
