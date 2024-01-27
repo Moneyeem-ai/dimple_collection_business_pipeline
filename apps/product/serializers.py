@@ -7,12 +7,14 @@ class ProductSerializer(serializers.ModelSerializer):
         model = Product
         fields = ['id','article_number','department', 'category', 'subcategory', 'brand']
 
+
 class PTFileEntrySerializer(serializers.ModelSerializer):
     product = ProductSerializer(read_only=True)
 
     class Meta:
         model = PTFileEntry
         fields = ['id', 'product', 'size', 'quantity', 'color', 'mrp', 'wsp', 'status']
+
 
 class PTFileEntryCreateSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(write_only=True)
