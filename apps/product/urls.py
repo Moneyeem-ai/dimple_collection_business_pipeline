@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import ProductListView, ProductEntryView, ProductBarcodeListView, ProductTagImageView, PTFileEntryListView, PTFileEntryListAPIView, PTFileEntryListView, PTFileEntryUpdateAPIView, PTFileEntryAPIView, PTFileEntryView,UploadFileView
+from .views import ProductListView, ProductEntryView, ProductBarcodeListView, ProductTagImageView, PTFileEntryListView, PTFileEntryListAPIView, PTFileEntryListView, PTFileEntryUpdateAPIView, PTFileEntryAPIView, PTFileEntryView,UploadFileView,CategoryByDepartmentView,SubCategoryByCategoryView
 
 app_name = 'product'
 
@@ -16,4 +16,6 @@ urlpatterns = [
     path('api/ptfile_entry/', PTFileEntryAPIView.as_view(), name='api_ptfile_entry'),
     path('api/ptfile_update/', PTFileEntryUpdateAPIView.as_view(), name='api_ptfile_update'),
     path('api/ptfile_list/', PTFileEntryListAPIView.as_view(), name='api_ptfile_list'),
+    path('api/get_categories/', CategoryByDepartmentView.as_view(), name='api_get_categories'),
+    path('api/get_sub_categories/', CategoryByDepartmentView.as_view(), name='api_get_sub_categories'),
 ]

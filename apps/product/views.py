@@ -29,7 +29,8 @@ from apps.product.models import (
     PTFileEntry,
     PTStatus,
 )
-from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer
+from apps.department.models import Department, Category, SubCategory
+from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer, DepartmentSerializer
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
@@ -258,6 +259,14 @@ class PTFileEntryListView(
 class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PROCESSING")
     serializer_class = PTFileEntrySerializer
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        departments = DepartmentSerializer(Department.objects.all(), many=True).data
+        data = serializer.data
+        result = {"data": data, "departments": departments}
+        return Response(result)
 
 
 class PTFileEntryListAPIView(generics.ListAPIView):
@@ -326,3 +335,42 @@ class PTFileEntryUpdateAPIView(APIView):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class CategoryByDepartmentView(View):
+
+    def post(self, request, *args, **kwargs):
+        # Retrieve department_id from the request
+        department_name = request.POST.get("department_name")
+        print("department_name",department_name)
+        try:
+            department = Department.objects.get(department_name=department_name)
+            
+            categories = Category.objects.filter(department=department)
+
+            categories_list = [category.name for category in categories]
+
+            return JsonResponse({'categories': categories_list})
+
+        except Department.DoesNotExist:
+            return JsonResponse({'error': f'Department with name {department_name} does not exist'}, status=404)
+
+        
+class SubCategoryByCategoryView(View):
+
+    def post(self, request, *args, **kwargs):
+        # Retrieve department_id from the request
+        category_name = request.GET.get("category_name")
+        try:
+            category = Category.objects.get(category_name=category_name)
+            
+            subCategories = SubCategory.objects.filter(category=category)
+
+            sub_categories_list = [subCategory.name for subCategory in subCategories]
+
+            return JsonResponse({'categories': sub_categories_list})
+
+        except Category.DoesNotExist:
+            return JsonResponse({'error': f'Department with name {category_name} does not exist'}, status=404)
+
+ 
