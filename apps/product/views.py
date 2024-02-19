@@ -8,6 +8,7 @@ from django.views import View
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
+from django.utils import timezone
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductTagImage, ProductBarcode
@@ -30,10 +31,15 @@ from apps.product.models import (
     PTStatus,
 )
 from apps.department.models import Department, Category, SubCategory
-from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer, DepartmentSerializer
+from apps.product.serializers import (
+    PTFileEntrySerializer,
+    PTFileEntryCreateSerializer,
+    DepartmentSerializer,
+)
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
+from apps.product.models import ProcessingStatus
 
 
 class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
@@ -176,17 +182,28 @@ class UploadFileView(FormView):
     template_name = "pages/product/barcode_list.html"
     form_class = UploadFileForm
     success_url = "product:barcode_list"
+    
+    def get_context_data(self, **kwargs):
+            context = super().get_context_data(**kwargs)
+            context['status'] = 'Success'
+            return context
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES["file"]
+            
             workbook = load_workbook(uploaded_file, read_only=True)
             sheet = workbook.active
 
             processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
+            count = ProductBarcode.objects.all().values("batch_id").distinct("batch_id").count()
+            current_time = timezone.now()
+            formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
+            custom_id = f"Batch-{ count+1 }-{ formatted_time }"
             for entry in processing_entries:
                 count = entry.quantity
+                print("quantity",count)
                 matched_products = []
 
                 for index, row in enumerate(sheet.iter_rows()):
@@ -197,12 +214,16 @@ class UploadFileView(FormView):
                         continue
 
                     attributes = [cell.value for cell in row]
-
+                    print(type(attributes[3])==str)
+                    print(type(attributes[3]))
+                    print(str(attributes[3]).lower())
+                    print(entry.product.article_number.lower())
+                    print(str(attributes[3]).lower()==entry.product.article_number.lower())
+                    print("rows", attributes)
                     if (
                         entry.product.department.lower() == attributes[0].lower()
                         and entry.product.brand.lower() == attributes[6].lower()
-                        and entry.product.article_number.lower()
-                        == str(int(attributes[3]))
+                        and entry.product.article_number.lower() == str(attributes[3]).lower() if type(attributes[3])==str else str(int(attributes[3])).lower()
                     ):
                         count = count - 1
                         matched_products.append(
@@ -221,23 +242,28 @@ class UploadFileView(FormView):
                                 barcode=match_item["barcode"]
                             ).first()
                             if existing_record:
-                                # Update existing record
-                                entry.status = PTStatus.COMPLETED
-                                entry.save()
+                                print("existing",existing_record.product.processed)
                                 existing_record.product = match_item["product"]
                                 existing_record.sold = match_item["sold"]
                                 existing_record.save()
                             else:
-                                ProductBarcode.objects.create(
+                                new_product=ProductBarcode.objects.create(
+                                    batch_id=custom_id,
                                     product=match_item["product"],
                                     barcode=match_item["barcode"],
                                     sold=match_item["sold"],
                                 )
-                                entry.status = PTStatus.COMPLETED
-                                entry.save()
+                                
+                                print("new_record",new_product.product.processed)
+                                new_product.save()
+                            entry.status = PTStatus.COMPLETED
+                            entry.save()
+                            
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
+        
+        
 
 
 class PTFileEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -259,7 +285,7 @@ class PTFileEntryListView(
 class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PROCESSING")
     serializer_class = PTFileEntrySerializer
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
@@ -342,20 +368,23 @@ class CategoryByDepartmentView(View):
     def post(self, request, *args, **kwargs):
         # Retrieve department_id from the request
         department_name = request.POST.get("department_name")
-        print("department_name",department_name)
+        print("department_name", department_name)
         try:
             department = Department.objects.get(department_name=department_name)
-            
+
             categories = Category.objects.filter(department=department)
 
             categories_list = [category.name for category in categories]
 
-            return JsonResponse({'categories': categories_list})
+            return JsonResponse({"categories": categories_list})
 
         except Department.DoesNotExist:
-            return JsonResponse({'error': f'Department with name {department_name} does not exist'}, status=404)
+            return JsonResponse(
+                {"error": f"Department with name {department_name} does not exist"},
+                status=404,
+            )
 
-        
+
 class SubCategoryByCategoryView(View):
 
     def post(self, request, *args, **kwargs):
@@ -363,14 +392,15 @@ class SubCategoryByCategoryView(View):
         category_name = request.GET.get("category_name")
         try:
             category = Category.objects.get(category_name=category_name)
-            
+
             subCategories = SubCategory.objects.filter(category=category)
 
             sub_categories_list = [subCategory.name for subCategory in subCategories]
 
-            return JsonResponse({'categories': sub_categories_list})
+            return JsonResponse({"categories": sub_categories_list})
 
         except Category.DoesNotExist:
-            return JsonResponse({'error': f'Department with name {category_name} does not exist'}, status=404)
-
- 
+            return JsonResponse(
+                {"error": f"Department with name {category_name} does not exist"},
+                status=404,
+            )
