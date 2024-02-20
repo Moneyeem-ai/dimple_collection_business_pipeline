@@ -1,7 +1,7 @@
 import uuid
 import base64
 
-from django.shortcuts import redirect
+from django.shortcuts import redirect,render
 from django.views import generic
 from django.http import JsonResponse
 from django.views import View
@@ -65,7 +65,8 @@ class ProductBarcodeListView(
         context = super().get_context_data(**kwargs)
         upload_form = UploadFileForm()
         context["upload_form"] = upload_form
-        context["barcode_list"] = ProductBarcode.objects.filter(sold=False)
+        batch_list = ProductBarcode.objects.values("batch_id").distinct()
+        context["batch_list"] = batch_list
         return context
 
 
@@ -182,28 +183,33 @@ class UploadFileView(FormView):
     template_name = "pages/product/barcode_list.html"
     form_class = UploadFileForm
     success_url = "product:barcode_list"
-    
+
     def get_context_data(self, **kwargs):
-            context = super().get_context_data(**kwargs)
-            context['status'] = 'Success'
-            return context
+        context = super().get_context_data(**kwargs)
+        context["status"] = "Success"
+        return context
 
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES["file"]
-            
+
             workbook = load_workbook(uploaded_file, read_only=True)
             sheet = workbook.active
 
             processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
-            count = ProductBarcode.objects.all().values("batch_id").distinct("batch_id").count()
+            count = (
+                ProductBarcode.objects.all()
+                .values("batch_id")
+                .distinct("batch_id")
+                .count()
+            )
             current_time = timezone.now()
             formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
             custom_id = f"Batch-{ count+1 }-{ formatted_time }"
             for entry in processing_entries:
                 count = entry.quantity
-                print("quantity",count)
+                print("quantity", count)
                 matched_products = []
 
                 for index, row in enumerate(sheet.iter_rows()):
@@ -214,16 +220,22 @@ class UploadFileView(FormView):
                         continue
 
                     attributes = [cell.value for cell in row]
-                    print(type(attributes[3])==str)
+                    print(type(attributes[3]) == str)
                     print(type(attributes[3]))
                     print(str(attributes[3]).lower())
                     print(entry.product.article_number.lower())
-                    print(str(attributes[3]).lower()==entry.product.article_number.lower())
+                    print(
+                        str(attributes[3]).lower()
+                        == entry.product.article_number.lower()
+                    )
                     print("rows", attributes)
                     if (
                         entry.product.department.lower() == attributes[0].lower()
                         and entry.product.brand.lower() == attributes[6].lower()
-                        and entry.product.article_number.lower() == str(attributes[3]).lower() if type(attributes[3])==str else str(int(attributes[3])).lower()
+                        and entry.product.article_number.lower()
+                        == str(attributes[3]).lower()
+                        if type(attributes[3]) == str
+                        else str(int(attributes[3])).lower()
                     ):
                         count = count - 1
                         matched_products.append(
@@ -242,28 +254,26 @@ class UploadFileView(FormView):
                                 barcode=match_item["barcode"]
                             ).first()
                             if existing_record:
-                                print("existing",existing_record.product.processed)
+                                print("existing", existing_record.product.processed)
                                 existing_record.product = match_item["product"]
                                 existing_record.sold = match_item["sold"]
                                 existing_record.save()
                             else:
-                                new_product=ProductBarcode.objects.create(
+                                new_product = ProductBarcode.objects.create(
                                     batch_id=custom_id,
                                     product=match_item["product"],
                                     barcode=match_item["barcode"],
                                     sold=match_item["sold"],
                                 )
-                                
-                                print("new_record",new_product.product.processed)
+
+                                print("new_record", new_product.product.processed)
                                 new_product.save()
                             entry.status = PTStatus.COMPLETED
                             entry.save()
-                            
+
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
-        
-        
 
 
 class PTFileEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -404,3 +414,15 @@ class SubCategoryByCategoryView(View):
                 {"error": f"Department with name {category_name} does not exist"},
                 status=404,
             )
+
+
+class BarcodeBatchDetailsView(
+    SideBarSelectedMixin, LoginRequiredMixin, View
+):
+    template_name = "pages/product/barcode_batch_detail.html"
+
+    def get(self, request, batch_id, *args, **kwargs):
+        context={}
+        batch_details = ProductBarcode.objects.filter(batch_id=batch_id)
+        context["batch_details"] = batch_details
+        return render(request, self.template_name, context)
