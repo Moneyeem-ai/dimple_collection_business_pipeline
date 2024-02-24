@@ -106,4 +106,4 @@ class ProductBarcode(models.Model):
     sold = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.barcode
+        return str(self.barcode)

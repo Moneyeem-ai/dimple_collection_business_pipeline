@@ -1,7 +1,7 @@
 import uuid
 import base64
 
-from django.shortcuts import redirect,render
+from django.shortcuts import redirect, render
 from django.views import generic
 from django.http import JsonResponse
 from django.views import View
@@ -198,15 +198,16 @@ class UploadFileView(FormView):
             sheet = workbook.active
 
             processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
-            count = (
+            barcode_product_number = (
                 ProductBarcode.objects.all()
                 .values("batch_id")
                 .distinct("batch_id")
                 .count()
             )
+            print("barcode_product_number", barcode_product_number)
             current_time = timezone.now()
             formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
-            custom_id = f"Batch-{ count+1 }-{ formatted_time }"
+            custom_id = f"Batch-{ barcode_product_number+1 }-{ formatted_time }"
             for entry in processing_entries:
                 count = entry.quantity
                 print("quantity", count)
@@ -232,10 +233,9 @@ class UploadFileView(FormView):
                     if (
                         entry.product.department.lower() == attributes[0].lower()
                         and entry.product.brand.lower() == attributes[6].lower()
-                        and entry.product.article_number.lower()
-                        == str(attributes[3]).lower()
-                        if type(attributes[3]) == str
-                        else str(int(attributes[3])).lower()
+                        and entry.product.article_number.lower() == str(attributes[3]).lower()
+                        # if type(attributes[3]) == str
+                        # else str(int(attributes[3])).lower()
                     ):
                         count = count - 1
                         matched_products.append(
@@ -247,29 +247,30 @@ class UploadFileView(FormView):
                         )
 
                     print("count", count)
-
+                    print(
+                        "appending object",
+                        {
+                            "product": entry.product,
+                            "barcode": attributes[9],
+                            "sold": False,
+                        },
+                    )
+                    print("matched_productsarray", matched_products)
                     if count == 0:
+                        print("enter in count0")
                         for match_item in matched_products:
-                            existing_record = ProductBarcode.objects.filter(
-                                barcode=match_item["barcode"]
-                            ).first()
-                            if existing_record:
-                                print("existing", existing_record.product.processed)
-                                existing_record.product = match_item["product"]
-                                existing_record.sold = match_item["sold"]
-                                existing_record.save()
-                            else:
-                                new_product = ProductBarcode.objects.create(
-                                    batch_id=custom_id,
-                                    product=match_item["product"],
-                                    barcode=match_item["barcode"],
-                                    sold=match_item["sold"],
-                                )
-
-                                print("new_record", new_product.product.processed)
-                                new_product.save()
+                            new_product = ProductBarcode.objects.create(
+                                batch_id=custom_id,
+                                product=match_item["product"],
+                                barcode=match_item["barcode"],
+                                sold=match_item["sold"],
+                            )
+                            print("new_product", new_product)
+                            print("new_record", new_product.product.processed)
+                            new_product.save()
                             entry.status = PTStatus.COMPLETED
                             entry.save()
+                        break
 
             return redirect(self.success_url)
         else:
@@ -416,13 +417,11 @@ class SubCategoryByCategoryView(View):
             )
 
 
-class BarcodeBatchDetailsView(
-    SideBarSelectedMixin, LoginRequiredMixin, View
-):
+class BarcodeBatchDetailsView(SideBarSelectedMixin, LoginRequiredMixin, View):
     template_name = "pages/product/barcode_batch_detail.html"
 
     def get(self, request, batch_id, *args, **kwargs):
-        context={}
+        context = {}
         batch_details = ProductBarcode.objects.filter(batch_id=batch_id)
         context["batch_details"] = batch_details
         return render(request, self.template_name, context)
