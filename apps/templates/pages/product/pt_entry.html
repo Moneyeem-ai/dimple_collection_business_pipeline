@@ -49,6 +49,9 @@
 <!-- Include Handsontable JS -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/handsontable@14.1/dist/handsontable.full.min.js"></script>
+<link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.1/dist/handsontable.full.min.css" /> 
+<script src="https://handsontable.com/docs/scripts/fixer.js"></script>
 <!-- DataTables  & Plugins -->
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
@@ -84,7 +87,39 @@
       .then(response => response.json())
       .then(data => {
         // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
+      console.log("this is api response",data)
+      var departments = data.departments;
+      data = data.data;
         const hot = new Handsontable(container, {
+           afterChange: (changes,source) => {
+            if (changes && source === 'loadData') {
+              return; // Ignore changes during initial data loading
+            }
+            
+            changes && changes.forEach(([row, col, oldValue, newValue]) => {
+              console.log("col no ",col)
+              // Some logic...
+              if (col === "product.department") { // Department changed
+                console.log("col 3")
+                fetch("/product/api/get_categories/", {
+                  method: 'POST',
+                  headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({'department_name':newValue}),
+                }).then(response => response.json())
+                .then(data =>{
+                  console.log("this is category response")
+                })
+              } else if (col === "product.subcategory") { // Category changed
+                console.log("col 4")
+                console.log("category changed")
+                console.log(hot, row, newValue);
+              }
+              
+            });
+          }, 
           height: 450,
           colWidths: [50, 80, 130, 150, 150, 150, 157, 130, 130, 130, 130,130],  // Adjust the width of columns as needed
           colHeaders: [
@@ -106,23 +141,27 @@
           { data: 'id', readOnly: true  },
           {data: 'product.id'},
           { data: 'product.article_number' },
-          { data: 'product.department' },
+          { 
+            data: 'product.department',
+          },
           {data: 'product.category'},
-          {data: 'product.subcategory'},
+          {data: 'product.subcategory' },
           {data: 'product.brand'},
           {data: 'size'},
           {data: 'quantity'},
           {data: 'color'},
           { data: 'mrp' },
-          {data: 'wsp'}
+          {data: 'wsp'},
+          
           ],
           rowHeaders: true,
           contextMenu: true,
           autoWrapRow: true,
           search: true,
           height: 'auto',
-          licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-        });
+          licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+        }); 
+       
         const updateDataButton = document.getElementById('updateDataButton');
                         updateDataButton.addEventListener('click', function () {
                             // Get the data from the Handsontable instance
