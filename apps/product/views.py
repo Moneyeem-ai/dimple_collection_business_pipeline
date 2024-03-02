@@ -353,7 +353,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 else:
                     # Create new PTFileEntry and Product
                     product = Product.objects.create(**product_data)
-                    ptfile_entry_data["product"] = product.id
+                    ptfile_entry_data["product_id"] = product.id
                     serializer = PTFileEntryCreateSerializer(data=ptfile_entry_data)
 
                 if serializer.is_valid():
