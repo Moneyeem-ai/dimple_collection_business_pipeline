@@ -11,6 +11,7 @@ APPS_DIR = BASE_DIR / "apps"
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # though not all of them may be available with every OS.
 # In Windows, this must be set to your system time zone.
+USE_TZ = True
 TIME_ZONE = 'Asia/Kolkata'
 # https://docs.djangoproject.com/en/dev/ref/settings/#language-code
 LANGUAGE_CODE = "en-us"
@@ -19,7 +20,6 @@ SITE_ID = 1
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-i18n
 USE_I18N = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#use-tz
-USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(BASE_DIR / "locale")]
 
@@ -234,8 +234,8 @@ LOGGING = {
 # handler404 = 'apps.errors.views.handler404'
 # handler500 = 'apps.errors.views.handler500'
 
-CELERY_BROKER_URL = "pyamqp://manas:1234@localhost:5672/"
-CELERY_RESULT_BACKEND = "rpc://manas:1234@localhost:5672/"
+CELERY_BROKER_URL = "pyamqp://ash:1234@localhost:5672/"
+CELERY_RESULT_BACKEND = "rpc://ash:1234@localhost:5672/"
 CELERY_RESULT_EXTENDED = True
 CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
 CELERY_RESULT_BACKEND_MAX_RETRIES = 10
