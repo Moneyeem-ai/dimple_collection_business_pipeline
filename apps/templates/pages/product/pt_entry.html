@@ -68,136 +68,100 @@
 <!-- Page specific script -->
 <script>
     window.onload = function (){
-        console.log("cookie:",document.cookie)
     const container = document.querySelector('#example');
-  function fetchDataWithCSRFToken(url) {
-    try {
-    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+    function fetchDataWithCSRFToken(url) {
+        try {
+            const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
 
-    if (!csrfToken) {
-        throw new Error('CSRF token not found.');
-    }
-    fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-CSRFToken': csrfToken,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(data => {
-        // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
-      console.log("this is api response",data)
-      var departments = data.departments;
-      data = data.data;
-        const hot = new Handsontable(container, {
-           afterChange: (changes,source) => {
-            if (changes && source === 'loadData') {
-              return; // Ignore changes during initial data loading
+            if (!csrfToken) {
+                throw new Error('CSRF token not found.');
             }
-            
-            changes && changes.forEach(([row, col, oldValue, newValue]) => {
-              console.log("col no ",col)
-              // Some logic...
-              if (col === "product.department") { // Department changed
-                console.log("col 3")
-                fetch("/product/api/get_categories/", {
-                  method: 'POST',
-                  headers: {
+            fetch(url, {
+                method: 'GET',
+                headers: {
                     'X-CSRFToken': csrfToken,
                     'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({'department_name':newValue}),
-                }).then(response => response.json())
-                .then(data =>{
-                  console.log("this is category response")
-                })
-              } else if (col === "product.subcategory") { // Category changed
-                console.log("col 4")
-                console.log("category changed")
-                console.log(hot, row, newValue);
-              }
-              
-            });
-          }, 
-          height: 450,
-          colWidths: [50, 80, 130, 150, 150, 150, 157, 130, 130, 130, 130,130],  // Adjust the width of columns as needed
-          colHeaders: [
-            "Id",
-            "Product ID",
-            "Article Number",
-            "Department",
-            "Category",
-            "Sub-Category",
-            "Brand",
-            "Size",
-            "Quantity",
-            "Color",
-            "MRP",
-            "WSP"
-          ],
-          data: data,
-          columns: [
-          { data: 'id', readOnly: true  },
-          {data: 'product.id'},
-          { data: 'product.article_number' },
-          { 
-            data: 'product.department',
-          },
-          {data: 'product.category'},
-          {data: 'product.subcategory' },
-          {data: 'product.brand'},
-          {data: 'size'},
-          {data: 'quantity'},
-          {data: 'color'},
-          { data: 'mrp' },
-          {data: 'wsp'},
-          
-          ],
-          rowHeaders: true,
-          contextMenu: true,
-          autoWrapRow: true,
-          search: true,
-          height: 'auto',
-          licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
-        }); 
-       
-        const updateDataButton = document.getElementById('updateDataButton');
-                        updateDataButton.addEventListener('click', function () {
-                            // Get the data from the Handsontable instance
-                            const updatedData = hot.getData();
-                            console.log(updatedData)
-                            
-                            // Make a POST request to the PTFileEntryUpdateAPIView
-                            fetch('/product/api/ptfile_update/', {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRFToken': csrfToken,
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(updatedData),
-                            })
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log('Data updated successfully:', data);
-                                    if (data.success) {
-                                         window.location.href = '/product/ptfile_list/';
-                                    } else {
-                                        console.error('Error updating data:', data.error);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error updating data:', error);
-                                });
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("this is api response",data)
+                var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
+                const hot = new Handsontable(container, {
+                    height: 400,
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130],
+                    colHeaders: true,
+                    data: data.data,
+                    columns: [
+                        { title: "Id", data: 'id', readOnly: true },
+                        { title: "Product ID", data: 'product.id' },
+                        { title: "Article Number", data: 'product.article_number' },
+                        { 
+                            title: "Department",
+                            data: 'product.department.department_name',
+                            type: 'autocomplete',
+                            source: departments.map(department => department.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedDepartment = departments.find(department => department.name === value);
+                                td.setAttribute('data-department-id', matchedDepartment ? matchedDepartment.id : '');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                        { title: "Category", data: 'product.category' },
+                        { title: "Sub-Category", data: 'product.subcategory' },
+                        { title: "Brand", data: 'product.brand' },
+                        { title: "Size", data: 'size' },
+                        { title: "Quantity", data: 'quantity' },
+                        { title: "Color", data: 'color' },
+                        { title: "MRP", data: 'mrp' },
+                        { title: "WSP", data: 'wsp' },
+                    ],
+                    autoWrapRow: true,
+                    autoWrapCol: true,
+                    licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+                }); 
+                
+                const updateDataButton = document.getElementById('updateDataButton');
+                updateDataButton.addEventListener('click', function () {
+                    // Get the data from the Handsontable instance
+                    
+                    const updatedData = hot.getData().map(row => {
+                        const departmentCell = document.querySelector(`tr[aria-rowindex="${row[0] + 1}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                        const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                        row[3] = departmentId;
+                        return row;
+                    });
+                    console.log(updatedData);
+                    // Make a POST request to the PTFileEntryUpdateAPIView
+                    fetch('/product/api/ptfile_update/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedData),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/product/ptfile_list/';
+                            } else {
+                                console.error('Error updating data:', data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating data:', error);
                         });
-      });
+                });
+            });
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
     }
-    catch (error) {
-      console.error('Error:', error);
-    }
-  }
 
-  fetchDataWithCSRFToken('/product/api/ptfile_entry/');
+    fetchDataWithCSRFToken('/product/api/ptfile_entry/');
 };
   </script>
 

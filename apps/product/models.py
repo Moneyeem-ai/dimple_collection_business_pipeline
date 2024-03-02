@@ -5,6 +5,8 @@ import hashlib
 
 from django.db import models
 
+from apps.department.models import Department
+
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +25,7 @@ class ProcessingStatus(models.TextChoices):
 
 
 class Product(models.Model):
-    department = models.CharField(max_length=64, null=True, blank=True)
+    department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.CASCADE)
     category = models.CharField(max_length=64, null=True, blank=True)
     subcategory = models.CharField(max_length=64, null=True, blank=True)
     brand = models.CharField(max_length=64, null=True, blank=True)

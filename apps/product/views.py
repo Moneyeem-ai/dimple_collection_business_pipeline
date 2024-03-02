@@ -327,7 +327,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 product_data = {
                     # 'id': data[1],
                     "article_number": data[2],
-                    "department": data[3],
+                    "department_id": data[3],
                     "category": data[4],
                     "subcategory": data[5],
                     "brand": data[6],

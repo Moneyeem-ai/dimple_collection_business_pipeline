@@ -18,6 +18,8 @@ def process_image_data(image_data, product_image_id):
         data = extract_data_from_tag(image_data)
         
         valid_keys = [field.name for field in Product._meta.get_fields()]
+        valid_keys.remove("department")
+        valid_keys.append("department_id")
         valid_data = {key: value for key, value in data.items() if key in valid_keys}
         valid_data["metadata"] = data
         valid_data["product_images"] = ProductTagImage.objects.get(id=product_image_id)

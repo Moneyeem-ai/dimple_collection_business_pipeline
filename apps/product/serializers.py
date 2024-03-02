@@ -22,8 +22,23 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ["id", "department_name"]
 
 
+class ProductReadSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer(read_only=True)
+    
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "article_number",
+            "department",
+            "category",
+            "subcategory",
+            "brand",
+        ]
+
+
 class PTFileEntrySerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
+    product = ProductReadSerializer(read_only=True)
 
     class Meta:
         model = PTFileEntry
