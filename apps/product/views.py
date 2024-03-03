@@ -36,6 +36,8 @@ from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
     DepartmentSerializer,
+    CategorySerializer,
+    SubCategorySerializer
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
@@ -303,8 +305,10 @@ class PTFileEntryAPIView(generics.ListAPIView):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         departments = DepartmentSerializer(Department.objects.all(), many=True).data
+        categories = CategorySerializer(Category.objects.all(), many=True).data
+        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         data = serializer.data
-        result = {"data": data, "departments": departments}
+        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories}
         return Response(result)
 
 

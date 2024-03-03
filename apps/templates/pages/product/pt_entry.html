@@ -85,8 +85,11 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log("this is api response",data)
+                console.log("this is api response",data);
                 var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
+                var categories = data.categories.map((category) => ({name: category.category_name, id: category.id, department: category.department}));
+                var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id, category: subcategory.category}));
+                console.log("categoreies", categories);
                 const hot = new Handsontable(container, {
                     height: 400,
                     contextMenu: {
@@ -125,8 +128,30 @@
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
-                        { title: "Category", data: 'product.category' },
-                        { title: "Sub-Category", data: 'product.subcategory' },
+                        { 
+                            title: "Category",
+                            data: 'product.category.category_name',
+                            type: 'autocomplete',
+                            source: categories.map(category => category.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedCategory = categories.find(category => category.name === value);
+                                td.setAttribute('data-category-id', matchedCategory ? matchedCategory.id : '');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                        { 
+                            title: "Sub-Category",
+                            data: 'product.subcategory.subcategory_name',
+                            type: 'autocomplete',
+                            source: subcategories.map(subcategory => subcategory.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedSubCategory = subcategories.find(subcategory => subcategory.name === value);
+                                td.setAttribute('data-subcategory-id', matchedSubCategory ? matchedSubCategory.id : '');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
                         { title: "Brand", data: 'product.brand' },
                         { title: "Size", data: 'size' },
                         { title: "Quantity", data: 'quantity' },

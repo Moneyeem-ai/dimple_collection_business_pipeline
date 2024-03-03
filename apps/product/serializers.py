@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import PTFileEntry, Product
-from apps.department.models import Department
+from apps.department.models import Department, Category, SubCategory
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -20,6 +20,18 @@ class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
         fields = ["id", "department_name"]
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "department", "category_name"]
+
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = ["id", "category", "subcategory_name"]
 
 
 class ProductReadSerializer(serializers.ModelSerializer):
