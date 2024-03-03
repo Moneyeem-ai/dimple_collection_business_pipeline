@@ -205,7 +205,8 @@ class UploadFileView(FormView):
                 .count()
             )
             print("barcode_product_number", barcode_product_number)
-            current_time = timezone.now()
+            tz = pytz.timezone('Asia/Kolkata')
+            current_time = timezone.now().astimezone(tz)
             formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
             custom_id = f"Batch-{ barcode_product_number+1 }-{ formatted_time }"
             for entry in processing_entries:
