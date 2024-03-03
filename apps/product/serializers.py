@@ -35,7 +35,9 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
 
 class ProductReadSerializer(serializers.ModelSerializer):
-    department = DepartmentSerializer(read_only=True)
+    department = DepartmentSerializer()
+    category = CategorySerializer()
+    subcategory = SubCategorySerializer()
     
     class Meta:
         model = Product
