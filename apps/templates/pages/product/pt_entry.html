@@ -43,6 +43,33 @@
             </div>
         </div>
     </section>
+    <div class="modal fade" id="modal-default" >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="image-type">Upload File</h4>
+            
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+            <div class="modal-footer d-flex flex-column">
+              <div id="product_tag_image" style="z-index: 1000;">
+              </div>
+              <button type="button" class="btn btn-default" data-dismiss="modal">
+                Close
+              </button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
@@ -87,7 +114,6 @@
       .then(response => response.json())
       .then(data => {
         // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
-      console.log("this is api response",data)
       var departments = data.departments;
       data = data.data;
         const hot = new Handsontable(container, {
@@ -110,7 +136,7 @@
                   body: JSON.stringify({'department_name':newValue}),
                 }).then(response => response.json())
                 .then(data =>{
-                  console.log("this is category response")
+                  console.log("this is category response",data)
                 })
               } else if (col === "product.subcategory") { // Category changed
                 console.log("col 4")
@@ -121,7 +147,7 @@
             });
           }, 
           height: 450,
-          colWidths: [50, 80, 130, 150, 150, 150, 157, 130, 130, 130, 130,130],  // Adjust the width of columns as needed
+          colWidths: [50, 80, 130, 150, 150, 150, 157, 130, 130, 130, 130,130,150,150],  // Adjust the width of columns as needed
           colHeaders: [
             "Id",
             "Product ID",
@@ -134,7 +160,9 @@
             "Quantity",
             "Color",
             "MRP",
-            "WSP"
+            "WSP",
+            "Product Image",
+            "Tag Image",
           ],
           data: data,
           columns: [
@@ -154,8 +182,24 @@
           {data: 'color'},
           { data: 'mrp' },
           {data: 'wsp'},
-          
+          {
+            data:'product_images.product_image',
+            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                td.innerHTML = '<button type="button" data-product-img="' + value + '"  data-toggle="modal" data-target="#modal-default"  class="btn btn-primary m-2 btn-view-product" onclick="viewProduct(this)">View Product</button>';
+                return td;
+            },
+            editor: false
+          },
+          {
+            data:'product_images.tag_image',
+            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                td.innerHTML = '<button type="button" data-tag-img="' + value + '" data-toggle="modal" data-target="#modal-default" class="btn btn-primary m-2 btn-view-tag" onclick="viewTag(this)">View Tag</button>';
+                return td;
+            },
+            editor: false
+          } 
           ],
+          
           rowHeaders: true,
           contextMenu: true,
           autoWrapRow: true,
@@ -202,5 +246,35 @@
   fetchDataWithCSRFToken('/product/api/ptfile_entry/');
 };
   </script>
+  <script>
+    function viewProduct(button) {
+      var productImgSrc = button.getAttribute('data-product-img');
+      var imgElement = document.createElement('img');
+      imgElement.classList.add('img-fluid', 'rounded');
+      imgElement.setAttribute('height', '100%');
+      imgElement.setAttribute('width', '100%');
+      imgElement.src = productImgSrc;
+      const imageTypeHeading=document.getElementById('image-type') 
+      imageTypeHeading.innerHTML = 'Product Image'; 
+      var productTagImageDiv = document.getElementById('product_tag_image');
+      productTagImageDiv.innerHTML = ''; 
+      productTagImageDiv.appendChild(imgElement);
+    }
+  
+    function viewTag(button) {
+      var productImgSrc = button.getAttribute('data-tag-img');
+      var imgElement = document.createElement('img');
+      imgElement.classList.add('img-fluid', 'rounded');
+      imgElement.setAttribute('height', '100%');
+      imgElement.setAttribute('width', '100%');
+      imgElement.src = productImgSrc;
+      const imageTypeHeading=document.getElementById('image-type') 
+      imageTypeHeading.innerHTML = 'Tag Image'; 
+      var productTagImageDiv = document.getElementById('product_tag_image');
+      productTagImageDiv.innerHTML = ''; 
+      productTagImageDiv.appendChild(imgElement);
+    }
+  </script>
+  
 
 {% endblock extra_scripts %}
