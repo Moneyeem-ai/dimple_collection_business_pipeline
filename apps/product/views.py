@@ -296,6 +296,14 @@ class PTFileEntryListView(
     parent = "product"
     segment = "ptfile_list"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['user_type'] = self.request.user.user_type
+        else:
+            context['user_type'] = None 
+        return context
+
 
 class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PROCESSING")
