@@ -38,8 +38,12 @@
                             <h3 class="card-title">This is Generated PT File</h3>
                             {% if request.user.user_type != 'FT' %}
                             <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px;">Update Data</button>
+                            <a href="{% url 'product:export_ptfiles' %}">
+                              <button type="button" class="btn btn-block btn-primary">Export Data</button>
+                          </a>
                             {% endif %}
                         </div>
+                      
                     </div>
                     <div id="example"></div>
                 </div>

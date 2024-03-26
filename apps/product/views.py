@@ -4,12 +4,15 @@ import pytz
 
 from django.shortcuts import redirect, render
 from django.views import generic
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.utils import timezone
+from django_pandas.io import read_frame
+
+import pandas as pd
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductTagImage, ProductBarcode
@@ -439,3 +442,37 @@ class BarcodeBatchDetailsView(SideBarSelectedMixin, LoginRequiredMixin, View):
         batch_details = ProductBarcode.objects.filter(batch_id=batch_id)
         context["batch_details"] = batch_details
         return render(request, self.template_name, context)
+
+
+
+class ExportPTFilesView(View):
+    login_url = "users:account_login"
+
+    def get(self, request, *args, **kwargs):
+        queryset = PTFileEntry.objects.filter(status=PTStatus.PENDING).select_related('product', 'product__department')
+
+        fields_to_export = [
+            'product__department__department_name', 'product__category__category_name', 'product__subcategory__subcategory_name',
+            'product__article_number', 'color', 'size', 'product__brand', 'wsp', 'mrp'
+        ]
+        df = read_frame(queryset, fieldnames=fields_to_export)
+        column_mapping = {
+            'product__department__department_name': 'Department',
+            'product__category__category_name': 'Category',
+            'product__subcategory__subcategory_name': 'Subcategory',
+            'product__article_number': 'Article Number',
+            'color': 'Color',
+            'size': 'Size',
+            'product__brand': 'Brand',
+            'wsp': 'WSP',
+            'mrp': 'MRP'
+        }
+        df = df.rename(columns=column_mapping)
+        excel_file_path = "data/ptfiles_export.xlsx"
+        df.to_excel(excel_file_path, index=False)
+
+        with open(excel_file_path, 'rb') as excel_file:
+            response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
+
+        return response
