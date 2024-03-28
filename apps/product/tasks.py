@@ -26,14 +26,16 @@ def process_image_data(image_data, product_image_id):
         valid_data = {key: value for key, value in data.items() if key in valid_keys}
         valid_data["metadata"] = data
         valid_data["product_images"] = ProductTagImage.objects.get(id=product_image_id)
-        product = Product.objects.create(**valid_data)
-        print(product.__dict__)
         department, created = Department.objects.get_or_create(department_name = "None")
-        product.category, created = Category.objects.get_or_create(category_name="None", department=department)
-        product.subcategory, created = SubCategory.objects.get_or_create(subcategory_name="None", category=product.category)
-        product.save()
+        valid_data["category"], created = Category.objects.get_or_create(category_name="None", department=department)
+        valid_data["subcategory"], created = SubCategory.objects.get_or_create(subcategory_name="None", category=valid_data["category"])
+        print("===========================")
+        print(valid_data["category"])
+        print(valid_data["subcategory"])
+        product = Product.objects.create(**valid_data)
         logger.info(f"product: {product}")
         logger.info(str(product.id is None))
+        
         if product.id is not None:
             pt_file_data = PTFileEntry.objects.create(product=product)
 

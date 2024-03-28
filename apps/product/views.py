@@ -329,12 +329,24 @@ class PTFileEntryListAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PENDING")
     serializer_class = PTFileEntrySerializer
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        departments = DepartmentSerializer(Department.objects.all(), many=True).data
+        categories = CategorySerializer(Category.objects.all(), many=True).data
+        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
+        brands = BrandSerializer(Brand.objects.all(), many=True).data
+        data = serializer.data
+        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories, "brands":brands}
+        return Response(result)
+
 
 class PTFileEntryUpdateAPIView(APIView):
     def post(self, request, *args, **kwargs):
         try:
-            data_list = request.data
-            existing_entries = PTFileEntry.objects.filter(status=PTStatus.PROCESSING)
+            data = request.data
+            data_list = data.get("data")
+            existing_entries = PTFileEntry.objects.filter(status=data.get("status"))
             existing_ids = [entry.id for entry in existing_entries]
             incoming_ids = [int(entry[0]) if entry[0] else None for entry in data_list]
 

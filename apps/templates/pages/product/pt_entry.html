@@ -254,6 +254,7 @@
                         return acc;
                     }, []);
                     console.log(updatedData);
+                    var final_data = {"data": updatedData, "status": "PROCESSING"};
                     // Make a POST request to the PTFileEntryUpdateAPIView
                     fetch('/product/api/ptfile_update/', {
                         method: 'POST',
@@ -261,7 +262,7 @@
                             'X-CSRFToken': csrfToken,
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(updatedData),
+                        body: JSON.stringify(final_data),
                     })
                         .then(response => response.json())
                         .then(data => {

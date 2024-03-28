@@ -45,17 +45,17 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         existing_entry = None
+        logger.info(self)
         # logger.info(existing_entry)
-        if self.brand and self.article_number:
+        if self.article_number:
             # Calculate hash using SHA256
-            hash_string = f"{self.department}{self.brand}{self.article_number}"
+            hash_string = f"{self.department.department_name}{self.brand.brand_name}{self.article_number}"
             hash_value = hashlib.sha256(hash_string.encode()).hexdigest()
             self.hash_value = hash_value
             try:
-                existing_entry = Product.objects.get(hash_value=hash_value)
+                existing_entry = Product.objects.filter(hash_value=hash_value).first()
             except Exception as e:
                 existing_entry = None
-                logger.info("!!!!!!!")
                 logger.info(f"Error: {e}")
         if existing_entry and not self.pk:
             logger.info(existing_entry)
