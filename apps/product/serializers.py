@@ -1,6 +1,8 @@
 from rest_framework import serializers
+
 from .models import PTFileEntry, Product, ProductTagImage
-from apps.department.models import Department
+from apps.department.models import Department, Category, SubCategory
+
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -27,9 +29,37 @@ class ProductTagImageSerializer(serializers.ModelSerializer):
         model = ProductTagImage
         fields = ["id", "product_image", "tag_image"]
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["id", "department", "category_name"]
+
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = ["id", "category", "subcategory_name"]
+
+
+class ProductReadSerializer(serializers.ModelSerializer):
+    department = DepartmentSerializer()
+    category = CategorySerializer()
+    subcategory = SubCategorySerializer()
+    
+    class Meta:
+        model = Product
+        fields = [
+            "id",
+            "article_number",
+            "department",
+            "category",
+            "subcategory",
+            "brand",
+        ]
+
 
 class PTFileEntrySerializer(serializers.ModelSerializer):
-    product = ProductSerializer(read_only=True)
+    product = ProductReadSerializer(read_only=True)
     product_images = serializers.SerializerMethodField()
 
     class Meta:

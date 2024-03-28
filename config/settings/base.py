@@ -114,7 +114,7 @@ MIDDLEWARE = [
 # WhiteNoise
 # ------------------------------------------------------------------------------
 # http://whitenoise.evans.io/en/latest/django.html#using-whitenoise-in-development
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 INSTALLED_APPS = ["whitenoise.runserver_nostatic"] + INSTALLED_APPS
 
 # STATIC
@@ -124,7 +124,9 @@ STATIC_ROOT = str(BASE_DIR / "staticfiles")
 # https://docs.djangoproject.com/en/dev/ref/settings/#static-url
 STATIC_URL = "/static/"
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#std:setting-STATICFILES_DIRS
-STATICFILES_DIRS = [str(APPS_DIR / "static")]
+STATICFILES_DIRS = [
+        str(APPS_DIR / "static")
+    ]
 # https://docs.djangoproject.com/en/dev/ref/contrib/staticfiles/#staticfiles-finders
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -234,8 +236,8 @@ LOGGING = {
 # handler404 = 'apps.errors.views.handler404'
 # handler500 = 'apps.errors.views.handler500'
 
-CELERY_BROKER_URL = "pyamqp://manas:1234@localhost:5672/"
-CELERY_RESULT_BACKEND = "rpc://manas:1234@localhost:5672/"
+CELERY_BROKER_URL = "pyamqp://admin:123456@localhost:5672/"
+CELERY_RESULT_BACKEND = "rpc://admin:123456@localhost:5672/"
 CELERY_RESULT_EXTENDED = True
 CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
 CELERY_RESULT_BACKEND_MAX_RETRIES = 10

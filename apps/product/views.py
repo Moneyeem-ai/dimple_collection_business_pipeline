@@ -1,13 +1,18 @@
 import uuid
 import base64
+import pytz
 
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.views import generic
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
+from django.utils import timezone
+from django_pandas.io import read_frame
+
+import pandas as pd
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductTagImage, ProductBarcode
@@ -30,10 +35,17 @@ from apps.product.models import (
     PTStatus,
 )
 from apps.department.models import Department, Category, SubCategory
-from apps.product.serializers import PTFileEntrySerializer, PTFileEntryCreateSerializer, DepartmentSerializer
+from apps.product.serializers import (
+    PTFileEntrySerializer,
+    PTFileEntryCreateSerializer,
+    DepartmentSerializer,
+    CategorySerializer,
+    SubCategorySerializer
+)
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
+from apps.product.models import ProcessingStatus
 
 
 class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
@@ -59,7 +71,8 @@ class ProductBarcodeListView(
         context = super().get_context_data(**kwargs)
         upload_form = UploadFileForm()
         context["upload_form"] = upload_form
-        context["barcode_list"] = ProductBarcode.objects.filter(sold=False)
+        batch_list = ProductBarcode.objects.values("batch_id").distinct()
+        context["batch_list"] = batch_list
         return context
 
 
@@ -177,16 +190,34 @@ class UploadFileView(FormView):
     form_class = UploadFileForm
     success_url = "product:barcode_list"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["status"] = "Success"
+        return context
+
     def post(self, request, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES["file"]
+
             workbook = load_workbook(uploaded_file, read_only=True)
             sheet = workbook.active
 
             processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
+            barcode_product_number = (
+                ProductBarcode.objects.all()
+                .values("batch_id")
+                .distinct("batch_id")
+                .count()
+            )
+            print("barcode_product_number", barcode_product_number)
+            tz = pytz.timezone('Asia/Kolkata')
+            current_time = timezone.now().astimezone(tz)
+            formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
+            custom_id = f"Batch-{ barcode_product_number+1 }-{ formatted_time }"
             for entry in processing_entries:
                 count = entry.quantity
+                print("quantity", count)
                 matched_products = []
 
                 for index, row in enumerate(sheet.iter_rows()):
@@ -197,12 +228,21 @@ class UploadFileView(FormView):
                         continue
 
                     attributes = [cell.value for cell in row]
-
+                    print(type(attributes[3]) == str)
+                    print(type(attributes[3]))
+                    print(str(attributes[3]).lower())
+                    print(entry.product.article_number.lower())
+                    print(
+                        str(attributes[3]).lower()
+                        == entry.product.article_number.lower()
+                    )
+                    print("rows", attributes)
                     if (
                         entry.product.department.lower() == attributes[0].lower()
                         and entry.product.brand.lower() == attributes[6].lower()
-                        and entry.product.article_number.lower()
-                        == str(int(attributes[3]))
+                        and entry.product.article_number.lower() == str(attributes[3]).lower()
+                        # if type(attributes[3]) == str
+                        # else str(int(attributes[3])).lower()
                     ):
                         count = count - 1
                         matched_products.append(
@@ -214,27 +254,31 @@ class UploadFileView(FormView):
                         )
 
                     print("count", count)
-
+                    print(
+                        "appending object",
+                        {
+                            "product": entry.product,
+                            "barcode": attributes[9],
+                            "sold": False,
+                        },
+                    )
+                    print("matched_productsarray", matched_products)
                     if count == 0:
+                        print("enter in count0")
                         for match_item in matched_products:
-                            existing_record = ProductBarcode.objects.filter(
-                                barcode=match_item["barcode"]
-                            ).first()
-                            if existing_record:
-                                # Update existing record
-                                entry.status = PTStatus.COMPLETED
-                                entry.save()
-                                existing_record.product = match_item["product"]
-                                existing_record.sold = match_item["sold"]
-                                existing_record.save()
-                            else:
-                                ProductBarcode.objects.create(
-                                    product=match_item["product"],
-                                    barcode=match_item["barcode"],
-                                    sold=match_item["sold"],
-                                )
-                                entry.status = PTStatus.COMPLETED
-                                entry.save()
+                            new_product = ProductBarcode.objects.create(
+                                batch_id=custom_id,
+                                product=match_item["product"],
+                                barcode=match_item["barcode"],
+                                sold=match_item["sold"],
+                            )
+                            print("new_product", new_product)
+                            print("new_record", new_product.product.processed)
+                            new_product.save()
+                            entry.status = PTStatus.COMPLETED
+                            entry.save()
+                        break
+
             return redirect(self.success_url)
         else:
             return self.form_invalid(form)
@@ -255,17 +299,27 @@ class PTFileEntryListView(
     parent = "product"
     segment = "ptfile_list"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context['user_type'] = self.request.user.user_type
+        else:
+            context['user_type'] = None 
+        return context
+
 
 class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PROCESSING")
     serializer_class = PTFileEntrySerializer
-    
+
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         departments = DepartmentSerializer(Department.objects.all(), many=True).data
+        categories = CategorySerializer(Category.objects.all(), many=True).data
+        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         data = serializer.data
-        result = {"data": data, "departments": departments}
+        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories}
         return Response(result)
 
 
@@ -290,7 +344,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 product_data = {
                     # 'id': data[1],
                     "article_number": data[2],
-                    "department": data[3],
+                    "department_id": data[3],
                     "category": data[4],
                     "subcategory": data[5],
                     "brand": data[6],
@@ -316,7 +370,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 else:
                     # Create new PTFileEntry and Product
                     product = Product.objects.create(**product_data)
-                    ptfile_entry_data["product"] = product.id
+                    ptfile_entry_data["product_id"] = product.id
                     serializer = PTFileEntryCreateSerializer(data=ptfile_entry_data)
 
                 if serializer.is_valid():
@@ -342,20 +396,23 @@ class CategoryByDepartmentView(View):
     def post(self, request, *args, **kwargs):
         # Retrieve department_id from the request
         department_name = request.POST.get("department_name")
-        print("department_name",department_name)
+        print("department_name", department_name)
         try:
             department = Department.objects.get(department_name=department_name)
-            
+
             categories = Category.objects.filter(department=department)
 
             categories_list = [category.name for category in categories]
 
-            return JsonResponse({'categories': categories_list})
+            return JsonResponse({"categories": categories_list})
 
         except Department.DoesNotExist:
-            return JsonResponse({'error': f'Department with name {department_name} does not exist'}, status=404)
+            return JsonResponse(
+                {"error": f"Department with name {department_name} does not exist"},
+                status=404,
+            )
 
-        
+
 class SubCategoryByCategoryView(View):
 
     def post(self, request, *args, **kwargs):
@@ -363,14 +420,59 @@ class SubCategoryByCategoryView(View):
         category_name = request.GET.get("category_name")
         try:
             category = Category.objects.get(category_name=category_name)
-            
+
             subCategories = SubCategory.objects.filter(category=category)
 
             sub_categories_list = [subCategory.name for subCategory in subCategories]
 
-            return JsonResponse({'categories': sub_categories_list})
+            return JsonResponse({"categories": sub_categories_list})
 
         except Category.DoesNotExist:
-            return JsonResponse({'error': f'Department with name {category_name} does not exist'}, status=404)
+            return JsonResponse(
+                {"error": f"Department with name {category_name} does not exist"},
+                status=404,
+            )
 
- 
+
+class BarcodeBatchDetailsView(SideBarSelectedMixin, LoginRequiredMixin, View):
+    template_name = "pages/product/barcode_batch_detail.html"
+
+    def get(self, request, batch_id, *args, **kwargs):
+        context = {}
+        batch_details = ProductBarcode.objects.filter(batch_id=batch_id)
+        context["batch_details"] = batch_details
+        return render(request, self.template_name, context)
+
+
+
+class ExportPTFilesView(View):
+    login_url = "users:account_login"
+
+    def get(self, request, *args, **kwargs):
+        queryset = PTFileEntry.objects.filter(status=PTStatus.PENDING).select_related('product', 'product__department')
+
+        fields_to_export = [
+            'product__department__department_name', 'product__category__category_name', 'product__subcategory__subcategory_name',
+            'product__article_number', 'color', 'size', 'product__brand', 'wsp', 'mrp'
+        ]
+        df = read_frame(queryset, fieldnames=fields_to_export)
+        column_mapping = {
+            'product__department__department_name': 'Department',
+            'product__category__category_name': 'Category',
+            'product__subcategory__subcategory_name': 'Subcategory',
+            'product__article_number': 'Article Number',
+            'color': 'Color',
+            'size': 'Size',
+            'product__brand': 'Brand',
+            'wsp': 'WSP',
+            'mrp': 'MRP'
+        }
+        df = df.rename(columns=column_mapping)
+        excel_file_path = "data/ptfiles_export.xlsx"
+        df.to_excel(excel_file_path, index=False)
+
+        with open(excel_file_path, 'rb') as excel_file:
+            response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
+
+        return response

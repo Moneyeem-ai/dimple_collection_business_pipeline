@@ -95,155 +95,173 @@
 <!-- Page specific script -->
 <script>
     window.onload = function (){
-        console.log("cookie:",document.cookie)
     const container = document.querySelector('#example');
-  function fetchDataWithCSRFToken(url) {
-    try {
-    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+    function fetchDataWithCSRFToken(url) {
+        try {
+            const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
 
-    if (!csrfToken) {
-        throw new Error('CSRF token not found.');
-    }
-    fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-CSRFToken': csrfToken,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(data => {
-        // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
-      var departments = data.departments;
-      data = data.data;
-        const hot = new Handsontable(container, {
-           afterChange: (changes,source) => {
-            if (changes && source === 'loadData') {
-              return; // Ignore changes during initial data loading
+            if (!csrfToken) {
+                throw new Error('CSRF token not found.');
             }
-            
-            changes && changes.forEach(([row, col, oldValue, newValue]) => {
-              console.log("col no ",col)
-              // Some logic...
-              if (col === "product.department") { // Department changed
-                console.log("col 3")
-                fetch("/product/api/get_categories/", {
-                  method: 'POST',
-                  headers: {
+            fetch(url, {
+                method: 'GET',
+                headers: {
                     'X-CSRFToken': csrfToken,
                     'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({'department_name':newValue}),
-                }).then(response => response.json())
-                .then(data =>{
-                  console.log("this is category response",data)
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("this is api response",data);
+                var ptfile = data.data;
+                console.log("data",ptfile)
+                ptfile = ptfile.map(row => {
+                    if(row.product.category == null)
+                        row.product.category={category_name:"None", id: 0}
+                    if(row.product.subcategory == null)
+                        row.product.subcategory={subcategory_name:"None", id: 0}
+                    return row;
                 })
-              } else if (col === "product.subcategory") { // Category changed
-                console.log("col 4")
-                console.log("category changed")
-                console.log(hot, row, newValue);
-              }
-              
-            });
-          }, 
-          height: 450,
-          colWidths: [50, 80, 130, 150, 150, 150, 157, 130, 130, 130, 130,130,150,150],  // Adjust the width of columns as needed
-          colHeaders: [
-            "Id",
-            "Product ID",
-            "Article Number",
-            "Department",
-            "Category",
-            "Sub-Category",
-            "Brand",
-            "Size",
-            "Quantity",
-            "Color",
-            "MRP",
-            "WSP",
-            "Product Image",
-            "Tag Image",
-          ],
-          data: data,
-          columns: [
-          { data: 'id', readOnly: true  },
-          {data: 'product.id'},
-          { data: 'product.article_number' },
-          { 
-            data: 'product.department',
-            editor:'select',
-            selectOptions: ['TROUSER'],
-          },
-          {data: 'product.category',editor:'select',selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda'] },
-          {data: 'product.subcategory',editor: 'dropdown',selectOptions: ['Kia', 'Nissan', 'Toyota', 'Honda'] },
-          {data: 'product.brand'},
-          {data: 'size'},
-          {data: 'quantity'},
-          {data: 'color'},
-          { data: 'mrp' },
-          {data: 'wsp'},
-          {
-            data:'product_images.product_image',
-            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                td.innerHTML = '<button type="button" data-product-img="' + value + '"  data-toggle="modal" data-target="#modal-default"  class="btn btn-primary m-2 btn-view-product" onclick="viewProduct(this)">View Product</button>';
-                return td;
-            },
-            editor: false
-          },
-          {
-            data:'product_images.tag_image',
-            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                td.innerHTML = '<button type="button" data-tag-img="' + value + '" data-toggle="modal" data-target="#modal-default" class="btn btn-primary m-2 btn-view-tag" onclick="viewTag(this)">View Tag</button>';
-                return td;
-            },
-            editor: false
-          } 
-          ],
-          
-          rowHeaders: true,
-          contextMenu: true,
-          autoWrapRow: true,
-          search: true,
-          height: 'auto',
-          licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
-        }); 
-       
-        const updateDataButton = document.getElementById('updateDataButton');
-                        updateDataButton.addEventListener('click', function () {
-                            // Get the data from the Handsontable instance
-                            const updatedData = hot.getData();
-                            console.log(updatedData)
-                            
-                            // Make a POST request to the PTFileEntryUpdateAPIView
-                            fetch('/product/api/ptfile_update/', {
-                                method: 'POST',
-                                headers: {
-                                    'X-CSRFToken': csrfToken,
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify(updatedData),
-                            })
-                                .then(response => response.json())
-                                .then(data => {
-                                    console.log('Data updated successfully:', data);
-                                    if (data.success) {
-                                         window.location.href = '/product/ptfile_list/';
-                                    } else {
-                                        console.error('Error updating data:', data.error);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error updating data:', error);
-                                });
+                var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
+                var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
+                var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
+                const hot = new Handsontable(container, {
+                    height: 400,
+                    contextMenu: {
+                        items: {
+                          "row_above": {},
+                          "row_below": {},
+                          "add_row_below": {
+                            name: 'Add 5 row below',
+                            callback: function(key, selection) {
+                                hot.alter('insert_row_below', selection[0].start.row, 5);
+                            }
+                          },
+                          "---------": Handsontable.plugins.ContextMenu.SEPARATOR,
+                          "cut": {},
+                          "copy": {},
+                          "alignment": {},
+                          "remove_row": {}
+                        }
+                    },
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
+                    colHeaders: true,
+                    data: ptfile,
+                    columns: [
+                        { title: "Id", data: 'id', readOnly: true },
+                        { title: "Product ID", data: 'product.id' },
+                        { title: "Article Number", data: 'product.article_number' },
+                        { 
+                            title: "Department",
+                            data: 'product.department.department_name',
+                            type: 'autocomplete',
+                            source: departments.map(department => department.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedDepartment = departments.find(department => department.name === value);
+                                td.setAttribute('data-department-id', matchedDepartment ? matchedDepartment.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                        { 
+                            title: "Category",
+                            data: 'product.category.category_name',
+                            type: 'autocomplete',
+                            source: categories.map(category => category.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedCategory = categories.find(category => category.name === value);
+                                td.setAttribute('data-category-id', matchedCategory ? matchedCategory.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                        { 
+                            title: "Sub-Category",
+                            data: 'product.subcategory.subcategory_name',
+                            type: 'autocomplete',
+                            source: subcategories.map(subcategory => subcategory.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedSubCategory = subcategories.find(subcategory => subcategory.name === value);
+                                td.setAttribute('data-subcategory-id', matchedSubCategory ? matchedSubCategory.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                        { title: "Brand", data: 'product.brand' },
+                        { title: "Size", data: 'size' },
+                        { title: "Quantity", data: 'quantity' },
+                        { title: "Color", data: 'color' },
+                        { title: "MRP", data: 'mrp' },
+                        { title: "WSP", data: 'wsp' },
+                        {
+                          data:'product_images.product_image',
+                          renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                              td.innerHTML = '<button type="button" data-product-img="' + value + '"  data-toggle="modal" data-target="#modal-default"  class="btn btn-primary m-2 btn-view-product" onclick="viewProduct(this)">View Product</button>';
+                              return td;
+                          },
+                          editor: false
+                        },
+                        {
+                          data:'product_images.tag_image',
+                          renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                              td.innerHTML = '<button type="button" data-tag-img="' + value + '" data-toggle="modal" data-target="#modal-default" class="btn btn-primary m-2 btn-view-tag" onclick="viewTag(this)">View Tag</button>';
+                              return td;
+                          },
+                          editor: false
+                        }, 
+                    ],
+                    minRows: 100,
+                    autoWrapRow: true,
+                    autoWrapCol: true,
+                    licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+                }); 
+                
+                const updateDataButton = document.getElementById('updateDataButton');
+                updateDataButton.addEventListener('click', function () {
+                    // Get the data from the Handsontable instance
+                    const updatedData = hot.getData().map((row, index) => {
+                        const departmentCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                        const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                        row[3] = departmentId; 
+                        const categoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
+                        const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
+                        row[4] = categoryId; 
+                        const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
+                        const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
+                        row[5] = subCategoryId;
+                        return row;
+                    });
+                    console.log("!!!!!!!!!!")
+                    console.log(updatedData);
+                    // Make a POST request to the PTFileEntryUpdateAPIView
+                    fetch('/product/api/ptfile_update/', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(updatedData),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = '/product/ptfile_list/';
+                            } else {
+                                console.error('Error updating data:', data.error);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error updating data:', error);
                         });
-      });
+                });
+            });
+        }
+        catch (error) {
+            console.error('Error:', error);
+        }
     }
-    catch (error) {
-      console.error('Error:', error);
-    }
-  }
 
-  fetchDataWithCSRFToken('/product/api/ptfile_entry/');
+    fetchDataWithCSRFToken('/product/api/ptfile_entry/');
 };
   </script>
   <script>

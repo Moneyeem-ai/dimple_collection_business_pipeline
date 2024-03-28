@@ -2,7 +2,7 @@
 
 Werkzeug[watchdog]==2.2.3 # https://github.com/pallets/werkzeug
 ipdb==0.13.13  # https://github.com/gotcha/ipdb
-psycopg2==2.9.5  # https://github.com/psycopg/psycopg2
+
 
 # Testing
 # ------------------------------------------------------------------------------
@@ -38,3 +38,5 @@ django-coverage-plugin==3.0.0  # https://github.com/nedbat/django_coverage_plugi
 pytest-django==4.5.2  # https://github.com/pytest-dev/pytest-django
 openpyxl
 djangorestframework
+
+django_pandas

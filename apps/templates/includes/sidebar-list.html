@@ -67,12 +67,14 @@
               <p>PTFile List</p>
             </a>
           </li>
+          {% if request.user.user_type != 'FT' %}
           <li class="nav-item">
             <a href="{% url 'product:barcode_list' %}" class="nav-link {% if 'barcode_list' in segment %} active {% endif %}">
               <i class="fas fa-table nav-icon"></i>
               <p>Barcode List</p>
             </a>
           </li>
+          {% endif %}
       </ul>
     </li>
     {% endif %}

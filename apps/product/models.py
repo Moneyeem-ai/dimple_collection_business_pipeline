@@ -4,8 +4,8 @@ import logging
 import hashlib
 
 from django.db import models
-from django.db.models.signals import post_save
-from django.dispatch import receiver
+
+from apps.department.models import Department, Category, SubCategory
 
 
 logger = logging.getLogger(__name__)
@@ -25,9 +25,9 @@ class ProcessingStatus(models.TextChoices):
 
 
 class Product(models.Model):
-    department = models.CharField(max_length=64, null=True, blank=True)
-    category = models.CharField(max_length=64, null=True, blank=True)
-    subcategory = models.CharField(max_length=64, null=True, blank=True)
+    department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
+    subcategory = models.ForeignKey(SubCategory, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
     brand = models.CharField(max_length=64, null=True, blank=True)
     article_number = models.CharField(max_length=128, null=True, blank=True)
     product_images = models.ForeignKey(
@@ -36,9 +36,13 @@ class Product(models.Model):
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
-    processed = models.CharField(max_length=20, default=ProcessingStatus.PENDING, choices=ProcessingStatus.choices)
+    processed = models.CharField(
+        max_length=20,
+        default=ProcessingStatus.PENDING,
+        choices=ProcessingStatus.choices,
+    )
     hash_value = models.CharField(max_length=64, null=True, blank=True)
-    
+
     def save(self, *args, **kwargs):
         existing_entry = None
         # logger.info(existing_entry)
@@ -89,19 +93,19 @@ class PTFileEntry(models.Model):
             logger.info(self.product.metadata)
             if self.product.metadata:
                 metadata = self.product.metadata
-                self.size = metadata.get('size', 0)
-                self.quantity = metadata.get('quantity', 0)
-                self.color = metadata.get('color', '')
-                self.mrp = metadata.get('mrp', 0)
+                self.size = metadata.get("size", 0)
+                self.quantity = metadata.get("quantity", 0)
+                self.color = metadata.get("color", "")
+                self.mrp = metadata.get("mrp", 0)
                 logger.info(self)
         return super().save(*args, **kwargs)
 
 
 class ProductBarcode(models.Model):
+    batch_id = models.CharField(max_length=1024)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     barcode = models.CharField(max_length=128, unique=True)
     sold = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.barcode
-
+        return str(self.barcode)

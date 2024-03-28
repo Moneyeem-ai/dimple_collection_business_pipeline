@@ -36,7 +36,14 @@
                     <div class="card-header">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">This is Generated PT File</h3>
+                            {% if request.user.user_type != 'FT' %}
+                            <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px;">Update Data</button>
+                            <a href="{% url 'product:export_ptfiles' %}">
+                              <button type="button" class="btn btn-block btn-primary">Export Data</button>
+                          </a>
+                            {% endif %}
                         </div>
+                      
                     </div>
                     <div id="example"></div>
                 </div>
@@ -64,6 +71,9 @@
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
 <!-- Page specific script -->
 <script>
+  const userType = "{{ user_type }}";
+</script>
+<script>
     window.onload = function (){
         console.log("cookie:",document.cookie)
     const container = document.querySelector('#example');
@@ -83,6 +93,7 @@
     })
       .then(response => response.json())
       .then(data => {
+        const readOnly = userType === 'FT';
         // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
         const hot = new Handsontable(container, {
           height: 450,
@@ -104,7 +115,7 @@
           columns: [
           { data: 'id' },
           { data: 'product.article_number' },
-          { data: 'product.department' },
+          { data: 'product.department.department_name' },
           {data: 'product.category'},
           {data: 'product.subcategory'},
           {data: 'product.brand'},
@@ -115,7 +126,7 @@
           {data: 'wsp'}
           ],
           rowHeaders: true,
-          readOnly: true,
+          readOnly: readOnly,
           autoWrapRow: true,
           search: true,
           height: 'auto',

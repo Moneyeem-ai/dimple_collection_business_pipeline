@@ -14,12 +14,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Upload Z Order File and Batch Details</h1>
+            <h1>Batch Details</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Z Order</li>
+              <li class="breadcrumb-item active">BatchDetails</li>
             </ol>
           </div>
         </div>
@@ -36,17 +36,7 @@
             <div class="card">
               <div class="card-header">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 class="card-title">Upload Z Order File By Clicking this Button</h3>
-                    <div>
-                        <button
-                          type="button"
-                          data-toggle="modal"
-                          data-target="#modal-default"
-                          class="btn btn-block btn-primary"
-                        >
-                        Upload Fiile
-                        </button>
-                    </div>
+                    <h3 class="card-title">Batch Details</h3>
                 </div>
               </div>
               <!-- /.card-header -->
@@ -54,20 +44,38 @@
                 <table id="example1" class="table table-bordered table-striped">
                   <thead>
                   <tr>
-                    <th>Batch id</th>
-                    <th>Action</th>
+                    <th>Barcode</th>
+                    <th>Article Number</th>
+                    <th>Department</th>
+                    <th>Category</th>
+                    <th>Subcategory</th>
+                    <th>Brand</th>
+
+
                   </tr>
                   </thead>
                   <tbody>
-                    {% for item in batch_list %}
+                    {% for item in batch_details %}
                     <tr class="unread">
                         <td>
-                            <h6 class="mb-1">{{ item.batch_id }}</h6>
+                            <h6 class="mb-1">{{ item.barcode }}</h6>
                         </td>
                         <td>
-                          <a href="{% url 'product:batch_details' batch_id=item.batch_id %}">
-                            <button class="btn btn-primary">View</button>
-                        </a>
+                            <h6 class="mb-1">{{ item.product.article_number }}</h6>
+                        </td>
+                        <td>
+                            <h6 class="mb-1">{{ item.product.department }}</h6>
+                        </td>
+                        <td>
+                            <h6 class="mb-1">{{ item.product.category }}</h6>
+                        </td>
+                        <td>
+                            <h6 class="mb-1">{{ item.product.subcategory }}</h6>
+                        </td>
+                        <td>
+                            <h6 class="mb-1">{{ item.product.brand }}</h6>
+                        </td>
+                        
                         </td>
                     </tr>
                 {% endfor %}
@@ -137,7 +145,8 @@
 <script>
   $(function () {
     $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
     }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
     $('#example2').DataTable({
       "paging": true,
