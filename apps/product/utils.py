@@ -94,18 +94,18 @@ def extract_data_from_tag(image_path):
         try:
             djson_data = json.loads(response.text)
         except:
-            djson_data = {"id": 4}
+            djson_data = {"id": 1}
 
         try:
             json_data.pop("department")
             json_data["department_id"] = djson_data.get("id")
         except:
-            json_data["department_id"] = 4
+            json_data["department_id"] = 1
     else:
         try:
             json_data.pop("department")
-            json_data["department_id"] = 4
+            json_data["department_id"] = 1
         except:
-            json_data["department_id"] = 4
+            json_data["department_id"] = 1
 
     return json_data

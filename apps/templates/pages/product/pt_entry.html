@@ -85,8 +85,19 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log("this is api response",data)
+                console.log("this is api response",data);
+                var ptfile = data.data;
+                console.log("data",ptfile)
+                ptfile = ptfile.map(row => {
+                    if(row.product.category == null)
+                        row.product.category={category_name:"None", id: 0}
+                    if(row.product.subcategory == null)
+                        row.product.subcategory={subcategory_name:"None", id: 0}
+                    return row;
+                })
                 var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
+                var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
+                var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
                 const hot = new Handsontable(container, {
                     height: 400,
                     contextMenu: {
@@ -108,7 +119,7 @@
                     },
                     colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130],
                     colHeaders: true,
-                    data: data.data,
+                    data: ptfile,
                     columns: [
                         { title: "Id", data: 'id', readOnly: true },
                         { title: "Product ID", data: 'product.id' },
@@ -121,12 +132,34 @@
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
                                 const matchedDepartment = departments.find(department => department.name === value);
-                                td.setAttribute('data-department-id', matchedDepartment ? matchedDepartment.id : '');
+                                td.setAttribute('data-department-id', matchedDepartment ? matchedDepartment.id : '0');
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
-                        { title: "Category", data: 'product.category' },
-                        { title: "Sub-Category", data: 'product.subcategory' },
+                        { 
+                            title: "Category",
+                            data: 'product.category.category_name',
+                            type: 'autocomplete',
+                            source: categories.map(category => category.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedCategory = categories.find(category => category.name === value);
+                                td.setAttribute('data-category-id', matchedCategory ? matchedCategory.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                        { 
+                            title: "Sub-Category",
+                            data: 'product.subcategory.subcategory_name',
+                            type: 'autocomplete',
+                            source: subcategories.map(subcategory => subcategory.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedSubCategory = subcategories.find(subcategory => subcategory.name === value);
+                                td.setAttribute('data-subcategory-id', matchedSubCategory ? matchedSubCategory.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
                         { title: "Brand", data: 'product.brand' },
                         { title: "Size", data: 'size' },
                         { title: "Quantity", data: 'quantity' },
@@ -143,13 +176,19 @@
                 const updateDataButton = document.getElementById('updateDataButton');
                 updateDataButton.addEventListener('click', function () {
                     // Get the data from the Handsontable instance
-                    
                     const updatedData = hot.getData().map((row, index) => {
                         const departmentCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
                         const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
-                        row[3] = departmentId;
+                        row[3] = departmentId; 
+                        const categoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
+                        const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
+                        row[4] = categoryId; 
+                        const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
+                        const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
+                        row[5] = subCategoryId;
                         return row;
                     });
+                    console.log("!!!!!!!!!!")
                     console.log(updatedData);
                     // Make a POST request to the PTFileEntryUpdateAPIView
                     fetch('/product/api/ptfile_update/', {

@@ -19,7 +19,7 @@
 
         {% for field in form %}
         <div class="input-group mb-3">
-          {{field}}
+          <!-- {{field}} -->
           <div class="input-group-append">
             <div class="input-group-text">
               <span class="fas {% if field.name == 'username' %} fa-user {% else %} {% if field.name == 'email' %} fa-envelope {% else %} fa-lock {% endif %} {% endif %}"></span>
