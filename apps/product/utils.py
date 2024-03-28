@@ -94,18 +94,21 @@ def extract_data_from_tag(image_path):
         try:
             djson_data = json.loads(response.text)
         except:
-            djson_data = {"id": 1}
+            none_department = Department.objects.get_or_create(department_name="None")
+            djson_data = {"id": none_department.id}
 
         try:
             json_data.pop("department")
             json_data["department_id"] = djson_data.get("id")
         except:
-            json_data["department_id"] = 1
+            none_department = Department.objects.get_or_create(department_name="None")
+            json_data["department_id"] = none_department.id
     else:
+        none_department = Department.objects.get_or_create(department_name="None")
         try:
             json_data.pop("department")
-            json_data["department_id"] = 1
+            json_data["department_id"] = none_department.id
         except:
-            json_data["department_id"] = 1
+            json_data["department_id"] = none_department.id
 
     return json_data

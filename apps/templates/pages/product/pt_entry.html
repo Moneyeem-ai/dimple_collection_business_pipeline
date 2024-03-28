@@ -219,19 +219,21 @@
                 const updateDataButton = document.getElementById('updateDataButton');
                 updateDataButton.addEventListener('click', function () {
                     // Get the data from the Handsontable instance
-                    const updatedData = hot.getData().map((row, index) => {
-                        const departmentCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
-                        const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
-                        row[3] = departmentId; 
-                        const categoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
-                        const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
-                        row[4] = categoryId; 
-                        const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
-                        const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
-                        row[5] = subCategoryId;
-                        return row;
-                    });
-                    console.log("!!!!!!!!!!")
+                    const updatedData = hot.getData().reduce((acc, row, index) => {
+                        if (row[1] !== null) {
+                            const departmentCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                            const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                            row[3] = departmentId;
+                            const categoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
+                            const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
+                            row[4] = categoryId; 
+                            const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
+                            const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
+                            row[5] = subCategoryId;
+                            acc.push(row);
+                        }
+                        return acc;
+                    }, []);
                     console.log(updatedData);
                     // Make a POST request to the PTFileEntryUpdateAPIView
                     fetch('/product/api/ptfile_update/', {

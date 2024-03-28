@@ -6,6 +6,7 @@ from celery import shared_task
 
 from apps.product.utils import extract_data_from_tag
 from apps.product.models import Product, ProductTagImage, PTFileEntry
+from apps.department.models import SubCategory, Department, Category
 
 
 logger = logging.getLogger(__name__)
@@ -24,6 +25,9 @@ def process_image_data(image_data, product_image_id):
         valid_data["metadata"] = data
         valid_data["product_images"] = ProductTagImage.objects.get(id=product_image_id)
         product = Product.objects.create(**valid_data)
+        product.subcategory, created = SubCategory.objects.get_or_create(subcategory_name="None")
+        product.category, created = Category.objects.get_or_create(category_name="None")
+        product.save()
         logger.info(f"product: {product}")
         logger.info(str(product.id is None))
         if product.id is not None:

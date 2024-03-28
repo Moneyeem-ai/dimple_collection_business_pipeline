@@ -339,14 +339,15 @@ class PTFileEntryUpdateAPIView(APIView):
             ids_to_delete = list(set(existing_ids) - set(incoming_ids))
             PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
             # Update PTFileEntry and Product
+            from apps.department.models import SubCategory
             for data in data_list:
                 entry_id = data[0]  # PTFileEntry ID
                 product_data = {
                     # 'id': data[1],
                     "article_number": data[2],
                     "department_id": data[3],
-                    "category": data[4],
-                    "subcategory": data[5],
+                    "category_id": data[4],
+                    "subcategory": SubCategory.objects.get(id=data[5]),
                     "brand": data[6],
                 }
                 ptfile_entry_data = {
