@@ -22,3 +22,10 @@ class SubCategory(models.Model):
 
     def __str__(self):
         return self.subcategory_name
+
+
+class Brand(models.Model):
+    brand_name = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.brand_name

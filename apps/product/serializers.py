@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import PTFileEntry, Product, ProductTagImage
-from apps.department.models import Department, Category, SubCategory
+from apps.department.models import Department, Category, SubCategory, Brand
 
 
 
@@ -39,6 +39,11 @@ class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
         fields = ["id", "category", "subcategory_name"]
+
+class BrandSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Brand
+        fields = ["id", "brand_name"]
 
 
 class ProductReadSerializer(serializers.ModelSerializer):

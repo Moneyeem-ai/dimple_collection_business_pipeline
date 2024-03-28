@@ -187,7 +187,18 @@
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
-                        { title: "Brand", data: 'product.brand' },
+                        { 
+                            title: "Brand",
+                            data: 'product.brand.brand_name',
+                            type: 'autocomplete',
+                            source: brands.map(brand => brand.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedBrand = brands.find(brand => brand.name === value);
+                                td.setAttribute('data-brand-id', matchedBrand ? matchedBrand.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
                         { title: "Size", data: 'size' },
                         { title: "Quantity", data: 'quantity' },
                         { title: "Color", data: 'color' },
@@ -230,6 +241,9 @@
                             const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
                             const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
                             row[5] = subCategoryId;
+                            const brandCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-brand-id][role="gridcell"][aria-colindex="6"]`);
+                            const brandId = brandCell ? brandCell.getAttribute('data-brand-id') : '';
+                            row[5] = brandId;
                             acc.push(row);
                         }
                         return acc;

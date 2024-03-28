@@ -5,7 +5,7 @@ import hashlib
 
 from django.db import models
 
-from apps.department.models import Department, Category, SubCategory
+from apps.department.models import Department, Category, SubCategory, Brand
 
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,7 @@ class Product(models.Model):
     department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.CASCADE)
     category = models.ForeignKey(Category, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
     subcategory = models.ForeignKey(SubCategory, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
-    brand = models.CharField(max_length=64, null=True, blank=True)
+    brand = models.ForeignKey(Brand, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
     article_number = models.CharField(max_length=128, null=True, blank=True)
     product_images = models.ForeignKey(
         ProductTagImage, null=True, blank=True, on_delete=models.CASCADE

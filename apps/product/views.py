@@ -318,8 +318,9 @@ class PTFileEntryAPIView(generics.ListAPIView):
         departments = DepartmentSerializer(Department.objects.all(), many=True).data
         categories = CategorySerializer(Category.objects.all(), many=True).data
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
+        brands = BrandSerializer(Brand.objects.all(), many=True).data
         data = serializer.data
-        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories}
+        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories, "brands":brands}
         return Response(result)
 
 
@@ -348,7 +349,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     "department_id": data[3],
                     "category_id": data[4],
                     "subcategory": SubCategory.objects.get(id=data[5]),
-                    "brand": data[6],
+                    "brand_id": data[6],
                 }
                 ptfile_entry_data = {
                     "size": data[7],
@@ -454,7 +455,7 @@ class ExportPTFilesView(View):
 
         fields_to_export = [
             'product__department__department_name', 'product__category__category_name', 'product__subcategory__subcategory_name',
-            'product__article_number', 'color', 'size', 'product__brand', 'wsp', 'mrp'
+            'product__article_number', 'color', 'size', 'product__brand__brand_name', 'wsp', 'mrp'
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
         column_mapping = {
@@ -464,7 +465,7 @@ class ExportPTFilesView(View):
             'product__article_number': 'Article Number',
             'color': 'Color',
             'size': 'Size',
-            'product__brand': 'Brand',
+            'product__brand__brand_name': 'Brand',
             'wsp': 'WSP',
             'mrp': 'MRP'
         }
