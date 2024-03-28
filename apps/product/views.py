@@ -467,11 +467,12 @@ class ExportPTFilesView(View):
         queryset = PTFileEntry.objects.filter(status=PTStatus.PENDING).select_related('product', 'product__department')
 
         fields_to_export = [
-            'product__department__department_name', 'product__category__category_name', 'product__subcategory__subcategory_name',
-            'product__article_number', 'color', 'size', 'product__brand__brand_name', 'wsp', 'mrp'
+            'id','product__department__department_name', 'product__category__category_name', 'product__subcategory__subcategory_name',
+            'product__article_number', 'color', 'size', 'product__brand__brand_name', 'wsp', 'mrp', 'quantity'
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
         column_mapping = {
+            'id': 'ItemId',
             'product__department__department_name': 'Department',
             'product__category__category_name': 'Category',
             'product__subcategory__subcategory_name': 'Subcategory',
@@ -480,7 +481,8 @@ class ExportPTFilesView(View):
             'size': 'Size',
             'product__brand__brand_name': 'Brand',
             'wsp': 'WSP',
-            'mrp': 'MRP'
+            'mrp': 'MRP',
+            'quantity': 'Quantity'
         }
         df = df.rename(columns=column_mapping)
         excel_file_path = "data/ptfiles_export.xlsx"
