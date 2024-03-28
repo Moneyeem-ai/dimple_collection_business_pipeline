@@ -21,12 +21,16 @@ def process_image_data(image_data, product_image_id):
         valid_keys = [field.name for field in Product._meta.get_fields()]
         valid_keys.remove("department")
         valid_keys.append("department_id")
+        valid_keys.remove("brand")
+        valid_keys.append("brand_id")
         valid_data = {key: value for key, value in data.items() if key in valid_keys}
         valid_data["metadata"] = data
         valid_data["product_images"] = ProductTagImage.objects.get(id=product_image_id)
         product = Product.objects.create(**valid_data)
-        product.subcategory, created = SubCategory.objects.get_or_create(subcategory_name="None")
-        product.category, created = Category.objects.get_or_create(category_name="None")
+        print(product.__dict__)
+        department, created = Department.objects.get_or_create(department_name = "None")
+        product.category, created = Category.objects.get_or_create(category_name="None", department=department)
+        product.subcategory, created = SubCategory.objects.get_or_create(subcategory_name="None", category=product.category)
         product.save()
         logger.info(f"product: {product}")
         logger.info(str(product.id is None))

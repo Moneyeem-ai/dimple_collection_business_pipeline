@@ -50,6 +50,7 @@ class ProductReadSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer()
     category = CategorySerializer()
     subcategory = SubCategorySerializer()
+    brand = BrandSerializer()
     
     class Meta:
         model = Product

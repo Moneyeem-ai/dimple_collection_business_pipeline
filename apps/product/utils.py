@@ -6,7 +6,7 @@ import google.generativeai as genai
 
 from django.conf import settings
 
-from apps.department.models import Department
+from apps.department.models import Department, Brand
 
 
 def extract_data_from_tag(image_path):
@@ -54,6 +54,7 @@ def extract_data_from_tag(image_path):
     ]
 
     departments = Department.objects.values("id", "department_name")
+    brands = Brand.objects.values("id", "brand_name")
 
     prompt_parts = [
         image_parts[0],
@@ -72,6 +73,8 @@ def extract_data_from_tag(image_path):
     ]
     response = model.generate_content(prompt_parts)
     print(response.text)
+
+
     try:
         json_data = json.loads(response.text)
     except:
@@ -85,7 +88,10 @@ def extract_data_from_tag(image_path):
             generation_config=generation_config,
             safety_settings=safety_settings,
         )
-        departments_json = json.dumps(list(departments))
+        try:
+            departments_json = json.dumps(list(departments))
+        except:
+            departments_json = []
         value = value.lower()
         prompt = f"Perform text matching. I am providing you a json of list of department_name and there id - {departments_json}. Match the provided list and check if '{value}' is present in department_name, it will not be same exactly, but its meaning should be similar. The output you should give should only be the matching json."
         prompt_parts = [prompt]
@@ -94,21 +100,61 @@ def extract_data_from_tag(image_path):
         try:
             djson_data = json.loads(response.text)
         except:
-            none_department = Department.objects.get_or_create(department_name="None")
+            none_department, created = Department.objects.get_or_create(department_name="None")
             djson_data = {"id": none_department.id}
 
         try:
             json_data.pop("department")
             json_data["department_id"] = djson_data.get("id")
         except:
-            none_department = Department.objects.get_or_create(department_name="None")
+            none_department, created= Department.objects.get_or_create(department_name="None")
             json_data["department_id"] = none_department.id
     else:
-        none_department = Department.objects.get_or_create(department_name="None")
+        none_department, created = Department.objects.get_or_create(department_name="None")
         try:
             json_data.pop("department")
             json_data["department_id"] = none_department.id
         except:
             json_data["department_id"] = none_department.id
+    
+    print("****")
+
+    if value := json_data.get("brand", None):
+        model = genai.GenerativeModel(
+            model_name="gemini-1.0-pro",
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+        try:
+            brands_json = json.dumps(list(brands))
+        except:
+            brands_json = []
+        value = value.lower()
+        prompt = f"Perform text matching. I am providing you a json of list of brand_name and there id - {brands_json}. Match the provided list and check if '{value}' is present in brand_name, it will not be same exactly, but its meaning should be similar. The output you should give should only be the matching json."
+        prompt_parts = [prompt]
+        response = model.generate_content(prompt_parts)
+        print("!!!!")
+        print(response.text)
+        try:
+            bjson_data = json.loads(response.text)
+        except:
+            none_brand, created = Brand.objects.get_or_create(brand_name="None")
+            bjson_data = {"id": none_brand.id}
+
+        try:
+            json_data.pop("brand")
+            json_data["brand_id"] = bjson_data.get("id")
+        except:
+            none_brand, created = Brand.objects.get_or_create(brand_name="None")
+            json_data["brand_id"] = none_brand.id
+    else:
+        none_brand, created = Brand.objects.get_or_create(brand_name="None")
+        try:
+            json_data.pop("brand")
+            json_data["brand_id"] = none_brand.id
+        except:
+            json_data["brand_id"] = none_brand.id
+        
+    print(json_data)
 
     return json_data

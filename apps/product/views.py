@@ -34,13 +34,14 @@ from apps.product.models import (
     PTFileEntry,
     PTStatus,
 )
-from apps.department.models import Department, Category, SubCategory
+from apps.department.models import Department, Category, SubCategory, Brand
 from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
     DepartmentSerializer,
     CategorySerializer,
-    SubCategorySerializer
+    SubCategorySerializer,
+    BrandSerializer
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag

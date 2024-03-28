@@ -120,13 +120,18 @@
                         row.product.category={category_name:"None", id: 0}
                     if(row.product.subcategory == null)
                         row.product.subcategory={subcategory_name:"None", id: 0}
+                    if(row.product.brand == null)
+                        row.product.brand={brand_name:"None", id: 0}
                     return row;
                 })
                 var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
                 var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
                 var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
+                var brands = data.brands.map((brand) => ({name: brand.brand_name, id: brand.id}));
+                console.log("***")
+                console.log(brands)
                 const hot = new Handsontable(container, {
-                    height: 400,
+                    height: 700,
                     contextMenu: {
                         items: {
                           "row_above": {},
@@ -241,9 +246,9 @@
                             const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
                             const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
                             row[5] = subCategoryId;
-                            const brandCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-brand-id][role="gridcell"][aria-colindex="6"]`);
+                            const brandCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-brand-id][role="gridcell"][aria-colindex="7"]`);
                             const brandId = brandCell ? brandCell.getAttribute('data-brand-id') : '';
-                            row[5] = brandId;
+                            row[6] = brandId;
                             acc.push(row);
                         }
                         return acc;
