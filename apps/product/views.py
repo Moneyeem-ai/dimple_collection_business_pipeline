@@ -41,7 +41,7 @@ from apps.product.serializers import (
     DepartmentSerializer,
     CategorySerializer,
     SubCategorySerializer,
-    BrandSerializer
+    BrandSerializer,
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
@@ -212,58 +212,44 @@ class UploadFileView(FormView):
                 .count()
             )
             print("barcode_product_number", barcode_product_number)
-            tz = pytz.timezone('Asia/Kolkata')
+            tz = pytz.timezone("Asia/Kolkata")
             current_time = timezone.now().astimezone(tz)
             formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
             custom_id = f"Batch-{ barcode_product_number+1 }-{ formatted_time }"
             for entry in processing_entries:
                 count = entry.quantity
-                print("quantity", count)
+                print("quantity", entry.product.id, "++", count)
                 matched_products = []
 
                 for index, row in enumerate(sheet.iter_rows()):
-                    if index == 1:
+                    if index == 0:
                         continue
 
                     if all(cell.value in (None, "") for cell in row):
                         continue
 
                     attributes = [cell.value for cell in row]
-                    print(type(attributes[3]) == str)
-                    print(type(attributes[3]))
-                    print(str(attributes[3]).lower())
-                    print(entry.product.article_number.lower())
-                    print(
-                        str(attributes[3]).lower()
-                        == entry.product.article_number.lower()
-                    )
                     print("rows", attributes)
-                    if (
-                        entry.product.department.lower() == attributes[0].lower()
-                        and entry.product.brand.lower() == attributes[6].lower()
-                        and entry.product.article_number.lower() == str(attributes[3]).lower()
-                        # if type(attributes[3]) == str
-                        # else str(int(attributes[3])).lower()
-                    ):
+                    if entry.product.id == attributes[0]:
                         count = count - 1
                         matched_products.append(
                             {
                                 "product": entry.product,
-                                "barcode": attributes[9],
+                                "barcode": attributes[11],
                                 "sold": False,
                             }
                         )
 
-                    print("count", count)
-                    print(
-                        "appending object",
-                        {
-                            "product": entry.product,
-                            "barcode": attributes[9],
-                            "sold": False,
-                        },
-                    )
-                    print("matched_productsarray", matched_products)
+                    print("count",entry.product.id,"**", count)
+                    # print(
+                    #     "appending object",
+                    #     {
+                    #         "product": entry.product,
+                    #         "barcode": attributes[11],
+                    #         "sold": False,
+                    #     },s
+                    # )
+                    # print("matched_productsarray", matched_products)
                     if count == 0:
                         print("enter in count0")
                         for match_item in matched_products:
@@ -273,8 +259,8 @@ class UploadFileView(FormView):
                                 barcode=match_item["barcode"],
                                 sold=match_item["sold"],
                             )
-                            print("new_product", new_product)
-                            print("new_record", new_product.product.processed)
+                            # print("new_product", new_product)
+                            # print("new_record", new_product.product.processed)
                             new_product.save()
                             entry.status = PTStatus.COMPLETED
                             entry.save()
@@ -303,9 +289,9 @@ class PTFileEntryListView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            context['user_type'] = self.request.user.user_type
+            context["user_type"] = self.request.user.user_type
         else:
-            context['user_type'] = None 
+            context["user_type"] = None
         return context
 
 
@@ -321,7 +307,13 @@ class PTFileEntryAPIView(generics.ListAPIView):
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
         data = serializer.data
-        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories, "brands":brands}
+        result = {
+            "data": data,
+            "departments": departments,
+            "categories": categories,
+            "subcategories": subcategories,
+            "brands": brands,
+        }
         return Response(result)
 
 
@@ -337,7 +329,13 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
         data = serializer.data
-        result = {"data": data, "departments": departments, "categories":categories, "subcategories":subcategories, "brands":brands}
+        result = {
+            "data": data,
+            "departments": departments,
+            "categories": categories,
+            "subcategories": subcategories,
+            "brands": brands,
+        }
         return Response(result)
 
 
@@ -354,6 +352,7 @@ class PTFileEntryUpdateAPIView(APIView):
             PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
             # Update PTFileEntry and Product
             from apps.department.models import SubCategory
+
             for data in data_list:
                 entry_id = data[0]  # PTFileEntry ID
                 product_data = {
@@ -459,37 +458,52 @@ class BarcodeBatchDetailsView(SideBarSelectedMixin, LoginRequiredMixin, View):
         return render(request, self.template_name, context)
 
 
-
 class ExportPTFilesView(View):
     login_url = "users:account_login"
 
     def get(self, request, *args, **kwargs):
-        queryset = PTFileEntry.objects.filter(status=PTStatus.PENDING).select_related('product', 'product__department')
+        queryset = PTFileEntry.objects.filter(status=PTStatus.PENDING).select_related(
+            "product", "product__department"
+        )
 
         fields_to_export = [
-            'id','product__department__department_name', 'product__category__category_name', 'product__subcategory__subcategory_name',
-            'product__article_number', 'color', 'size', 'product__brand__brand_name', 'wsp', 'mrp', 'quantity'
+            "id",
+            "product__department__department_name",
+            "product__category__category_name",
+            "product__subcategory__subcategory_name",
+            "product__article_number",
+            "color",
+            "size",
+            "product__brand__brand_name",
+            "wsp",
+            "mrp",
+            "quantity",
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
         column_mapping = {
-            'id': 'ItemId',
-            'product__department__department_name': 'Department',
-            'product__category__category_name': 'Category',
-            'product__subcategory__subcategory_name': 'Subcategory',
-            'product__article_number': 'Article Number',
-            'color': 'Color',
-            'size': 'Size',
-            'product__brand__brand_name': 'Brand',
-            'wsp': 'WSP',
-            'mrp': 'MRP',
-            'quantity': 'Quantity'
+            "id": "ItemId",
+            "product__department__department_name": "Department",
+            "product__category__category_name": "Category",
+            "product__subcategory__subcategory_name": "Subcategory",
+            "product__article_number": "Article Number",
+            "color": "Color",
+            "size": "Size",
+            "product__brand__brand_name": "Brand",
+            "wsp": "WSP",
+            "mrp": "MRP",
+            "quantity": "Quantity",
         }
         df = df.rename(columns=column_mapping)
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)
 
-        with open(excel_file_path, 'rb') as excel_file:
-            response = HttpResponse(excel_file.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
+        with open(excel_file_path, "rb") as excel_file:
+            response = HttpResponse(
+                excel_file.read(),
+                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+            response["Content-Disposition"] = (
+                f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
+            )
 
         return response
