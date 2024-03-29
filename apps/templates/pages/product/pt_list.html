@@ -106,76 +106,7 @@
 <script>
   const userType = "{{ user_type }}";
 </script>
-<!-- <script>
-    window.onload = function (){
-    const container = document.querySelector('#example');
-  function fetchDataWithCSRFToken(url) {
-    try {
-    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
-
-    if (!csrfToken) {
-        throw new Error('CSRF token not found.');
-    }
-    fetch(url, {
-      method: 'GET',
-      headers: {
-        'X-CSRFToken': csrfToken,
-        'Content-Type': 'application/json',
-      },
-    })
-      .then(response => response.json())
-      .then(data => {
-        const readOnly = userType === 'FT';
-        // const dataForRendering = data.map(({ id, product, mrp }) => ({ product, mrp }));
-        const hot = new Handsontable(container, {
-          height: 450,
-          colWidths: [50, 130, 150, 150, 150, 150, 130, 130, 130, 130,130],  // Adjust the width of columns as needed
-          colHeaders: [
-            "Id",
-            "Article Number",
-            "Department",
-            "Category",
-            "Sub-Category",
-            "Brand",
-            "Size",
-            "Quantity",
-            "Color",
-            "MRP",
-            "WSP"
-          ],
-          data: data,
-          columns: [
-          { data: 'id' },
-          { data: 'product.article_number' },
-          { data: 'product.department.department_name' },
-          {data: 'product.category.category_name'},
-          {data: 'product.subcategory.subcategory_name'},
-          {data: 'product.brand.brand_name'},
-          {data: 'size'},
-          {data: 'quantity'},
-          {data: 'color'},
-          { data: 'mrp' },
-          {data: 'wsp'}
-          ],
-          rowHeaders: true,
-          readOnly: readOnly,
-          autoWrapRow: true,
-          search: true,
-          height: 'auto',
-          licenseKey: 'non-commercial-and-evaluation' // for non-commercial use only
-        });
-      });
-    }
-    catch (error) {
-      console.error('Error:', error);
-    }
-  }
-
-  fetchDataWithCSRFToken('/product/api/ptfile_list/');
-};
-  </script> -->
-
-  <script>
+<script>
     window.onload = function (){
     const container = document.querySelector('#example');
     function fetchDataWithCSRFToken(url) {
@@ -369,8 +300,8 @@
 
     fetchDataWithCSRFToken('/product/api/ptfile_list/');
 };
-  </script>
-  <script>
+</script>
+<script>
     function viewProduct(button) {
       var productImgSrc = button.getAttribute('data-product-img');
       var imgElement = document.createElement('img');
@@ -398,6 +329,6 @@
       productTagImageDiv.innerHTML = ''; 
       productTagImageDiv.appendChild(imgElement);
     }
-  </script>
+</script>
 
 {% endblock extra_scripts %}
