@@ -235,7 +235,7 @@ class UploadFileView(FormView):
                         matched_products.append(
                             {
                                 "product": entry.product,
-                                "barcode": attributes[11],
+                                "barcode": attributes[10],
                                 "sold": False,
                             }
                         )

@@ -29,7 +29,6 @@ def process_image_data(image_data, product_image_id):
         department, created = Department.objects.get_or_create(department_name = "None")
         valid_data["category"], created = Category.objects.get_or_create(category_name="None", department=department)
         valid_data["subcategory"], created = SubCategory.objects.get_or_create(subcategory_name="None", category=valid_data["category"])
-        print("===========================")
         print(valid_data["category"])
         print(valid_data["subcategory"])
         product = Product.objects.create(**valid_data)
