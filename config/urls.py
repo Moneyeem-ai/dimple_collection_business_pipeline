@@ -9,9 +9,10 @@ from django.views.generic import TemplateView
 urlpatterns = [
     path('GcVVDn27GczHMeEAQeyyRShjS3WGwofrXqdFFmju0I/', admin.site.urls),
     path('product/', include('apps.product.urls')),
+    path('', include('apps.product.urls')),
     path('department/', include('apps.department.urls')),
     path('user/', include('apps.user.urls')),
-    path('test/', TemplateView.as_view(template_name='pages/test.html'))
+    path('test/', TemplateView.as_view(template_name='pages/test.html')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

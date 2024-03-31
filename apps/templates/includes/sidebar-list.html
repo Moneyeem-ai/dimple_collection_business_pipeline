@@ -77,6 +77,14 @@
           {% endif %}
       </ul>
     </li>
+    {% if request.user.user_type != 'FT' and request.user.user_type != 'BT'%}
+    <li class="nav-item">
+      <a href="{% url 'user:register' %}" class="nav-link">
+        <i class="fa fa-user-plus nav-icon"></i>
+        <p>Register</p>
+      </a>
+    </li>
+    {% endif %}
     {% endif %}
     {% if request.user.is_authenticated %}
     <li class="nav-item">

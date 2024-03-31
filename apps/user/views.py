@@ -39,10 +39,10 @@ class UserLoginView(IsUserAuthenticatedMixin, View):
         return render(request, self.template_name, {"form": form})
 
 
-class UserRegisterView(IsUserAuthenticatedMixin, CreateView):
+class UserRegisterView(CreateView):
     template_name = "pages/user/register.html"
     form_class = SignUpForm
-    success_url = reverse_lazy("user:login")
+    success_url = reverse_lazy("product:product_list")
     
     
 class UserLogoutView(LogoutView):

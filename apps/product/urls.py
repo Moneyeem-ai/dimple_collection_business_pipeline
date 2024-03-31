@@ -5,6 +5,7 @@ from .views import ProductListView, ProductEntryView, ProductBarcodeListView, Pr
 app_name = 'product'
 
 urlpatterns = [
+    path('', ProductListView.as_view(), name="list"),
     path('list/', ProductListView.as_view(), name="product_list"),
     path('entry/', ProductEntryView.as_view(), name="product_entry"),
     path('barcode/list/', ProductBarcodeListView.as_view(), name="barcode_list"),

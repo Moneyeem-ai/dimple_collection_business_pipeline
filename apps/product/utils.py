@@ -74,7 +74,6 @@ def extract_data_from_tag(image_path):
     response = model.generate_content(prompt_parts)
     print(response.text)
 
-
     try:
         json_data = json.loads(response.text)
     except:
