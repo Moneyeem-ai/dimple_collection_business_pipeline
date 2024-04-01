@@ -59,9 +59,12 @@ class Product(models.Model):
                 logger.info(f"Error: {e}")
         if existing_entry and not self.pk:
             logger.info(existing_entry)
+            print("existing entry")
+            print(existing_entry)
             pt_file_data = PTFileEntry.objects.create(product=existing_entry)
             return existing_entry
         else:
+            print("no existing entry")
             product = super().save(*args, **kwargs)
             return product
 

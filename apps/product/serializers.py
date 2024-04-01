@@ -103,5 +103,6 @@ class PTFileEntryCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         product_id = validated_data.pop("product_id")
         product = Product.objects.get(id=product_id)
+        print("creating product")
         pt_file_entry = PTFileEntry.objects.create(product=product, **validated_data)
         return pt_file_entry

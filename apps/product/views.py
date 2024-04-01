@@ -371,6 +371,8 @@ class PTFileEntryUpdateAPIView(APIView):
                     "wsp": data[11],
                 }
 
+                print(entry_id)
+
                 if entry_id:
                     # Update existing PTFileEntry and its associated Product
                     pt_file_entry = PTFileEntry.objects.get(id=entry_id)
@@ -378,18 +380,20 @@ class PTFileEntryUpdateAPIView(APIView):
                     for key, value in product_data.items():
                         setattr(product, key, value)
                     product.save()
+                    print("Product updated")
+                    print("updating pt file")
                     serializer = PTFileEntrySerializer(
                         pt_file_entry, data=ptfile_entry_data, partial=True
                     )
                 else:
-                    # Create new PTFileEntry and Product
                     product = Product.objects.create(**product_data)
-                    ptfile_entry_data["product_id"] = product.id
-                    serializer = PTFileEntryCreateSerializer(data=ptfile_entry_data)
-
+                    instance = PTFileEntry.objects.last()
+                    serializer = PTFileEntryCreateSerializer(instance, data=ptfile_entry_data, partial=True)
+                    print("done")
                 if serializer.is_valid():
                     serializer.save(status=PTStatus.PENDING)
                 else:
+                    print(serializer.errors)
                     return Response(
                         serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
