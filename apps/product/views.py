@@ -230,7 +230,7 @@ class UploadFileView(FormView):
 
                     attributes = [cell.value for cell in row]
                     print("rows", attributes)
-                    if entry.product.id == attributes[0]:
+                    if entry.id == attributes[0]:
                         count = count - 1
                         matched_products.append(
                             {
@@ -387,7 +387,6 @@ class PTFileEntryUpdateAPIView(APIView):
                     )
                 else:
                     product = Product.objects.create(**product_data)
-                    instance = PTFileEntry.objects.last()
                     serializer = PTFileEntryCreateSerializer(instance, data=ptfile_entry_data, partial=True)
                     print("done")
                 if serializer.is_valid():
