@@ -313,6 +313,7 @@ class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin,generic.Templ
             ptfile_entry_ids = batch.ptfile_entry_ids
             ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
             
+            context['batch_id']=id
             context['ptfile_entries'] = ptfile_entries
             context['parent'] = self.parent
             context['segment'] = self.segment
