@@ -281,57 +281,52 @@ class PTFileEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.Template
     segment = "ptfile_entry"
 
 
-# class PTFileEntryListView(
-#     SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView
-# ):
-#     model = PTFileEntry
-#     template_name = "pages/product/pt_list.html"
-#     parent = "product"
-#     segment = "ptfile_list"
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         if self.request.user.is_authenticated:
-#             context["user_type"] = self.request.user.user_type
-#         else:
-#             context["user_type"] = None
-#         return context
-    
-
-
-class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin,generic.TemplateView):
+class PTFileEntryListView(
+    SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView
+):
+    model = PTFileEntry
     template_name = "pages/product/pt_list.html"
     parent = "product"
     segment = "ptfile_list"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        batch_id = self.request.GET.get('batch_id')
-        
-        try:
-            batch = PTFileBatch.objects.get(id=batch_id)
-            ptfile_entry_ids = batch.ptfile_entry_ids
-            ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
-            
-            context['batch_id']=id
-            context['ptfile_entries'] = ptfile_entries
-            context['parent'] = self.parent
-            context['segment'] = self.segment
-            if self.request.user.is_authenticated:
-                context["user_type"] = self.request.user.user_type
-            else:
-                context["user_type"] = None
-            
-            return context
-        except PTFileBatch.DoesNotExist:
-            context['error'] = 'Batch not found'
-            return context
-
-    def render_to_response(self, context, **response_kwargs):
-        if 'ptfile_entries' in context:
-            return JsonResponse(context)
+        if self.request.user.is_authenticated:
+            context["user_type"] = self.request.user.user_type
         else:
-            return super().render_to_response(context, **response_kwargs)
+            context["user_type"] = None
+        return context
+    
+
+
+# class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin,generic.TemplateView):
+#     template_name = "pages/product/pt_list.html"
+#     parent = "product"
+#     segment = "ptfile_list"
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         batch_id = kwargs.get('batch_id')
+        
+#         try:
+#             batch = PTFileBatch.objects.get(id=batch_id)
+#             ptfile_entry_ids = batch.ptfile_entry_ids
+#             ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+#             print("MSG")
+#             print(ptfile_entries)
+#             context['batch_id'] = batch_id
+#             context['ptfile_entries'] = ptfile_entries
+#             context['parent'] = self.parent
+#             context['segment'] = self.segment
+#             if self.request.user.is_authenticated:
+#                 context["user_type"] = self.request.user.user_type
+#             else:
+#                 context["user_type"] = None
+#             return context
+#         except PTFileBatch.DoesNotExist:
+#             context['error'] = 'Batch not found'
+#             return context
+
 
 class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PROCESSING")
@@ -360,6 +355,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
     serializer_class = PTFileEntrySerializer
 
     def list(self, request, *args, **kwargs):
+
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         departments = DepartmentSerializer(Department.objects.all(), many=True).data
