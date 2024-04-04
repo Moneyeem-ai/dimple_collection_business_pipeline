@@ -4,9 +4,10 @@ import logging
 import hashlib
 
 from django.db import models
+from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField
 
 from apps.department.models import Department, Category, SubCategory, Brand
-
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +26,18 @@ class ProcessingStatus(models.TextChoices):
 
 
 class Product(models.Model):
-    department = models.ForeignKey(Department, null=True, blank=True, on_delete=models.CASCADE)
-    category = models.ForeignKey(Category, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
-    subcategory = models.ForeignKey(SubCategory, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
-    brand = models.ForeignKey(Brand, max_length=64, null=True, blank=True, on_delete=models.CASCADE)
+    department = models.ForeignKey(
+        Department, null=True, blank=True, on_delete=models.CASCADE
+    )
+    category = models.ForeignKey(
+        Category, max_length=64, null=True, blank=True, on_delete=models.CASCADE
+    )
+    subcategory = models.ForeignKey(
+        SubCategory, max_length=64, null=True, blank=True, on_delete=models.CASCADE
+    )
+    brand = models.ForeignKey(
+        Brand, max_length=64, null=True, blank=True, on_delete=models.CASCADE
+    )
     article_number = models.CharField(max_length=128, null=True, blank=True)
     product_images = models.ForeignKey(
         ProductTagImage, null=True, blank=True, on_delete=models.CASCADE
@@ -86,6 +95,7 @@ class PTFileEntry(models.Model):
     color = models.CharField(max_length=64, null=True, blank=True)
     wsp = models.CharField(max_length=128, null=True, blank=True)
     mrp = models.CharField(max_length=128, null=True, blank=True)
+    is_exported = models.BooleanField(default=False)
 
     def __str__(self):
         return self.product.article_number
@@ -102,6 +112,21 @@ class PTFileEntry(models.Model):
                 self.mrp = metadata.get("mrp", 0)
                 logger.info(self)
         return super().save(*args, **kwargs)
+
+
+class PTFileBatch(models.Model):
+    def generate_batch_id():
+        now = timezone.now()
+        return now.strftime("%Y%m%d_%H%M%S")
+
+    batch_id = models.CharField(max_length=20, default=generate_batch_id)
+    is_file_uploaded = models.BooleanField(default=False)
+    ptfile_entry_ids = ArrayField(models.IntegerField(), default=list)
+
+    def save(self, *args, **kwargs):
+        if not self.batch_id:
+            self.batch_id = self.generate_batch_id()
+        super().save(*args, **kwargs)
 
 
 class ProductBarcode(models.Model):

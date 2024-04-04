@@ -60,12 +60,12 @@
                   </thead>
                   <tbody>
                     {% for item in batch_list %}
-                    <tr class="unread {% if not item.is_file_uploaded %}bg-danger{% endif %}">
+                    <tr class="unread">
                         <td>
                             <h6 class="mb-1">{{ item.batch_id }}</h6>
                         </td>
                         <td>
-                          <a href="{% url 'product:batch_details' batch_id=item.batch_id %}">
+                          <a href="{% url 'product:ptfile_list' item.id %}">
                             <button class="btn btn-primary">View</button>
                         </a>
                         </td>
