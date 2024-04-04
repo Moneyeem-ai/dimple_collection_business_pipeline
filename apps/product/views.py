@@ -554,7 +554,12 @@ class ExportPTFilesView(View):
             "mrp": "MRP",
             "quantity": "Quantity",
         }
-        df = df.rename(columns=column_mapping)
+        # df = df.rename(columns=column_mapping)
+
+        # df.insert(0, 'c1', None)
+
+        # df.insert(3, 'c2', None)
+
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)
 

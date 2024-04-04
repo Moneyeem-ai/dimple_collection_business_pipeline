@@ -37,20 +37,26 @@
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">This is Generated PT File</h3>
                             {% if request.user.user_type != 'FT' %}
+                            
                             <div class="row">
                               <div class="col-sm-6">
-                                <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px;">Update Data</button>
+                                <button id="editDataButton" class="btn btn-block btn-warning" style="width: 120px; display: block;">Edit Data</button>
+                                <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none;">Cancel</button>
                               </div>
                               <div class="col-sm-6">
                                 <a href="{% url 'product:export_ptfiles' %}">
-                                  <button type="button" class="btn btn-block btn-primary">Export Data</button>
+                                  <button type="button" id="exportDataButton" class="btn btn-block btn-primary">Export Data</button>
                                 </a>
+                                <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px; display: none;">Update Data</button>
+                                
                               </div>
                             </div>
                             {% endif %}
+                          </div>
+                          
                         </div>
-                      
-                    </div>
+                        <div >
+                        </div>
                     <div id="example"></div>
                 </div>
             </div>
@@ -109,6 +115,7 @@
 <script>
     window.onload = function (){
     const container = document.querySelector('#example');
+    let hot; 
     function fetchDataWithCSRFToken(url) {
         try {
             const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
@@ -144,7 +151,7 @@
                 var brands = data.brands.map((brand) => ({name: brand.brand_name, id: brand.id}));
                 console.log("***")
                 console.log(brands)
-                const hot = new Handsontable(container, {
+                hot = new Handsontable(container, {
                     height: 700,
                     contextMenu: {
                         items: {
@@ -241,11 +248,27 @@
                         }, 
                     ],
                     minRows: 100,
-                    readOnly: readOnly,
+                    readOnly: true,
                     autoWrapRow: true,
                     autoWrapCol: true,
                     licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
                 }); 
+
+
+
+
+                // document.getElementById("editDataButton").addEventListener("click", function() {
+                //     // Ensure the Handsontable instance exists
+                //     console.log("Handsontable readOnly set to fal$%^&*se");
+                //     if (hot && hot instanceof Handsontable) {
+                //         // Update the readOnly setting to false
+                //         hot.updateSettings({
+                //             readOnly: false
+                //         });
+
+                //         console.log("Handsontable readOnly set to false");
+                //     }
+                // });
                 
                 const updateDataButton = document.getElementById('updateDataButton');
                 updateDataButton.addEventListener('click', function () {
@@ -297,8 +320,43 @@
             console.error('Error:', error);
         }
     }
-
     fetchDataWithCSRFToken('/product/api/ptfile_list/');
+
+    const editDataButton = document.getElementById("editDataButton");
+    const cancelButton = document.getElementById("cancelButton");
+    const updateDataButton = document.getElementById("updateDataButton");
+    const exportDataButton = document.getElementById("exportDataButton");
+
+    if (editDataButton && cancelButton) {
+        editDataButton.addEventListener("click", function() {
+            if (hot) {
+                hot.updateSettings({
+                    readOnly: false,
+                });
+                console.log("Handsontable readOnly set to false.");
+            }
+            // Hide edit button, show cancel button
+            editDataButton.style.display = 'none';
+            cancelButton.style.display = 'block';
+            updateDataButton.style.display = 'block';
+            exportDataButton.style.display = 'none';
+            
+        });
+
+        cancelButton.addEventListener("click", function() {
+            if (hot) {
+                hot.updateSettings({
+                    readOnly: true,
+                });
+                console.log("Handsontable readOnly set to true.");
+            }
+            // Hide cancel button, show edit button
+            cancelButton.style.display = 'none';
+            updateDataButton.style.display = 'none';
+            editDataButton.style.display = 'block';
+            exportDataButton.style.display = 'block';
+        });
+    }
 };
 </script>
 <script>
