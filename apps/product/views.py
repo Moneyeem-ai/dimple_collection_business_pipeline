@@ -11,6 +11,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
 from django.utils import timezone
 from django_pandas.io import read_frame
+from django.db import transaction
+from django.views.generic import ListView, DetailView
 
 import pandas as pd
 
@@ -33,6 +35,7 @@ from apps.product.models import (
     ProductBarcode,
     PTFileEntry,
     PTStatus,
+    PTFileBatch,
 )
 from apps.department.models import Department, Category, SubCategory, Brand
 from apps.product.serializers import (
@@ -61,7 +64,7 @@ class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
 class ProductBarcodeListView(
     SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
 ):
-    model = ProductBarcode
+    model = PTFileBatch
     template_name = "pages/product/barcode_list.html"
     login_url = "user:login"
     context_object_name = "barcodes"
@@ -72,7 +75,7 @@ class ProductBarcodeListView(
         context = super().get_context_data(**kwargs)
         upload_form = UploadFileForm()
         context["upload_form"] = upload_form
-        batch_list = ProductBarcode.objects.values("batch_id").distinct()
+        batch_list = PTFileBatch.objects.all()
         context["batch_list"] = batch_list
         return context
 
@@ -240,7 +243,7 @@ class UploadFileView(FormView):
                             }
                         )
 
-                    print("count",entry.product.id,"**", count)
+                    print("count", entry.product.id, "**", count)
                     # print(
                     #     "appending object",
                     #     {
@@ -278,22 +281,56 @@ class PTFileEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.Template
     segment = "ptfile_entry"
 
 
-class PTFileEntryListView(
-    SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView
-):
-    model = PTFileEntry
+# class PTFileEntryListView(
+#     SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView
+# ):
+#     model = PTFileEntry
+#     template_name = "pages/product/pt_list.html"
+#     parent = "product"
+#     segment = "ptfile_list"
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         if self.request.user.is_authenticated:
+#             context["user_type"] = self.request.user.user_type
+#         else:
+#             context["user_type"] = None
+#         return context
+    
+
+
+class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin,generic.TemplateView):
     template_name = "pages/product/pt_list.html"
     parent = "product"
     segment = "ptfile_list"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            context["user_type"] = self.request.user.user_type
-        else:
-            context["user_type"] = None
-        return context
+        batch_id = self.request.GET.get('batch_id')
+        
+        try:
+            batch = PTFileBatch.objects.get(id=batch_id)
+            ptfile_entry_ids = batch.ptfile_entry_ids
+            ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+            
+            context['ptfile_entries'] = ptfile_entries
+            context['parent'] = self.parent
+            context['segment'] = self.segment
+            if self.request.user.is_authenticated:
+                context["user_type"] = self.request.user.user_type
+            else:
+                context["user_type"] = None
+            
+            return context
+        except PTFileBatch.DoesNotExist:
+            context['error'] = 'Batch not found'
+            return context
 
+    def render_to_response(self, context, **response_kwargs):
+        if 'ptfile_entries' in context:
+            return JsonResponse(context)
+        else:
+            return super().render_to_response(context, **response_kwargs)
 
 class PTFileEntryAPIView(generics.ListAPIView):
     queryset = PTFileEntry.objects.filter(status="PROCESSING")
@@ -347,6 +384,7 @@ class PTFileEntryUpdateAPIView(APIView):
             existing_entries = PTFileEntry.objects.filter(status=data.get("status"))
             existing_ids = [entry.id for entry in existing_entries]
             incoming_ids = [int(entry[0]) if entry[0] else None for entry in data_list]
+            ids = []
 
             ids_to_delete = list(set(existing_ids) - set(incoming_ids))
             PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
@@ -387,7 +425,10 @@ class PTFileEntryUpdateAPIView(APIView):
                     )
                 else:
                     product = Product.objects.create(**product_data)
-                    serializer = PTFileEntryCreateSerializer(instance, data=ptfile_entry_data, partial=True)
+                    instance = PTFileEntry.objects.last()
+                    serializer = PTFileEntryCreateSerializer(
+                        instance, data=ptfile_entry_data, partial=True
+                    )
                     print("done")
                 if serializer.is_valid():
                     serializer.save(status=PTStatus.PENDING)
@@ -396,6 +437,16 @@ class PTFileEntryUpdateAPIView(APIView):
                     return Response(
                         serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
+                if serializer.data.get("id"):
+                    ids.append(serializer.data.get("id"))
+
+            print("ids", ids)
+
+            if len(ids) > 0:
+                try:
+                    PTFileBatch.objects.create(ptfile_entry_ids=ids)
+                except Exception as e:
+                    return JsonResponse({"error": str(e)})
 
             return Response(
                 {"message": "Data updated successfully", "success": True},
@@ -406,6 +457,12 @@ class PTFileEntryUpdateAPIView(APIView):
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class BatchListView(ListView):
+    model = PTFileBatch
+    template_name = "pages/product/pt_file_batch.html"
+    context_object_name = "batch_list"
 
 
 class CategoryByDepartmentView(View):
