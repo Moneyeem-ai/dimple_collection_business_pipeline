@@ -14,12 +14,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Upload Z Order File and Batch Details</h1>
+            <h1>Batch Details</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Z Order</li>
+              <li class="breadcrumb-item active">Batch Details</li>
             </ol>
           </div>
         </div>
@@ -34,21 +34,6 @@
             <!-- /.card -->
 
             <div class="card">
-              <div class="card-header">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h3 class="card-title">Upload Z Order File By Clicking this Button</h3>
-                    <div>
-                        <button
-                          type="button"
-                          data-toggle="modal"
-                          data-target="#modal-default"
-                          class="btn btn-block btn-primary"
-                        >
-                        Upload Fiile
-                        </button>
-                    </div>
-                </div>
-              </div>
               <!-- /.card-header -->
               <div class="card-body">
                 <table id="example1" class="table table-bordered table-striped">
@@ -65,7 +50,7 @@
                             <h6 class="mb-1">{{ item.batch_id }}</h6>
                         </td>
                         <td>
-                          <a href="{% url 'product:batch_details' batch_id=item.batch_id %}">
+                          <a href="{% url 'product:batch_details' item.id %}">
                             <button class="btn btn-primary">View</button>
                         </a>
                         </td>
@@ -84,39 +69,7 @@
       </div>
       <!-- /.container-fluid -->
     </section>
-    <div class="modal fade" id="modal-default">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title">Upload File</h4>
-            
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' %}">
-            {% csrf_token %}
-            {{ upload_form.file }}
-            
-            
-            <div class="modal-footer justify-content-between">
-              <button type="button" class="btn btn-default" data-dismiss="modal">
-                Close
-              </button>
-              <button type="submit" class="btn btn-primary">Upload File</button>
-            </div>
-            
-          </form>
-        </div>
-        <!-- /.modal-content -->
-      </div>
-      <!-- /.modal-dialog -->
-    </div>
+    
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
@@ -149,5 +102,21 @@
       "responsive": true,
     });
   });
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var uploadButtons = document.querySelectorAll('.upload-file-btn');
+        uploadButtons.forEach(function(button) {
+            button.addEventListener('click', function() {
+                // Get the batch_id from data attribute
+                var batchId = button.getAttribute('data-batch-id');
+                
+                // Set the action attribute of the form with the batch_id
+                var form = document.getElementById('uploadForm');
+                form.action = "product/upload_z_file/" + batchId;
+            });
+        });
+    });
+    
 </script>
 {% endblock extra_scripts %}

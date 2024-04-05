@@ -199,15 +199,17 @@ class UploadFileView(FormView):
         context["status"] = "Success"
         return context
 
-    def post(self, request, *args, **kwargs):
+    def post(self, request,batch_id, *args, **kwargs):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES["file"]
-
+            batch = PTFileBatch.objects.get(id=batch_id)
+            ptfile_entry_ids = batch.ptfile_entry_ids
+            ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
             workbook = load_workbook(uploaded_file, read_only=True)
             sheet = workbook.active
 
-            processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
+            # processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
             barcode_product_number = (
                 ProductBarcode.objects.all()
                 .values("batch_id")
@@ -219,7 +221,7 @@ class UploadFileView(FormView):
             current_time = timezone.now().astimezone(tz)
             formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
             custom_id = f"Batch-{ barcode_product_number+1 }-{ formatted_time }"
-            for entry in processing_entries:
+            for entry in ptfile_entries:
                 count = entry.quantity
                 print("quantity", entry.product.id, "++", count)
                 matched_products = []
@@ -351,13 +353,15 @@ class PTFileEntryAPIView(generics.ListAPIView):
 
 
 class PTFileEntryListAPIView(generics.ListAPIView):
-    queryset = PTFileEntry.objects.filter(status="PENDING")
+    # queryset = PTFileEntry.objects.filter(status="PENDING")
     serializer_class = PTFileEntrySerializer
 
-    def list(self, request, *args, **kwargs):
-
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
+    def list(self, request,batch_id, *args, **kwargs):
+        print("pt_list_batch_id",batch_id)
+        batch = PTFileBatch.objects.get(id=batch_id)
+        ptfile_entry_ids = batch.ptfile_entry_ids
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+        serializer = self.get_serializer(ptfile_entries, many=True)
         departments = DepartmentSerializer(Department.objects.all(), many=True).data
         categories = CategorySerializer(Category.objects.all(), many=True).data
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
@@ -510,8 +514,13 @@ class BarcodeBatchDetailsView(SideBarSelectedMixin, LoginRequiredMixin, View):
 
     def get(self, request, batch_id, *args, **kwargs):
         context = {}
-        batch_details = ProductBarcode.objects.filter(batch_id=batch_id)
-        context["batch_details"] = batch_details
+        upload_form = UploadFileForm()
+        context["upload_form"] = upload_form
+        batch = PTFileBatch.objects.get(id=batch_id)
+        ptfile_entry_ids = batch.ptfile_entry_ids
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+        context["batch_details"] = ptfile_entries
+        context["batch_id"] = batch_id
         return render(request, self.template_name, context)
 
 
