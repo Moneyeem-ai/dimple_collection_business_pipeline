@@ -27,6 +27,8 @@
           </div>
         </div><!-- /.container-fluid -->
       </section>
+      <button id="fetchDataButton" data-batch-id="{{ batch_id }}" class="btn btn-primary d-none">Fetch Data</button>
+
     <section class="content">
         {% csrf_token %}
         <div class="container-fluid">
@@ -62,33 +64,7 @@
             </div>
         </div>
     </section>
-    <div class="modal fade" id="modal-default" >
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h4 class="modal-title" id="image-type">Upload File</h4>
-            
-            <button
-              type="button"
-              class="close"
-              data-dismiss="modal"
-              aria-label="Close"
-            >
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-            <div class="modal-footer d-flex flex-column">
-              <div id="product_tag_image" style="z-index: 1000;">
-              </div>
-              <button type="button" class="btn btn-default" data-dismiss="modal">
-                Close
-              </button>
-            </div>
-        </div>
-        <!-- /.modal-content -->
-      </div>
-      <!-- /.modal-dialog -->
-    </div>
+    
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
@@ -320,8 +296,7 @@
             console.error('Error:', error);
         }
     }
-    fetchDataWithCSRFToken('/product/api/ptfile_list/');
-
+    
     const editDataButton = document.getElementById("editDataButton");
     const cancelButton = document.getElementById("cancelButton");
     const updateDataButton = document.getElementById("updateDataButton");
@@ -357,6 +332,9 @@
             exportDataButton.style.display = 'block';
         });
     }
+    const fetchDataButton = document.getElementById('fetchDataButton');
+    const batchId = fetchDataButton.getAttribute('data-batch-id');
+    fetchDataWithCSRFToken(`/product/api/ptfile_list/${batchId}`);
 };
 </script>
 <script>

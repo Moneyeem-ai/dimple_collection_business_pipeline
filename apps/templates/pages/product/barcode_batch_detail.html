@@ -37,6 +37,16 @@
               <div class="card-header">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="card-title">Batch Details</h3>
+                    <div>
+                        <button
+                          type="button"
+                          data-toggle="modal"
+                          data-target="#modal-default"
+                          class="btn btn-block btn-primary"
+                        >
+                        Upload Fiile
+                        </button>
+                    </div>
                 </div>
               </div>
               <!-- /.card-header -->
@@ -107,7 +117,7 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' %}">
+          <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' batch_id %}">
             {% csrf_token %}
             {{ upload_form.file }}
             
@@ -125,6 +135,7 @@
       </div>
       <!-- /.modal-dialog -->
     </div>
+    
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
