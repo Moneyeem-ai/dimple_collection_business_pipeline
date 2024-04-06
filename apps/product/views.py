@@ -569,6 +569,8 @@ class ExportPTFilesView(View):
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)
 
+        PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids).update(is_exported=True)
+
         with open(excel_file_path, "rb") as excel_file:
             response = HttpResponse(
                 excel_file.read(),

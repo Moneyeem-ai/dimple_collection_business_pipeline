@@ -43,7 +43,7 @@
                             <div class="row">
                               <div class="col-sm-6">
                                 <button id="editDataButton" class="btn btn-block btn-warning" style="width: 120px; display: block;">Edit Data</button>
-                                <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none;">Cancel</button>
+                                <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none; margin-top: 0;">Cancel</button>
                               </div>
                               <div class="col-sm-6">
                                 <a href="{% url 'product:export_ptfiles' batch_id %}">
@@ -264,7 +264,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                window.location.href = '/product/ptfile_list/';
+                                window.location.href = '/product/barcode/list/';
                             } else {
                                 console.error('Error updating data:', data.error);
                             }
