@@ -267,7 +267,7 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
-                                window.location.href = '/product/ptfile_list/';
+                                window.location.href = '/product/ptfile/batches/';
                             } else {
                                 console.error('Error updating data:', data.error);
                             }

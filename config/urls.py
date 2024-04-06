@@ -1,18 +1,16 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.auth import views as auth_views
-from django.urls import include, path
-from django.views.generic import TemplateView
+from django.urls import include, path, reverse_lazy
+from django.views.generic import RedirectView
 
 
 urlpatterns = [
-    path('GcVVDn27GczHMeEAQeyyRShjS3WGwofrXqdFFmju0I/', admin.site.urls),
+    path('dimplecollection/admin/', admin.site.urls),
     path('product/', include('apps.product.urls')),
-    path('', include('apps.product.urls')),
     path('department/', include('apps.department.urls')),
     path('user/', include('apps.user.urls')),
-    path('test/', TemplateView.as_view(template_name='pages/test.html')),
+    path('', RedirectView.as_view(url=reverse_lazy('user:login'))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

@@ -1,12 +1,6 @@
 from .base import *
 from decouple import config
 
-import environ
-
-env = environ.Env()
-env.read_env(str(BASE_DIR / ".env-local"))
-
-
 DEBUG = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
 SECRET_KEY = env("DJANGO_SECRET_KEY")
