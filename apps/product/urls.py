@@ -21,5 +21,5 @@ urlpatterns = [
     path('api/get_categories/', CategoryByDepartmentView.as_view(), name='api_get_categories'),
     path('api/get_sub_categories/', CategoryByDepartmentView.as_view(), name='api_get_sub_categories'),
     path('batch_details/<int:batch_id>',BarcodeBatchDetailsView.as_view(),name="batch_details"),
-    path('export-ptfile/', ExportPTFilesView.as_view(), name='export_ptfiles')
+    path('export-batch-to-excel/<int:batch_id>/', ExportPTFilesView.as_view(), name='export_ptfiles')
 ]

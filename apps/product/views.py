@@ -2,7 +2,7 @@ import uuid
 import base64
 import pytz
 
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
 from django.http import JsonResponse, HttpResponse
 from django.views import View
@@ -292,6 +292,8 @@ class PTFileEntryListView(
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        batch_id = kwargs.get("batch_id")
+        context["batch_id"] = batch_id
         if self.request.user.is_authenticated:
             context["user_type"] = self.request.user.user_type
         else:
@@ -520,8 +522,16 @@ class ExportPTFilesView(View):
     login_url = "users:account_login"
 
     def get(self, request, *args, **kwargs):
-        queryset = PTFileEntry.objects.filter(status=PTStatus.PENDING).select_related(
-            "product", "product__department"
+        batch_id = kwargs.get('batch_id')
+        try:
+            batch = PTFileBatch.objects.get(id=batch_id)
+        except PTFileBatch.DoesNotExist:
+            # Handle the case where the batch does not exist
+            return HttpResponse("Batch not found", status=404)
+        
+        # Filter PTFileEntries based on the ptfile_entry_ids field of the PTFileBatch.
+        queryset = PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids).select_related(
+            "product", "product__department", "product__category", "product__subcategory", "product__brand"
         )
 
         fields_to_export = [
@@ -551,7 +561,7 @@ class ExportPTFilesView(View):
             "mrp": "MRP",
             "quantity": "Quantity",
         }
-        # df = df.rename(columns=column_mapping)
+        df = df.rename(columns=column_mapping)
 
         # df.insert(0, 'c1', None)
 
