@@ -441,14 +441,13 @@ class PTFileEntryUpdateAPIView(APIView):
                     )
                 if serializer.data.get("id"):
                     ids.append(serializer.data.get("id"))
-
-            print("ids", ids)
-
-            if len(ids) > 0:
-                try:
-                    PTFileBatch.objects.create(ptfile_entry_ids=ids)
-                except Exception as e:
-                    return JsonResponse({"error": str(e)})
+            
+            if data.get("status") == PTStatus.PROCESSING:
+                if len(ids) > 0:
+                    try:
+                        PTFileBatch.objects.create(ptfile_entry_ids=ids)
+                    except Exception as e:
+                        return JsonResponse({"error": str(e)})
 
             return Response(
                 {"message": "Data updated successfully", "success": True},
