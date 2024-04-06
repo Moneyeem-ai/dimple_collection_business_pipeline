@@ -49,7 +49,6 @@ from apps.product.serializers import (
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
-from apps.product.models import ProcessingStatus
 
 
 class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
@@ -460,10 +459,12 @@ class PTFileEntryUpdateAPIView(APIView):
             )
 
 
-class BatchListView(ListView):
+class BatchListView(SideBarSelectedMixin, ListView):
     model = PTFileBatch
     template_name = "pages/product/pt_file_batch.html"
     context_object_name = "batch_list"
+    parent = "product"
+    segment = "batch_list"
 
 
 class CategoryByDepartmentView(View):
@@ -474,13 +475,9 @@ class CategoryByDepartmentView(View):
         print("department_name", department_name)
         try:
             department = Department.objects.get(department_name=department_name)
-
             categories = Category.objects.filter(department=department)
-
             categories_list = [category.name for category in categories]
-
             return JsonResponse({"categories": categories_list})
-
         except Department.DoesNotExist:
             return JsonResponse(
                 {"error": f"Department with name {department_name} does not exist"},
@@ -489,19 +486,14 @@ class CategoryByDepartmentView(View):
 
 
 class SubCategoryByCategoryView(View):
-
     def post(self, request, *args, **kwargs):
         # Retrieve department_id from the request
         category_name = request.GET.get("category_name")
         try:
             category = Category.objects.get(category_name=category_name)
-
             subCategories = SubCategory.objects.filter(category=category)
-
             sub_categories_list = [subCategory.name for subCategory in subCategories]
-
             return JsonResponse({"categories": sub_categories_list})
-
         except Category.DoesNotExist:
             return JsonResponse(
                 {"error": f"Department with name {category_name} does not exist"},

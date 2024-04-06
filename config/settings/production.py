@@ -1,11 +1,6 @@
 from .base import *
 from decouple import config
 
-import environ
-
-env = environ.Env()
-env.read_env(str(BASE_DIR / ".env-prod"))
-
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -42,4 +37,3 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 EMAIL_USE_SSL = False
-

@@ -1,10 +1,14 @@
-import time
 import os
+import environ
+from celery import Celery
 
-from celery import Celery, shared_task
+from config.settings.base import BASE_DIR
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.production")
+env = environ.Env()
+env.read_env(str(BASE_DIR / ".env"))
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", env("DJANGO_SETTINGS_MODULE"))
 
 app = Celery("apps")
 app.config_from_object("django.conf:settings", namespace="CELERY")

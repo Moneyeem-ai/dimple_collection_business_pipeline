@@ -3,10 +3,15 @@ Base settings to build other settings files upon.
 """
 
 from pathlib import Path
-import os
+import environ
+
 
 BASE_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 APPS_DIR = BASE_DIR / "apps"
+
+
+env = environ.Env()
+env.read_env(str(BASE_DIR / ".env"))
 
 # Local time zone. Choices are
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -224,22 +229,6 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
-# ------------------------------------------------------------------------------
-# Error-Page
-
-# handler404 = 'apps.errors.views.handler404'
-# handler500 = 'apps.errors.views.handler500'
-
-CELERY_BROKER_URL = "pyamqp://admin:123456@localhost:5672/"
-CELERY_RESULT_BACKEND = "rpc://admin:123456@localhost:5672/"
-CELERY_RESULT_EXTENDED = True
-CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
-CELERY_RESULT_BACKEND_MAX_RETRIES = 10
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-
-
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.SessionAuthentication",
@@ -249,3 +238,12 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
 }
+
+CELERY_BROKER_URL = f"pyamqp://{env('MQ_USER')}:{env('MQ_PASS')}@localhost:5672/"
+CELERY_RESULT_BACKEND = f"rpc://{env('MQ_USER')}:{env('MQ_PASS')}@localhost:5672/"
+CELERY_RESULT_EXTENDED = True
+CELERY_RESULT_BACKEND_ALWAYS_RETRY = True
+CELERY_RESULT_BACKEND_MAX_RETRIES = 10
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
