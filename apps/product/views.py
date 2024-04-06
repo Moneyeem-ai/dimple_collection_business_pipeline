@@ -535,35 +535,48 @@ class ExportPTFilesView(View):
         )
 
         fields_to_export = [
-            "id",
             "product__department__department_name",
             "product__category__category_name",
             "product__subcategory__subcategory_name",
             "product__article_number",
+            "id",
             "color",
             "size",
             "product__brand__brand_name",
-            "wsp",
             "mrp",
+            "wsp",
             "quantity",
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
         column_mapping = {
-            "id": "ItemId",
             "product__department__department_name": "Department",
             "product__category__category_name": "Category",
             "product__subcategory__subcategory_name": "Subcategory",
             "product__article_number": "Article Number",
+            "id": "Description",
             "color": "Color",
             "size": "Size",
             "product__brand__brand_name": "Brand",
-            "wsp": "WSP",
-            "mrp": "MRP",
+            "mrp": "ItemMRP",
+            "wsp": "ItemWSP",
             "quantity": "Quantity",
         }
         df = df.rename(columns=column_mapping)
 
-        # df.insert(0, 'c1', None)
+        df.insert(4, 'CodingType', None)
+        df.insert(5, 'UOMName', 'pcs')
+        df.insert(7, 'ExtDescription', None)
+        df.insert(10, 'Style', None)
+        df.insert(12, 'HSNCode', None)
+        df.insert(13, 'Supplier', None)
+        df.insert(14, 'ItemCode', None)
+        df.insert(15, 'ItemId', None)
+        df.insert(16, 'PurPrice', None)
+        df.insert(20, 'InvoiceNo', None)
+        df.insert(21, 'InvoiceDt', None)
+
+        
+
 
         # df.insert(3, 'c2', None)
 
