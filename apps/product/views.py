@@ -383,7 +383,8 @@ class PTFileEntryUpdateAPIView(APIView):
         try:
             data = request.data
             data_list = data.get("data")
-            existing_entries = PTFileEntry.objects.filter(status=data.get("status"))
+            ptstatus = data.get("status")
+            existing_entries = PTFileEntry.objects.filter(status=ptstatus)
             existing_ids = [entry.id for entry in existing_entries]
             incoming_ids = [int(entry[0]) if entry[0] else None for entry in data_list]
             ids = []
@@ -442,7 +443,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 if serializer.data.get("id"):
                     ids.append(serializer.data.get("id"))
             
-            if data.get("status") == PTStatus.PROCESSING:
+            if ptstatus == PTStatus.PROCESSING:
                 if len(ids) > 0:
                     try:
                         PTFileBatch.objects.create(ptfile_entry_ids=ids)
