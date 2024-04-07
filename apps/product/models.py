@@ -2,6 +2,7 @@ from __future__ import absolute_import, unicode_literals
 import os
 import logging
 import hashlib
+import pytz
 
 from django.db import models
 from django.utils import timezone
@@ -76,7 +77,8 @@ class PTFileEntry(models.Model):
 
 class PTFileBatch(models.Model):
     def generate_batch_id():
-        now = timezone.now()
+        tz = pytz.timezone('Asia/Kolkata')
+        now = timezone.now().astimezone(tz)
         return now.strftime("%Y-%m-%d_%H:%M:%S")
 
     batch_id = models.CharField(max_length=20, default=generate_batch_id)
