@@ -64,8 +64,12 @@
           <!-- /.row -->
         </div>
         <!-- /.container-fluid -->
-        <button type="button" class="btn btn-block btn-success take-photo-btn" id="startbutton">Take photo</button>
-        <button type="button" class="btn btn-block btn-primary take-photo-btn" id="submitButton">Next</button>
+        <button type="button" class="btn btn-block btn-success take-photo-btn" id="startbutton">Take {{photo}} photo</button>
+        <button type="button" class="btn btn-block btn-primary take-photo-btn" id="submitButton">{% if photo == "Cloth" %}
+          Next
+        {% else %}
+          Submit
+        {% endif %}</button>
       </div>
 {% endblock content %}
 {% block extra_scripts %}

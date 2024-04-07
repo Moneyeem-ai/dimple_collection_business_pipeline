@@ -1,8 +1,10 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block title %}test{% endblock title %}
+{% block title %}PTFile Entry{% endblock title %}
 {% block extrastyle %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
  <!-- Include Handsontable CSS -->
  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.css" />
  <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
@@ -28,15 +30,21 @@
       </section>
     <section class="content">
         {% csrf_token %}
+        {% include 'includes/modal.html' %}  
         <div class="container-fluid">
             <div class="row">
               <div class="col-12">
-                <div class="card">
+                <div class="card" >
                     <div class="card-header">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">Update the Data to Generate PT File</h3>
                             <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px;">Update Data</button>
                         </div>
+                    </div>
+                    <div id="loader" style="display:flex; height:400px" class=" justify-content-center align-items-center" style="height: 200px;">
+                      <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                      </div>
                     </div>
                     <div id="example"></div>
                 </div>
@@ -47,7 +55,8 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h4 class="modal-title" id="image-type">Upload File</h4>
+            <h4 class="modal-title" id="image-type">PT Entry</h4>
+            
             <button
               type="button"
               class="close"
@@ -74,6 +83,8 @@
 {% block extra_scripts %}
 <!-- Include Handsontable JS -->
 <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/handsontable@14.1/dist/handsontable.full.min.js"></script>
 <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.1/dist/handsontable.full.min.css" /> 
@@ -93,6 +104,26 @@
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
 <!-- Page specific script -->
 <script>
+  function showOverlay() {
+    // Create overlay elements
+    var overlayWrapper = document.createElement('div');
+    overlayWrapper.className = 'overlay-wrapper';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'overlay dark';
+    overlay.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i><div class="text-bold pt-2">Loading...</div>';
+
+    // Append overlay elements to the body
+    overlayWrapper.appendChild(overlay);
+    document.body.appendChild(overlayWrapper);
+  }
+
+  function hideOverlay() {
+    // Remove overlay elements from the body
+    var overlayWrapper = document.querySelector('.overlay-wrapper');
+    overlayWrapper.parentNode.removeChild(overlayWrapper);
+    $('#loader').hide();
+  }
     window.onload = function (){
     const container = document.querySelector('#example');
     function fetchDataWithCSRFToken(url) {
@@ -230,6 +261,8 @@
                     autoWrapCol: true,
                     licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
                 }); 
+                const loaderComp=document.getElementById('loader')
+                loaderComp.style.display="none";
                 
                 const updateDataButton = document.getElementById('updateDataButton');
                 updateDataButton.addEventListener('click', function () {
@@ -264,10 +297,15 @@
                     })
                         .then(response => response.json())
                         .then(data => {
-                            if (data.success) {
-                                window.location.href = '/product/ptfile/batches/';
+                          if (data.success) {
+                                $('#successModal .modal-body').text("Data Updated Successfully!");
+                                $('#successModal .modal-title').text("Success!");
+                                $('#successModal').modal('show');
                             } else {
                                 console.error('Error updating data:', data.error);
+                                $('#successModal .modal-body').text(data.error);
+                                $('#successModal .modal-title').text("Error!");
+                                $('#successModal').modal('show');
                             }
                         })
                         .catch(error => {
@@ -280,6 +318,13 @@
             console.error('Error:', error);
         }
     }
+        $("#okbtn").click(function () {
+            $.ajax({
+                success: function() {
+                    window.location.href = '/product/ptfile/batches/  ';
+                }
+            });
+        });
 
     fetchDataWithCSRFToken('/product/api/ptfile_entry/');
 };
