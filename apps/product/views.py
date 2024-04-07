@@ -466,7 +466,7 @@ class ExportPTFilesView(View):
             "id",
             "color",
             "size",
-            "product__brand__brand_name",
+            "product__brand__brand_code",
             "mrp",
             "wsp",
             "quantity",
@@ -480,7 +480,7 @@ class ExportPTFilesView(View):
             "id": "Description",
             "color": "Color",
             "size": "Size",
-            "product__brand__brand_name": "Brand",
+            "product__brand__brand_code": "Brand",
             "mrp": "ItemMRP",
             "wsp": "ItemWSP",
             "quantity": "Quantity",
@@ -498,8 +498,6 @@ class ExportPTFilesView(View):
         df.insert(16, "PurPrice", None)
         df.insert(20, "InvoiceNo", None)
         df.insert(21, "InvoiceDt", None)
-
-        # df.insert(3, 'c2', None)
 
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)
