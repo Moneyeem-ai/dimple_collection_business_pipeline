@@ -182,13 +182,13 @@
                     if(row.product.subcategory == null)
                         row.product.subcategory={subcategory_name:"None", id: 0}
                     if(row.product.brand == null)
-                        row.product.brand={brand_name:"None", id: 0}
+                        row.product.brand={brand_code:"None", id: 0}
                     return row;
                 })
                 var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
                 var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
                 var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
-                var brands = data.brands.map((brand) => ({name: brand.brand_name, id: brand.id}));
+                var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
                 console.log("***")
                 console.log(brands)
                 hot = new Handsontable(container, {
@@ -242,12 +242,12 @@
                         },
                         { 
                             title: "Brand",
-                            data: 'product.brand.brand_name',
+                            data: 'product.brand.brand_code',
                             type: 'autocomplete',
-                            source: brands.map(brand => brand.name),
+                            source: brands.map(brand => brand.code),
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                const matchedBrand = brands.find(brand => brand.name === value);
+                                const matchedBrand = brands.find(brand => brand.code === value);
                                 td.setAttribute('data-brand-id', matchedBrand ? matchedBrand.id : '0');
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
