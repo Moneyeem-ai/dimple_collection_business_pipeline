@@ -77,7 +77,7 @@ class PTFileEntry(models.Model):
 class PTFileBatch(models.Model):
     def generate_batch_id():
         now = timezone.now()
-        return now.strftime("%Y%m%d_%H%M%S")
+        return now.strftime("%Y-%m-%d_%H:%M:%S")
 
     batch_id = models.CharField(max_length=20, default=generate_batch_id)
     ptfile_entry_ids = ArrayField(models.IntegerField(), default=list)

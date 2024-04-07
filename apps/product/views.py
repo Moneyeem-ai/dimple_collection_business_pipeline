@@ -15,6 +15,7 @@ from django.utils import timezone
 from django_pandas.io import read_frame
 from django.db import transaction
 from django.views.generic import ListView, DetailView
+from django.db.models import Sum
 
 import pandas as pd
 
@@ -291,6 +292,10 @@ class PTFileEntryListView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         batch_id = kwargs.get("batch_id")
+        batch = PTFileBatch.objects.get(id=batch_id)
+        ptfile_entry_ids = batch.ptfile_entry_ids
+        total_quantity = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).aggregate(total_quantity=Sum('quantity'))['total_quantity']
+        context['total_quantity'] = total_quantity
         context["batch_id"] = batch_id
         if self.request.user.is_authenticated:
             context["user_type"] = self.request.user.user_type
@@ -515,6 +520,5 @@ class ExportPTFilesView(View):
             response["Content-Disposition"] = (
                 f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
             )
-
 
         return response
