@@ -45,6 +45,7 @@
                   <thead>
                   <tr>
                     <th>Batch id</th>
+                    <th>Is Export</th>
                     <th>Action</th>
                   </tr>
                   </thead>
@@ -54,6 +55,9 @@
                         <td>
                             <h6 class="mb-1">{{ item.batch_id }}</h6>
                         </td>
+                        <td>
+                          <h6 class="mb-1">{{ item.is_exported }}</h6>
+                      </td>
                         <td>
                           <a href="{% url 'product:upload_z_file' item.id %}">
                             <button class="btn btn-primary">View</button>
