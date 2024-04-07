@@ -46,7 +46,12 @@
               </div>
               <!-- /.card-header -->
               <div class="card-body">
-                <table id="example1" class="table table-bordered table-striped">
+                <div id="loader" style="display:flex" class=" justify-content-center align-items-center" style="height: 200px;">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                </div>
+                <table id="example1" class="table table-bordered table-striped" style="display: none;">
                   <thead>
                   <tr>
                     <th>Article Number</th>
@@ -111,10 +116,41 @@
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
 <!-- Page specific script -->
 <script>
+  function showOverlay() {
+    // Create overlay elements
+    var overlayWrapper = document.createElement('div');
+    overlayWrapper.className = 'overlay-wrapper';
+
+    var overlay = document.createElement('div');
+    overlay.className = 'overlay dark';
+    overlay.innerHTML = '<i class="fas fa-3x fa-sync-alt fa-spin"></i><div class="text-bold pt-2">Loading...</div>';
+
+    // Append overlay elements to the body
+    overlayWrapper.appendChild(overlay);
+    document.body.appendChild(overlayWrapper);
+  }
+
+  function hideOverlay() {
+    // Remove overlay elements from the body
+    var overlayWrapper = document.querySelector('.overlay-wrapper');
+    overlayWrapper.parentNode.removeChild(overlayWrapper);
+  }
+
+
   $(function () {
+    showOverlay();
     $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "initComplete": function () {
+        hideOverlay();
+        $('#example1').show();
+        $('#loader').hide();
+      }
+    }).buttons().container().appendTo('#example1_wrapper .col-md-6');
+
+    hideOverlay();  
+    $('#example1').show();
+    $('#loader').hide();
     $('#example2').DataTable({
       "paging": true,
       "lengthChange": false,
@@ -126,4 +162,5 @@
     });
   });
 </script>
+
 {% endblock extra_scripts %}
