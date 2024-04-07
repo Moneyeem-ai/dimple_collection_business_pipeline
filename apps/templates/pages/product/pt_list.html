@@ -46,13 +46,16 @@
                             {% if request.user.user_type != 'FT' %}
                             
                             <div class="row">
-                              <div class="col-sm-6">
+                             <div class="col-sm-5">
+                                <button class="btn  btn-success" style="width: 180px; display: block;">Total Quantity- {{ total_quantity }}</button>
+                             </div>
+                              <div class="col-sm-3">
                                 <button id="editDataButton" class="btn btn-block btn-warning" style="width: 120px; display: block;">Edit Data</button>
                                 <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none; margin-top: 0;">Cancel</button>
                               </div>
-                              <div class="col-sm-6">
+                              <div class="col-sm-3">
                                 <a href="{% url 'product:export_ptfiles' batch_id %}">
-                                  <button type="button" id="exportDataButton" class="btn btn-block btn-primary">Export Data</button>
+                                  <button type="button" id="exportDataButton" class="btn btn-block btn-primary" style="width: 120px;">Export Data</button>
                                 </a>
                                 <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px; display: none;">Update Data</button>
                                 
