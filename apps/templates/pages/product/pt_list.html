@@ -168,19 +168,6 @@
                     height: 700,
                     contextMenu: {
                         items: {
-                          "row_above": {},
-                          "row_below": {},
-                          "add_row_below": {
-                            name: 'Add 5 row below',
-                            callback: function(key, selection) {
-                                hot.alter('insert_row_below', selection[0].start.row, 5);
-                            }
-                          },
-                          "---------": Handsontable.plugins.ContextMenu.SEPARATOR,
-                          "cut": {},
-                          "copy": {},
-                          "alignment": {},
-                          "remove_row": {}
                         }
                     },
                     colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
@@ -333,6 +320,23 @@
         editDataButton.addEventListener("click", function() {
             if (hot) {
                 hot.updateSettings({
+                    contextMenu: {
+                        items: {
+                          "row_above": {},
+                          "row_below": {},
+                          "add_row_below": {
+                            name: 'Add 5 row below',
+                            callback: function(key, selection) {
+                                hot.alter('insert_row_below', selection[0].start.row, 5);
+                            }
+                          },
+                          "---------": Handsontable.plugins.ContextMenu.SEPARATOR,
+                          "cut": {},
+                          "copy": {},
+                          "alignment": {},
+                          "remove_row": {}
+                        }
+                    },
                     readOnly: false,
                 });
                 console.log("Handsontable readOnly set to false.");
@@ -348,6 +352,10 @@
         cancelButton.addEventListener("click", function() {
             if (hot) {
                 hot.updateSettings({
+                    contextMenu: {
+                        items: {
+                        }
+                    },
                     readOnly: true,
                 });
                 console.log("Handsontable readOnly set to true.");
