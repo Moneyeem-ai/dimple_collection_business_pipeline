@@ -48,7 +48,6 @@
         <div class="modal-content">
           <div class="modal-header">
             <h4 class="modal-title" id="image-type">Upload File</h4>
-            
             <button
               type="button"
               class="close"
@@ -254,8 +253,7 @@
                         return acc;
                     }, []);
                     console.log(updatedData);
-                    var final_data = {"data": updatedData, "status": "PROCESSING"};
-                    // Make a POST request to the PTFileEntryUpdateAPIView
+                    var final_data = {"data": updatedData, "status": "ENTRY"};
                     fetch('/product/api/ptfile_update/', {
                         method: 'POST',
                         headers: {

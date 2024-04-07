@@ -1,5 +1,7 @@
+from typing import Any
 import uuid
 import base64
+from django.db.models.query import QuerySet
 import pytz
 
 from django.shortcuts import redirect, render, get_object_or_404
@@ -17,7 +19,7 @@ from django.views.generic import ListView, DetailView
 import pandas as pd
 
 from apps.utils.utils import SideBarSelectedMixin
-from apps.product.models import Product, ProductTagImage, ProductBarcode
+from apps.product.models import Product, ProductImage, ProductBarcode
 from apps.product.forms import ProductForm, UploadFileForm
 from apps.product.utils import extract_data_from_tag
 from apps.product.tasks import process_image_data
@@ -31,7 +33,7 @@ from openpyxl import load_workbook
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import (
     Product,
-    ProductTagImage,
+    ProductImage,
     ProductBarcode,
     PTFileEntry,
     PTStatus,
@@ -47,7 +49,12 @@ from apps.product.serializers import (
     BrandSerializer,
 )
 from apps.product.forms import ProductForm
-from apps.product.utils import extract_data_from_tag
+from apps.product.utils import extract_data_from_tag, get_or_create_product
+from apps.product.mappers import (
+    pt_entry_to_product_mapper,
+    pt_entry_to_pt_entry_mapper,
+    z_order_upload_to_dict_mapper,
+)
 from apps.product.tasks import process_image_data
 
 
@@ -112,7 +119,7 @@ class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.Templat
         return redirect("product:product_entry")
 
 
-class ProductTagImageView(View):
+class ProductImageView(View):
     def post(self, request, *args, **kwargs):
         try:
             image_data = request.body.decode("utf-8").split(",")[1]
@@ -121,7 +128,7 @@ class ProductTagImageView(View):
             decoded_image_data = base64.b64decode(image_data)
             image_name = str(uuid.uuid4())
             image_file = ContentFile(decoded_image_data, name=f"{image_name}.png")
-            product_instance = ProductTagImage.objects.create(product_image=image_file)
+            product_instance = ProductImage.objects.create(product_image=image_file)
             context = {"product_id": product_instance.id}
             print("product_id", product_instance.id)
             return JsonResponse({"status": "success", "context": context})
@@ -142,7 +149,7 @@ class ProductTagImageView(View):
             image_name = str(uuid.uuid4())
             image_file = ContentFile(decoded_image_data, name=f"{image_name}.png")
             try:
-                product_image_instance = ProductTagImage.objects.get(id=product_id)
+                product_image_instance = ProductImage.objects.get(id=product_id)
                 product_image_instance.tag_image = image_file
                 product_image_instance.save()
                 tag_image = product_image_instance.tag_image.name.split("/")[1]
@@ -189,16 +196,24 @@ class ProductImageUploadView(View):
 
 
 class UploadFileView(FormView):
-    template_name = "pages/product/barcode_list.html"
     form_class = UploadFileForm
     success_url = "product:barcode_list"
+    template_name = "pages/product/barcode_batch_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["status"] = "Success"
+        upload_form = UploadFileForm()
+        batch_id = self.kwargs.get("batch_id")
+        batch = PTFileBatch.objects.get(id=batch_id)
+        ptfile_entry_ids = batch.ptfile_entry_ids
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+        context["batch_details"] = ptfile_entries
+        context["batch"] = batch
+        context["upload_form"] = upload_form
         return context
 
-    def post(self, request,batch_id, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
+        batch_id = kwargs.get("batch_id")
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             uploaded_file = request.FILES["file"]
@@ -207,70 +222,53 @@ class UploadFileView(FormView):
             ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
             workbook = load_workbook(uploaded_file, read_only=True)
             sheet = workbook.active
-
-            # processing_entries = PTFileEntry.objects.filter(status=PTStatus.PENDING)
-            barcode_product_number = (
-                ProductBarcode.objects.all()
-                .values("batch_id")
-                .distinct("batch_id")
-                .count()
-            )
-            print("barcode_product_number", barcode_product_number)
-            tz = pytz.timezone("Asia/Kolkata")
-            current_time = timezone.now().astimezone(tz)
-            formatted_time = current_time.strftime("%d-%m-%Y:%H-%M-%S")
-            custom_id = f"Batch-{ barcode_product_number+1 }-{ formatted_time }"
+            pt_entry_frequency = {}
+            barcode_data_list = []
+            errors = []
+            for row in sheet.iter_rows(min_row=2):
+                row = [cell.value for cell in row]
+                if row[0] is not None:
+                    barcode_row = z_order_upload_to_dict_mapper(row)
+                    pt_entry_id = barcode_row.get("pt_entry_id")
+                    pt_entry_frequency[pt_entry_id] = (
+                        pt_entry_frequency.get(pt_entry_id, 0) + 1
+                    )
+                    barcode_data_list.append(barcode_row)
             for entry in ptfile_entries:
-                count = entry.quantity
-                print("quantity", entry.product.id, "++", count)
-                matched_products = []
+                expected_quantity = entry.quantity
+                provided_quantity = pt_entry_frequency.get(entry.id, 0)
+                print(f"{entry.id} -> {expected_quantity} == {provided_quantity}")
+                if expected_quantity != provided_quantity:
+                    errors.append(
+                        f"Quantity mismatch for PT Entry id: {entry.id}. Expected: {expected_quantity}, Provided: {provided_quantity}"
+                    )
+            if errors:
+                print(errors)
+                context = self.get_context_data()
+                context["errors"] = errors
+                return self.render_to_response(
+                    context, status=status.HTTP_400_BAD_REQUEST
+                )
 
-                for index, row in enumerate(sheet.iter_rows()):
-                    if index == 0:
-                        continue
-
-                    if all(cell.value in (None, "") for cell in row):
-                        continue
-
-                    attributes = [cell.value for cell in row]
-                    print("rows", attributes)
-                    if entry.id == attributes[0]:
-                        count = count - 1
-                        matched_products.append(
-                            {
-                                "product": entry.product,
-                                "barcode": attributes[10],
-                                "sold": False,
-                            }
-                        )
-
-                    print("count", entry.product.id, "**", count)
-                    # print(
-                    #     "appending object",
-                    #     {
-                    #         "product": entry.product,
-                    #         "barcode": attributes[11],
-                    #         "sold": False,
-                    #     },s
-                    # )
-                    # print("matched_productsarray", matched_products)
-                    if count == 0:
-                        print("enter in count0")
-                        for match_item in matched_products:
-                            new_product = ProductBarcode.objects.create(
-                                batch_id=custom_id,
-                                product=match_item["product"],
-                                barcode=match_item["barcode"],
-                                sold=match_item["sold"],
-                            )
-                            # print("new_product", new_product)
-                            # print("new_record", new_product.product.processed)
-                            new_product.save()
-                            entry.status = PTStatus.COMPLETED
-                            entry.save()
-                        break
-
-            return redirect(self.success_url)
+            product_barcodes = [
+                ProductBarcode(
+                    pt_entry_id=barcode_data.get("pt_entry_id"),
+                    barcode=barcode_data.get("barcode"),
+                )
+                for barcode_data in barcode_data_list
+            ]
+            try:
+                ProductBarcode.objects.bulk_create(product_barcodes)
+                batch.is_file_uploaded = True
+                batch.save()
+            except Exception as e:
+                print(e)
+                context = self.get_context_data()
+                context["errors"] = e
+                return self.render_to_response(
+                    context, status=status.HTTP_400_BAD_REQUEST
+                )
+            return self.render_to_response(self.get_context_data())
         else:
             return self.form_invalid(form)
 
@@ -299,40 +297,10 @@ class PTFileEntryListView(
         else:
             context["user_type"] = None
         return context
-    
-
-
-# class PTFileEntryListView(SideBarSelectedMixin, LoginRequiredMixin,generic.TemplateView):
-#     template_name = "pages/product/pt_list.html"
-#     parent = "product"
-#     segment = "ptfile_list"
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         batch_id = kwargs.get('batch_id')
-        
-#         try:
-#             batch = PTFileBatch.objects.get(id=batch_id)
-#             ptfile_entry_ids = batch.ptfile_entry_ids
-#             ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
-#             print("MSG")
-#             print(ptfile_entries)
-#             context['batch_id'] = batch_id
-#             context['ptfile_entries'] = ptfile_entries
-#             context['parent'] = self.parent
-#             context['segment'] = self.segment
-#             if self.request.user.is_authenticated:
-#                 context["user_type"] = self.request.user.user_type
-#             else:
-#                 context["user_type"] = None
-#             return context
-#         except PTFileBatch.DoesNotExist:
-#             context['error'] = 'Batch not found'
-#             return context
 
 
 class PTFileEntryAPIView(generics.ListAPIView):
-    queryset = PTFileEntry.objects.filter(status="PROCESSING")
+    queryset = PTFileEntry.objects.filter(status="ENTRY")
     serializer_class = PTFileEntrySerializer
 
     def list(self, request, *args, **kwargs):
@@ -354,11 +322,10 @@ class PTFileEntryAPIView(generics.ListAPIView):
 
 
 class PTFileEntryListAPIView(generics.ListAPIView):
-    # queryset = PTFileEntry.objects.filter(status="PENDING")
     serializer_class = PTFileEntrySerializer
 
-    def list(self, request,batch_id, *args, **kwargs):
-        print("pt_list_batch_id",batch_id)
+    def list(self, request, batch_id, *args, **kwargs):
+        print("pt_list_batch_id", batch_id)
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
         ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
@@ -379,83 +346,82 @@ class PTFileEntryListAPIView(generics.ListAPIView):
 
 
 class PTFileEntryUpdateAPIView(APIView):
-    def post(self, request, *args, **kwargs):
+    def post(self, request):
         try:
-            data = request.data
-            data_list = data.get("data")
-            ptstatus = data.get("status")
+            reques_data = request.data
+            pt_file_entries = reques_data.get("data")
+            ptstatus = reques_data.get("status")
+            batch_id = reques_data.get("id", None)
             existing_entries = PTFileEntry.objects.filter(status=ptstatus)
             existing_ids = [entry.id for entry in existing_entries]
-            incoming_ids = [int(entry[0]) if entry[0] else None for entry in data_list]
-            ids = []
-
+            incoming_ids = [
+                int(entry[0]) if entry[0] else None for entry in pt_file_entries
+            ]
             ids_to_delete = list(set(existing_ids) - set(incoming_ids))
             PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
-            # Update PTFileEntry and Product
-            from apps.department.models import SubCategory
+            pt_entry_ids = []
 
-            for data in data_list:
-                entry_id = data[0]  # PTFileEntry ID
-                product_data = {
-                    # 'id': data[1],
-                    "article_number": data[2],
-                    "department_id": data[3],
-                    "category_id": data[4],
-                    "subcategory": SubCategory.objects.get(id=data[5]),
-                    "brand_id": data[6],
-                }
-                ptfile_entry_data = {
-                    "size": data[7],
-                    "quantity": data[8],
-                    "color": data[9],
-                    "mrp": data[10],
-                    "wsp": data[11],
-                }
-
-                print(entry_id)
-
+            for pt_entry in pt_file_entries:
+                entry_id = pt_entry[0]
                 if entry_id:
-                    # Update existing PTFileEntry and its associated Product
                     pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                    product_data = pt_entry_to_product_mapper(pt_entry)
                     product = pt_file_entry.product
                     for key, value in product_data.items():
                         setattr(product, key, value)
                     product.save()
-                    print("Product updated")
-                    print("updating pt file")
+                    pt_entry_data = pt_entry_to_pt_entry_mapper(pt_entry)
                     serializer = PTFileEntrySerializer(
-                        pt_file_entry, data=ptfile_entry_data, partial=True
+                        pt_file_entry, data=pt_entry_data, partial=True
                     )
                 else:
-                    product = Product.objects.create(**product_data)
-                    instance = PTFileEntry.objects.last()
+                    product_id = pt_entry[1]
+                    product_data = pt_entry_to_product_mapper(
+                        pt_entry, without_images=False, without_metadata=False
+                    )
+                    if product_id is None:
+                        product = get_or_create_product(product_data)
+                    else:
+                        product = Product.objects.get(id=product_id)
+                        for key, value in product_data.items():
+                            setattr(product, key, value)
+                        product.save()
+                    instance = PTFileEntry.objects.create(product=product)
+                    pt_entry_data = pt_entry_to_pt_entry_mapper(
+                        pt_entry, without_product_id=False
+                    )
                     serializer = PTFileEntryCreateSerializer(
-                        instance, data=ptfile_entry_data, partial=True
+                        instance, data=pt_entry_data, partial=True
                     )
-                    print("done")
                 if serializer.is_valid():
-                    serializer.save(status=PTStatus.PENDING)
+                    serializer.save(status=PTStatus.LIST)
                 else:
-                    print(serializer.errors)
                     return Response(
                         serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
-                if serializer.data.get("id"):
-                    ids.append(serializer.data.get("id"))
-            
-            if ptstatus == PTStatus.PROCESSING:
-                if len(ids) > 0:
+                if pt_entry_id := serializer.data.get("id"):
+                    pt_entry_ids.append(pt_entry_id)
+
+            if ptstatus == PTStatus.ENTRY:
+                if len(pt_entry_ids) > 0 and batch_id is None:
                     try:
-                        PTFileBatch.objects.create(ptfile_entry_ids=ids)
+                        PTFileBatch.objects.create(ptfile_entry_ids=pt_entry_ids)
                     except Exception as e:
-                        return JsonResponse({"error": str(e)})
+                        return Response({"error": str(e)})
+            elif batch_id is not None:
+                try:
+                    pt_batch = PTFileBatch.objects.get(id=batch_id)
+                    pt_batch.ptfile_entry_ids = pt_entry_ids
+                    pt_batch.save()
+                except Exception as e:
+                    return Response({"error": str(e)})
 
             return Response(
                 {"message": "Data updated successfully", "success": True},
                 status=status.HTTP_200_OK,
             )
+
         except Exception as e:
-            # Handle other exceptions
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -463,75 +429,33 @@ class PTFileEntryUpdateAPIView(APIView):
 
 class BatchListView(SideBarSelectedMixin, ListView):
     model = PTFileBatch
+    queryset = PTFileBatch.objects.filter(is_file_uploaded=False)
     template_name = "pages/product/pt_file_batch.html"
     context_object_name = "batch_list"
     parent = "product"
     segment = "batch_list"
 
 
-class CategoryByDepartmentView(View):
-
-    def post(self, request, *args, **kwargs):
-        # Retrieve department_id from the request
-        department_name = request.POST.get("department_name")
-        print("department_name", department_name)
-        try:
-            department = Department.objects.get(department_name=department_name)
-            categories = Category.objects.filter(department=department)
-            categories_list = [category.name for category in categories]
-            return JsonResponse({"categories": categories_list})
-        except Department.DoesNotExist:
-            return JsonResponse(
-                {"error": f"Department with name {department_name} does not exist"},
-                status=404,
-            )
-
-
-class SubCategoryByCategoryView(View):
-    def post(self, request, *args, **kwargs):
-        # Retrieve department_id from the request
-        category_name = request.GET.get("category_name")
-        try:
-            category = Category.objects.get(category_name=category_name)
-            subCategories = SubCategory.objects.filter(category=category)
-            sub_categories_list = [subCategory.name for subCategory in subCategories]
-            return JsonResponse({"categories": sub_categories_list})
-        except Category.DoesNotExist:
-            return JsonResponse(
-                {"error": f"Department with name {category_name} does not exist"},
-                status=404,
-            )
-
-
-class BarcodeBatchDetailsView(SideBarSelectedMixin, LoginRequiredMixin, View):
-    template_name = "pages/product/barcode_batch_detail.html"
-
-    def get(self, request, batch_id, *args, **kwargs):
-        context = {}
-        upload_form = UploadFileForm()
-        context["upload_form"] = upload_form
-        batch = PTFileBatch.objects.get(id=batch_id)
-        ptfile_entry_ids = batch.ptfile_entry_ids
-        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
-        context["batch_details"] = ptfile_entries
-        context["batch_id"] = batch_id
-        return render(request, self.template_name, context)
-
-
 class ExportPTFilesView(View):
     login_url = "users:account_login"
 
     def get(self, request, *args, **kwargs):
-        batch_id = kwargs.get('batch_id')
+        batch_id = kwargs.get("batch_id")
         try:
             batch = PTFileBatch.objects.get(id=batch_id)
         except PTFileBatch.DoesNotExist:
             # Handle the case where the batch does not exist
             return HttpResponse("Batch not found", status=404)
-        
+
         # Filter PTFileEntries based on the ptfile_entry_ids field of the PTFileBatch.
-        queryset = PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids).select_related(
-            "product", "product__department", "product__category", "product__subcategory", "product__brand"
+        queryset = PTFileEntry.objects.filter(
+            id__in=batch.ptfile_entry_ids
+        ).select_related(
+            "product",
+            "product__department",
+            "product__category",
+            "product__subcategory",
+            "product__brand",
         )
 
         fields_to_export = [
@@ -563,27 +487,25 @@ class ExportPTFilesView(View):
         }
         df = df.rename(columns=column_mapping)
 
-        df.insert(4, 'CodingType', None)
-        df.insert(5, 'UOMName', 'pcs')
-        df.insert(7, 'ExtDescription', None)
-        df.insert(10, 'Style', None)
-        df.insert(12, 'HSNCode', None)
-        df.insert(13, 'Supplier', None)
-        df.insert(14, 'ItemCode', None)
-        df.insert(15, 'ItemId', None)
-        df.insert(16, 'PurPrice', None)
-        df.insert(20, 'InvoiceNo', None)
-        df.insert(21, 'InvoiceDt', None)
-
-        
-
+        df.insert(4, "CodingType", None)
+        df.insert(5, "UOMName", "pcs")
+        df.insert(7, "ExtDescription", None)
+        df.insert(10, "Style", None)
+        df.insert(12, "HSNCode", None)
+        df.insert(13, "Supplier", None)
+        df.insert(14, "ItemCode", None)
+        df.insert(15, "ItemId", None)
+        df.insert(16, "PurPrice", None)
+        df.insert(20, "InvoiceNo", None)
+        df.insert(21, "InvoiceDt", None)
 
         # df.insert(3, 'c2', None)
 
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)
 
-        PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids).update(is_exported=True)
+        batch.is_exported = True
+        batch.save()
 
         with open(excel_file_path, "rb") as excel_file:
             response = HttpResponse(
@@ -593,5 +515,6 @@ class ExportPTFilesView(View):
             response["Content-Disposition"] = (
                 f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
             )
+
 
         return response

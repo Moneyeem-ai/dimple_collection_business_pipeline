@@ -250,9 +250,11 @@
                         }
                         return acc;
                     }, []);
-                    console.log({"data": updatedData, "status": "PENDING"});
-                    var final_data = {"data": updatedData, "status": "PENDING"};
-                    // Make a POST request to the PTFileEntryUpdateAPIView
+                    console.log({"data": updatedData, "status": "LIST"});
+                    const currentUrl = window.location.href;
+                    const parts = currentUrl.split('/');
+                    const id = parts[parts.length - 2];
+                    var final_data = {"data": updatedData, "status": "LIST", "id": id};
                     fetch('/product/api/ptfile_update/', {
                         method: 'POST',
                         headers: {

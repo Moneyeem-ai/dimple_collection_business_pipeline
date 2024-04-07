@@ -40,6 +40,7 @@
                   <thead>
                   <tr>
                     <th>Batch id</th>
+                    <th>Is Export</th>
                     <th>Action</th>
                   </tr>
                   </thead>
@@ -49,6 +50,9 @@
                         <td>
                             <h6 class="mb-1">{{ item.batch_id }}</h6>
                         </td>
+                        <td>
+                          <h6 class="mb-1">{{ item.is_exported }}</h6>
+                      </td>
                         <td>
                           <a href="{% url 'product:ptfile_list' item.id %}">
                             <button class="btn btn-primary">View</button>
@@ -69,7 +73,33 @@
       </div>
       <!-- /.container-fluid -->
     </section>
-   
+    <div class="modal fade" id="modal-default" >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h4 class="modal-title" id="image-type">Upload File</h4>
+            
+            <button
+              type="button"
+              class="close"
+              data-dismiss="modal"
+              aria-label="Close"
+            >
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+            <div class="modal-footer d-flex flex-column">
+              <div id="product_tag_image" style="z-index: 1000;">
+              </div>
+              <button type="button" class="btn btn-default" data-dismiss="modal">
+                Close
+              </button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+      </div>
+      <!-- /.modal-dialog -->
+    </div>
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
