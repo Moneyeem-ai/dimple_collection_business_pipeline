@@ -12,17 +12,11 @@ from apps.department.models import Department, Category, SubCategory, Brand
 logger = logging.getLogger(__name__)
 
 
-class ProductTagImage(models.Model):
+class ProductImage(models.Model):
     product_image = models.ImageField(
         upload_to="product_images/", null=True, blank=True
     )
     tag_image = models.ImageField(upload_to="tag_images/", null=True, blank=True)
-
-
-class ProcessingStatus(models.TextChoices):
-    PENDING = "PENDING"
-    IN_PROGRESS = "IN_PROGRESS"
-    COMPLETED = "COMPLETED"
 
 
 class Product(models.Model):
@@ -40,47 +34,18 @@ class Product(models.Model):
     )
     article_number = models.CharField(max_length=128, null=True, blank=True)
     product_images = models.ForeignKey(
-        ProductTagImage, null=True, blank=True, on_delete=models.CASCADE
+        ProductImage, null=True, blank=True, on_delete=models.CASCADE
     )
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)
-    processed = models.CharField(
-        max_length=20,
-        default=ProcessingStatus.PENDING,
-        choices=ProcessingStatus.choices,
-    )
     hash_value = models.CharField(max_length=64, null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        existing_entry = None
-        logger.info(self)
-        # logger.info(existing_entry)
-        if self.article_number:
-            # Calculate hash using SHA256
-            hash_string = f"{self.department.department_name}{self.brand.brand_name}{self.article_number}"
-            hash_value = hashlib.sha256(hash_string.encode()).hexdigest()
-            self.hash_value = hash_value
-            try:
-                existing_entry = Product.objects.filter(hash_value=hash_value).first()
-            except Exception as e:
-                existing_entry = None
-                logger.info(f"Error: {e}")
-        if existing_entry and not self.pk:
-            logger.info(existing_entry)
-            print("existing entry")
-            print(existing_entry)
-            pt_file_data = PTFileEntry.objects.create(product=existing_entry)
-            return existing_entry
-        else:
-            print("no existing entry")
-            product = super().save(*args, **kwargs)
-            return product
 
 
 class PTStatus(models.TextChoices):
-    PROCESSING = "PROCESSING"
-    PENDING = "PENDING"
+    ENTRY = "ENTRY"
+    LIST = "LIST"
+    BARCODE = "BARCODE"
     COMPLETED = "COMPLETED"
 
 
@@ -88,29 +53,24 @@ class PTStatus(models.TextChoices):
 class PTFileEntry(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     status = models.CharField(
-        max_length=64, default=PTStatus.PROCESSING, choices=PTStatus.choices
+        max_length=64, default=PTStatus.ENTRY, choices=PTStatus.choices
     )
-    size = models.CharField(max_length=128, null=True, blank=True)
+    size = models.CharField(max_length=128, default=0, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     color = models.CharField(max_length=64, null=True, blank=True)
     wsp = models.CharField(max_length=128, null=True, blank=True)
-    mrp = models.CharField(max_length=128, null=True, blank=True)
-    is_exported = models.BooleanField(default=False)
+    mrp = models.CharField(max_length=128, null=True, blank=True, default=0)
 
     def __str__(self):
         return self.product.article_number
 
     def save(self, *args, **kwargs):
-        logger.info(self.product)
-        if self.product and not self.pk:
-            logger.info(self.product.metadata)
-            if self.product.metadata:
-                metadata = self.product.metadata
-                self.size = metadata.get("size", 0)
-                self.quantity = metadata.get("quantity", 0)
-                self.color = metadata.get("color", "")
-                self.mrp = metadata.get("mrp", 0)
-                logger.info(self)
+        if not self.pk:
+            metadata = getattr(self.product, "metadata", {})
+            self.size = metadata.get("size", 0)
+            self.quantity = metadata.get("quantity", 0)
+            self.color = metadata.get("color", "")
+            self.mrp = metadata.get("mrp", 0)
         return super().save(*args, **kwargs)
 
 
@@ -120,8 +80,9 @@ class PTFileBatch(models.Model):
         return now.strftime("%Y%m%d_%H%M%S")
 
     batch_id = models.CharField(max_length=20, default=generate_batch_id)
-    is_file_uploaded = models.BooleanField(default=False)
     ptfile_entry_ids = ArrayField(models.IntegerField(), default=list)
+    is_file_uploaded = models.BooleanField(default=False)
+    is_exported = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.batch_id:
@@ -130,8 +91,9 @@ class PTFileBatch(models.Model):
 
 
 class ProductBarcode(models.Model):
-    batch_id = models.CharField(max_length=1024)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    pt_entry = models.ForeignKey(
+        PTFileEntry, null=True, blank=False, on_delete=models.CASCADE
+    )
     barcode = models.CharField(max_length=128, unique=True)
     sold = models.BooleanField(default=False)
 

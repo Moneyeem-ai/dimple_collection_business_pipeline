@@ -286,8 +286,7 @@
                         return acc;
                     }, []);
                     console.log(updatedData);
-                    var final_data = {"data": updatedData, "status": "PROCESSING"};
-                    // Make a POST request to the PTFileEntryUpdateAPIView
+                    var final_data = {"data": updatedData, "status": "ENTRY"};
                     fetch('/product/api/ptfile_update/', {
                         method: 'POST',
                         headers: {

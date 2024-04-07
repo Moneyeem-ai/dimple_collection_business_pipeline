@@ -6,7 +6,8 @@ import google.generativeai as genai
 
 from django.conf import settings
 
-from apps.department.models import Department, Brand
+from apps.department.models import Department, Brand, Category, SubCategory
+from apps.product.models import Product, ProductImage
 
 
 def extract_data_from_tag(image_path):
@@ -99,23 +100,27 @@ def extract_data_from_tag(image_path):
         try:
             djson_data = json.loads(response.text)
         except:
-            none_department, created = Department.objects.get_or_create(department_name="None")
+            none_department, _ = Department.objects.get_or_create(
+                department_name="None"
+            )
             djson_data = {"id": none_department.id}
 
         try:
             json_data.pop("department")
             json_data["department_id"] = djson_data.get("id")
         except:
-            none_department, created= Department.objects.get_or_create(department_name="None")
+            none_department, _ = Department.objects.get_or_create(
+                department_name="None"
+            )
             json_data["department_id"] = none_department.id
     else:
-        none_department, created = Department.objects.get_or_create(department_name="None")
+        none_department, _ = Department.objects.get_or_create(department_name="None")
         try:
             json_data.pop("department")
             json_data["department_id"] = none_department.id
         except:
             json_data["department_id"] = none_department.id
-    
+
     print("****")
 
     if value := json_data.get("brand", None):
@@ -137,23 +142,71 @@ def extract_data_from_tag(image_path):
         try:
             bjson_data = json.loads(response.text)
         except:
-            none_brand, created = Brand.objects.get_or_create(brand_name="None")
+            none_brand, _ = Brand.objects.get_or_create(brand_name="None")
             bjson_data = {"id": none_brand.id}
 
         try:
             json_data.pop("brand")
             json_data["brand_id"] = bjson_data.get("id")
         except:
-            none_brand, created = Brand.objects.get_or_create(brand_name="None")
+            none_brand, _ = Brand.objects.get_or_create(brand_name="None")
             json_data["brand_id"] = none_brand.id
     else:
-        none_brand, created = Brand.objects.get_or_create(brand_name="None")
+        none_brand, _ = Brand.objects.get_or_create(brand_name="None")
         try:
             json_data.pop("brand")
             json_data["brand_id"] = none_brand.id
         except:
             json_data["brand_id"] = none_brand.id
-        
     print(json_data)
-
     return json_data
+
+
+def clean_extracted_data(data, product_image_id):
+    valid_keys = [
+        field.name.replace("department", "department_id").replace("brand", "brand_id")
+        for field in Product._meta.get_fields()
+    ]
+    valid_data = {key: data[key] for key in valid_keys if key in data}
+    valid_data.update(
+        {
+            "metadata": data,
+            "product_images": ProductImage.objects.get(id=product_image_id), 
+        }
+    )
+    department = Department.objects.get_or_create(department_name="None")[0]
+    valid_data["category"] = Category.objects.get_or_create(
+        category_name="None", department=department
+    )[0]
+    valid_data["subcategory"] = SubCategory.objects.get_or_create(
+        subcategory_name="None", category=valid_data["category"]
+    )[0]
+    return valid_data
+
+
+def get_or_create_product(valid_data):
+    department = Department.objects.get(id=valid_data.get("department_id"))
+    brand = Brand.objects.get(id=valid_data.get("brand_id"))
+    article_number = valid_data.get("article_number")
+    if (
+        department.department_name != "None"
+        and brand.brand_name != "None"
+        and article_number != None
+    ):
+        try:
+            product, created = Product.objects.get_or_create(
+                department=department,
+                article_number=article_number,
+                brand=brand,
+            )
+            for key, value in valid_data.items():
+                setattr(product, key, value)
+            product.save()
+            return product
+        except Exception as e:
+            raise e
+    try:
+        product = Product.objects.create(**valid_data)
+        return product
+    except Exception as e:
+        raise e

@@ -38,14 +38,16 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="card-title">Batch Details</h3>
                     <div>
+                      {% if not batch.is_file_uploaded %}
                         <button
                           type="button"
                           data-toggle="modal"
                           data-target="#modal-default"
                           class="btn btn-block btn-primary"
                         >
-                        Upload Fiile
+                        Upload File
                         </button>
+                      {% endif %}
                     </div>
                 </div>
               </div>
@@ -65,15 +67,12 @@
                     <th>Category</th>
                     <th>Subcategory</th>
                     <th>Brand</th>
-
-
                   </tr>
                   </thead>
                   <tbody>
                     {% for item in batch_details %}
                     <tr class="unread">
                         <td>
-                            <h6 class="mb-1">{{ item.barcode }}</h6>
                         </td>
                         <td>
                             <h6 class="mb-1">{{ item.product.article_number }}</h6>
@@ -122,11 +121,9 @@
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
-          <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' batch_id %}">
+          <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' batch.id %}">
             {% csrf_token %}
             {{ upload_form.file }}
-            
-            
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" data-dismiss="modal">
                 Close

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import PTFileEntry, Product, ProductTagImage
+from .models import PTFileEntry, Product, ProductImage
 from apps.department.models import Department, Category, SubCategory, Brand
 
 
@@ -24,9 +24,9 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = ["id", "department_name"]
 
 
-class ProductTagImageSerializer(serializers.ModelSerializer):
+class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProductTagImage
+        model = ProductImage
         fields = ["id", "product_image", "tag_image"]
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -84,11 +84,9 @@ class PTFileEntrySerializer(serializers.ModelSerializer):
 
     def get_product_images(self, obj):
         if obj.product and obj.product.product_images:
-            # Assuming you have a serializer for ProductTagImage
-            product_images_serializer = ProductTagImageSerializer(
+            product_images_serializer = ProductImageSerializer(
                 obj.product.product_images
             )
-            print("this_product_images", product_images_serializer.data)
             return product_images_serializer.data
         return None
 
