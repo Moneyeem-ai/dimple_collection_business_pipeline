@@ -208,9 +208,14 @@ class UploadFileView(FormView):
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
         ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+
+        barcode_entries = None
+        if batch.is_file_uploaded:
+            barcode_entries = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
         context["batch_details"] = ptfile_entries
         context["batch"] = batch
         context["upload_form"] = upload_form
+        context["barcode_entries"] = barcode_entries
         return context
 
     def post(self, request, *args, **kwargs):
@@ -294,8 +299,10 @@ class PTFileEntryListView(
         batch_id = kwargs.get("batch_id")
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
-        total_quantity = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).aggregate(total_quantity=Sum('quantity'))['total_quantity']
-        context['total_quantity'] = total_quantity
+        total_quantity = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).aggregate(
+            total_quantity=Sum("quantity")
+        )["total_quantity"]
+        context["total_quantity"] = total_quantity
         context["batch_id"] = batch_id
         if self.request.user.is_authenticated:
             context["user_type"] = self.request.user.user_type
