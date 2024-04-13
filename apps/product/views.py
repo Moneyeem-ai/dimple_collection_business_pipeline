@@ -282,8 +282,11 @@ class UploadFileView(FormView):
                 except Exception as e:
                     print("#$^&*()")
                     print(e)
+                    error_message = str(e) 
                     context = self.get_context_data()
-                    context["errors"] = e
+                    context["errors"] = [error_message]
+                    print("!!!")
+                    print(context["errors"])
                     return self.render_to_response(
                         context, status=status.HTTP_400_BAD_REQUEST
                     )
