@@ -221,61 +221,77 @@ class UploadFileView(FormView):
     def post(self, request, *args, **kwargs):
         batch_id = kwargs.get("batch_id")
         form = self.form_class(request.POST, request.FILES)
-        if form.is_valid():
-            uploaded_file = request.FILES["file"]
-            batch = PTFileBatch.objects.get(id=batch_id)
-            ptfile_entry_ids = batch.ptfile_entry_ids
-            ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
-            workbook = load_workbook(uploaded_file, read_only=True)
-            sheet = workbook.active
-            pt_entry_frequency = {}
-            barcode_data_list = []
-            errors = []
-            for row in sheet.iter_rows(min_row=2):
-                row = [cell.value for cell in row]
-                if row[0] is not None:
-                    barcode_row = z_order_upload_to_dict_mapper(row)
-                    pt_entry_id = barcode_row.get("pt_entry_id")
-                    pt_entry_frequency[pt_entry_id] = (
-                        pt_entry_frequency.get(pt_entry_id, 0) + 1
+        try:
+            if form.is_valid():
+                uploaded_file = request.FILES["file"]
+                try:
+                    batch = PTFileBatch.objects.get(id=batch_id)
+                except Exception as e:
+                    print(e)
+                    return self.render_to_response(
+                        status=status.HTTP_400_BAD_REQUEST
                     )
-                    barcode_data_list.append(barcode_row)
-            for entry in ptfile_entries:
-                expected_quantity = entry.quantity
-                provided_quantity = pt_entry_frequency.get(entry.id, 0)
-                print(f"{entry.id} -> {expected_quantity} == {provided_quantity}")
-                if expected_quantity != provided_quantity:
-                    errors.append(
-                        f"Quantity mismatch for PT Entry id: {entry.id}. Expected: {expected_quantity}, Provided: {provided_quantity}"
+                    
+                ptfile_entry_ids = batch.ptfile_entry_ids
+                ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+                workbook = load_workbook(uploaded_file, read_only=True)
+                sheet = workbook.active
+                pt_entry_frequency = {}
+                barcode_data_list = []
+                errors = []
+                for row in sheet.iter_rows(min_row=2):
+                    row = [cell.value for cell in row]
+                    if row[0] is not None:
+                        barcode_row = z_order_upload_to_dict_mapper(row)
+                        pt_entry_id = barcode_row.get("pt_entry_id")
+                        pt_entry_frequency[pt_entry_id] = (
+                            pt_entry_frequency.get(pt_entry_id, 0) + 1
+                        )
+                        barcode_data_list.append(barcode_row)
+                for entry in ptfile_entries:
+                    expected_quantity = entry.quantity
+                    provided_quantity = pt_entry_frequency.get(entry.id, 0)
+                    print(f"{entry.id} -> {expected_quantity} == {provided_quantity}")
+                    if expected_quantity != provided_quantity:
+                        errors.append(
+                            f"Quantity mismatch for PT Entry id: {entry.id}. Expected: {expected_quantity}, Provided: {provided_quantity}"
+                        )
+                if errors:
+                    print(errors)
+                    context = self.get_context_data()
+                    context["errors"] = errors
+                    return self.render_to_response(
+                        context, status=status.HTTP_400_BAD_REQUEST
                     )
-            if errors:
-                print(errors)
-                context = self.get_context_data()
-                context["errors"] = errors
-                return self.render_to_response(
-                    context, status=status.HTTP_400_BAD_REQUEST
-                )
 
-            product_barcodes = [
-                ProductBarcode(
-                    pt_entry_id=barcode_data.get("pt_entry_id"),
-                    barcode=barcode_data.get("barcode"),
-                )
-                for barcode_data in barcode_data_list
-            ]
-            try:
-                ProductBarcode.objects.bulk_create(product_barcodes)
-                batch.is_file_uploaded = True
-                batch.save()
-            except Exception as e:
-                print(e)
-                context = self.get_context_data()
-                context["errors"] = e
-                return self.render_to_response(
-                    context, status=status.HTTP_400_BAD_REQUEST
-                )
-            return self.render_to_response(self.get_context_data())
-        else:
+                product_barcodes = [
+                    ProductBarcode(
+                        pt_entry_id=barcode_data.get("pt_entry_id"),
+                        barcode=barcode_data.get("barcode"),
+                    )
+                    for barcode_data in barcode_data_list
+                ]
+                for p in product_barcodes:
+                    print(p.__dict__)
+                try:
+                    from django.db import transaction
+                    with transaction.atomic():
+                        ProductBarcode.objects.bulk_create(product_barcodes)
+                        batch.is_file_uploaded = True
+                        batch.save()
+                except Exception as e:
+                    print("#$^&*()")
+                    print(e)
+                    context = self.get_context_data()
+                    context["errors"] = e
+                    return self.render_to_response(
+                        context, status=status.HTTP_400_BAD_REQUEST
+                    )
+                return self.render_to_response(self.get_context_data())
+            else:
+                return self.form_invalid(form)
+        except Exception as e:
+            print(e)
             return self.form_invalid(form)
 
 
