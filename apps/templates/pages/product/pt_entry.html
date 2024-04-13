@@ -38,7 +38,7 @@
                     <div class="card-header">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 class="card-title">Update the Data to Generate PT File</h3>
-                            <button id="updateDataButton" class="btn btn-block btn-primary" style="width: 120px;">Update Data</button>
+                            <button id="sumQuantitiesBtn" class="btn btn-block btn-primary" style="width: 120px;">Update Data</button>
                         </div>
                     </div>
                     <div id="loader" style="display:flex; height:400px" class=" justify-content-center align-items-center" style="height: 200px;">
@@ -160,7 +160,7 @@
                 var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
                 console.log("***")
                 console.log(brands)
-                const hot = new Handsontable(container, {
+                hot = new Handsontable(container, {
                     height: 700,
                     contextMenu: {
                         items: {
@@ -298,14 +298,14 @@
                         .then(response => response.json())
                         .then(data => {
                           if (data.success) {
-                                $('#successModal .modal-body').text("Data Updated Successfully!");
                                 $('#successModal .modal-title').text("Success!");
+                                $('#successModal .modal-body').text("Data Updated Successfully!");
                                 $('#successModal').modal('show');
                             } else {
                                 console.error('Error updating data:', data.error);
-                                $('#successModal .modal-body').text(data.error);
-                                $('#successModal .modal-title').text("Error!");
-                                $('#successModal').modal('show');
+                                $('#errorModal .modal-title').text("Error!");
+                                $('#errorModal .modal-body').text(data.error);
+                                $('#errorModal').modal('show');
                             }
                         })
                         .catch(error => {
@@ -327,6 +327,21 @@
         });
 
     fetchDataWithCSRFToken('/product/api/ptfile_entry/');
+
+    document.getElementById('sumQuantitiesBtn').addEventListener('click', function () {
+            // const hot = Handsontable.getInstance(document.querySelector('#example'));
+            const data = hot.getData();
+            let sumQuantity = 0;
+            data.forEach(function (row) {
+                const quantity = parseInt(row[8], 10);
+                if (!isNaN(quantity)) {
+                    sumQuantity += quantity;
+                }
+            });
+            $('#quantityModal .modal-title').text("Check The Quantity");
+            $('#quantityModal .modal-body').text("Total Quantity is: " + sumQuantity);
+            $('#quantityModal').modal('show');
+        });
 };
   </script>
   <script>

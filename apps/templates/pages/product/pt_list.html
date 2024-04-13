@@ -322,14 +322,14 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {
+                              $('#successModal .modal-title').text("Success!");
                                 $('#successModal .modal-body').text("Data Updated Successfully!");
-                                $('#successModal .modal-title').text("Success!");
                                 $('#successModal').modal('show');
                             } else {
                                 console.error('Error updating data:', data.error);
-                                $('#successModal .modal-body').text(data.error);
-                                $('#successModal .modal-title').text("Error!");
-                                $('#successModal').modal('show');
+                                $('#errorModal .modal-title').text("Error!");
+                                $('#errorModal .modal-body').text(data.error);
+                                $('#errorModal').modal('show');
                             }
                         })
                         .catch(error => {

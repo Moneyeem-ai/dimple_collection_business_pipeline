@@ -3,6 +3,7 @@
 
 {% block title %}Barcode Upload{% endblock title %}
 {% block extrastyle %}
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 <!-- DataTables -->
 <link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
 <link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
@@ -162,7 +163,15 @@
           </div>
           <form method="post" enctype="multipart/form-data" id="uploadForm" action="{% url 'product:upload_z_file' batch.id %}">
             {% csrf_token %}
+            {% include 'includes/modal.html' %}  
             {{ upload_form.file }}
+            {% if errors %}
+              <div id="errors">
+                  {% for error in errors %}
+                      <p>{{ error }}</p>
+                  {% endfor %}  
+              </div>
+{% endif %}
             <div class="modal-footer justify-content-between">
               <button type="button" class="btn btn-default" data-dismiss="modal">
                 Close
@@ -180,6 +189,9 @@
     <!-- /.content -->
 {% endblock content %}
 {% block extra_scripts %}
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <!-- DataTables  & Plugins -->
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
@@ -195,6 +207,40 @@
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
 <!-- Page specific script -->
 <script>
+  $(document).ready(function() {
+    $('#uploadForm').on('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+
+        showOverlay();
+
+        $.ajax({
+            url: this.action,
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            cache: false,
+            headers: {
+                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').val()
+            },
+            success: function(response) {
+                hideOverlay();
+                $('#successModal .modal-title').text('Success');
+                $('#successModal .modal-body').html('File uploaded successfully!');
+                $('#successModal').modal('show');
+            },
+            error: function(xhr) {
+                hideOverlay();
+                var html = $('<div />').html(xhr.responseText);
+                var errorsHtml = html.find('#errors').html();
+                $('#errorModal .modal-title').text('Error');
+                $('#errorModal .modal-body').html(errorsHtml);
+                $('#errorModal').modal('show');
+            }
+        });
+    });
+});
   function showOverlay() {
     // Create overlay elements
     var overlayWrapper = document.createElement('div');
