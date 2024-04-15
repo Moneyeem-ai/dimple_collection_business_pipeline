@@ -59,8 +59,11 @@ class PTFileEntry(models.Model):
     size = models.CharField(max_length=128, default=0, null=True, blank=True)
     quantity = models.IntegerField(default=0)
     color = models.CharField(max_length=64, null=True, blank=True)
-    wsp = models.CharField(max_length=128, null=True, blank=True)
+    per_price = models.CharField(max_length=128, null=True, blank=True)
     mrp = models.CharField(max_length=128, null=True, blank=True, default=0)
+    invoice_number = models.CharField(max_length=128, null=True, blank=True)
+    invoice_date = models.DateField(null=True, blank=True)
+    suffix = models.CharField(max_length=64, null=True, blank=True)
 
     def __str__(self):
         return self.product.article_number

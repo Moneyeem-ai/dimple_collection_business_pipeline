@@ -43,7 +43,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        fields = ["id", "brand_name", "brand_code"]
+        fields = ["id", "brand_name", "brand_code","supplier_name"]
 
 
 class ProductReadSerializer(serializers.ModelSerializer):
@@ -77,7 +77,10 @@ class PTFileEntrySerializer(serializers.ModelSerializer):
             "quantity",
             "color",
             "mrp",
-            "wsp",
+            "per_price",
+            "invoice_number",
+            "invoice_date",
+            "suffix",
             "status",
             "product_images",
         ]
@@ -96,7 +99,7 @@ class PTFileEntryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PTFileEntry
-        fields = ["id", "product_id", "size", "quantity", "color", "mrp", "wsp", "status"]
+        fields = ["id", "product_id", "size", "quantity", "color", "mrp", "per_price","invoice_number","invoice_date","suffix", "status"]
 
     def create(self, validated_data):
         product_id = validated_data.pop("product_id")
