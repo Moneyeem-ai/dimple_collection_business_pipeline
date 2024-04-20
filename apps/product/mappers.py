@@ -9,7 +9,10 @@ def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=Tr
         "quantity": pt_entry[8],
         "color": pt_entry[9],
         "mrp": pt_entry[10],
-        "wsp": pt_entry[11],
+        "per_price": pt_entry[11],
+        "suffix": pt_entry[12],
+        "invoice_number": pt_entry[13],
+        "invoice_date": pt_entry[14],
     }
     if without_id:
         mapped_data.pop("id")
@@ -60,6 +63,6 @@ def z_order_upload_to_dict_mapper(row):
         "size": row[6],
         "brand": row[7],
         "mrp": row[8],
-        "wsp": row[9],
+        "per_price": row[9],
         "barcode": row[10]
     }

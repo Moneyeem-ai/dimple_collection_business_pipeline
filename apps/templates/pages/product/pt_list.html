@@ -191,16 +191,7 @@
                 var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
                 console.log("***")
                 console.log(brands)
-                hot = new Handsontable(container, {
-                    height: 700,
-                    contextMenu: {
-                        items: {
-                        }
-                    },
-                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
-                    colHeaders: true,
-                    data: ptfile,
-                    columns: [
+                column_data=[
                         { title: "Id", data: 'id', readOnly: true },
                         { title: "Product ID", data: 'product.id' },
                         { title: "Article Number", data: 'product.article_number' },
@@ -256,8 +247,28 @@
                         { title: "Quantity", data: 'quantity' },
                         { title: "Color", data: 'color' },
                         { title: "MRP", data: 'mrp' },
-                        { title: "WSP", data: 'wsp' },
-                        {
+                    ]
+                    extra_columns=[
+                        { title: "Per Price", data: 'per_price' },
+                        { title: "Suffix", data: 'suffix' },
+                        { title: "Invoice Number", data: 'invoice_number' },
+                        { title: "Invoice Date", data: 'invoice_date',type: 'date', dateFormat: 'YYYY-MM-DD', }, 
+                    ]
+                    fixed_columns=[
+                    { 
+                            title: "Supplier Name",
+                            data: 'product.brand.supplier_name',
+                            type: 'autocomplete',
+                            source: brands.map(brand => brand.supplier_name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedBrand = brands.find(brand => brand.supplier_name === value);
+                                td.setAttribute('data-brand-id', matchedBrand ? matchedBrand.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
+                    {
+                          title: "Product Image",
                           data:'product_images.product_image',
                           renderer: function(instance, td, row, col, prop, value, cellProperties) {
                               td.innerHTML = '<button type="button" data-product-img="' + value + '"  data-toggle="modal" data-target="#modal-default"  class="btn btn-primary m-2 btn-view-product" onclick="viewProduct(this)">View Product</button>';
@@ -266,6 +277,7 @@
                           editor: false
                         },
                         {
+                          title: "Tag Image",
                           data:'product_images.tag_image',
                           renderer: function(instance, td, row, col, prop, value, cellProperties) {
                               td.innerHTML = '<button type="button" data-tag-img="' + value + '" data-toggle="modal" data-target="#modal-default" class="btn btn-primary m-2 btn-view-tag" onclick="viewTag(this)">View Tag</button>';
@@ -273,7 +285,21 @@
                           },
                           editor: false
                         }, 
-                    ],
+                    ]
+                    if(userType != 'FT')
+                        column_data=[...column_data,...extra_columns,...fixed_columns]
+                    else
+                        column_data=[...column_data,...fixed_columns]
+                hot = new Handsontable(container, {
+                    height: 700,
+                    contextMenu: {
+                        items: {
+                        }
+                    },
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150,150,150,150 ],
+                    colHeaders: true,
+                    data: ptfile,
+                    columns: column_data,
                     minRows: 100,
                     readOnly: true,
                     autoWrapRow: true,

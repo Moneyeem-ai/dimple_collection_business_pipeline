@@ -238,8 +238,21 @@
                         { title: "Quantity", data: 'quantity' },
                         { title: "Color", data: 'color' },
                         { title: "MRP", data: 'mrp' },
-                        { title: "WSP", data: 'wsp' },
+                        { title: "Per Price", data: 'per_price' },
+                        { 
+                            title: "Supplier Name",
+                            data: 'product.brand.supplier_name',
+                            type: 'autocomplete',
+                            source: brands.map(brand => brand.supplier_name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedBrand = brands.find(brand => brand.supplier_name === value);
+                                td.setAttribute('data-brand-id', matchedBrand ? matchedBrand.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
                         {
+                          title: "Product Image",
                           data:'product_images.product_image',
                           renderer: function(instance, td, row, col, prop, value, cellProperties) {
                               td.innerHTML = '<button type="button" data-product-img="' + value + '"  data-toggle="modal" data-target="#modal-default"  class="btn btn-primary m-2 btn-view-product" onclick="viewProduct(this)">View Product</button>';
@@ -248,6 +261,7 @@
                           editor: false
                         },
                         {
+                          title: "Tag Image",
                           data:'product_images.tag_image',
                           renderer: function(instance, td, row, col, prop, value, cellProperties) {
                               td.innerHTML = '<button type="button" data-tag-img="' + value + '" data-toggle="modal" data-target="#modal-default" class="btn btn-primary m-2 btn-view-tag" onclick="viewTag(this)">View Tag</button>';
@@ -268,6 +282,9 @@
                 updateDataButton.addEventListener('click', function () {
                     // Get the data from the Handsontable instance
                     const updatedData = hot.getData().reduce((acc, row, index) => {
+                      row[12]=null
+                      row[13]=null
+                      row[14]=null
                         if (row[1] !== null) {
                             const departmentCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
                             const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';

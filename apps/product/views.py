@@ -430,6 +430,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 if serializer.is_valid():
                     serializer.save(status=PTStatus.LIST)
                 else:
+                    print("eror1",serializer.errors)
                     return Response(
                         serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
@@ -441,6 +442,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     try:
                         PTFileBatch.objects.create(ptfile_entry_ids=pt_entry_ids)
                     except Exception as e:
+                        print("eror2",e)
                         return Response({"error": str(e)})
             elif batch_id is not None:
                 try:
@@ -448,6 +450,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     pt_batch.ptfile_entry_ids = pt_entry_ids
                     pt_batch.save()
                 except Exception as e:
+                    print("eror3",e)
                     return Response({"error": str(e)})
 
             return Response(
@@ -456,6 +459,7 @@ class PTFileEntryUpdateAPIView(APIView):
             )
 
         except Exception as e:
+            print("eror4",e)
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -502,7 +506,7 @@ class ExportPTFilesView(View):
             "size",
             "product__brand__brand_code",
             "mrp",
-            "wsp",
+            "per_price",
             "quantity",
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
@@ -516,7 +520,7 @@ class ExportPTFilesView(View):
             "size": "Size",
             "product__brand__brand_code": "Brand",
             "mrp": "ItemMRP",
-            "wsp": "ItemWSP",
+            "per_price": "ItemWSP",
             "quantity": "Quantity",
         }
         df = df.rename(columns=column_mapping)
