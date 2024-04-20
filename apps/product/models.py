@@ -66,7 +66,7 @@ class PTFileEntry(models.Model):
     suffix = models.CharField(max_length=64, null=True, blank=True)
 
     def __str__(self):
-        return self.product.article_number
+        return f"{self.pk}"
 
     def save(self, *args, **kwargs):
         if not self.pk:
