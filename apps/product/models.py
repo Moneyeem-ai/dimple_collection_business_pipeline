@@ -63,7 +63,7 @@ class PTFileEntry(models.Model):
     mrp = models.CharField(max_length=128, null=True, blank=True, default=0)
 
     def __str__(self):
-        return self.product.article_number
+        return f"{self.pk}"
 
     def save(self, *args, **kwargs):
         if not self.pk:
