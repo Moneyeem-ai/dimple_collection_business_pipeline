@@ -211,10 +211,7 @@ class UploadFileView(FormView):
 
         barcode_entries = None
         if batch.is_file_uploaded:
-            barcode_entries = ProductBarcode.objects.filter(pt_entry_id__in=ptfile_entry_ids)
-            print("!!!!!!!!")
-            print(barcode_entries)
-            print(ptfile_entries)
+            barcode_entries = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
         context["batch_details"] = ptfile_entries
         context["batch"] = batch
         context["upload_form"] = upload_form

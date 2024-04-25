@@ -154,6 +154,7 @@
     window.onload = function (){
     const container = document.querySelector('#example');
     let hot; 
+
     function fetchDataWithCSRFToken(url) {
         try {
             const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
@@ -305,7 +306,71 @@
                     autoWrapRow: true,
                     autoWrapCol: true,
                     licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
-                }); 
+                    afterChange: function(changes, source) {
+                    if (!changes || source !== 'edit') return;
+
+                    changes.forEach(([row, prop, oldValue, newValue]) => {
+                        if (prop === 'product.department.department_name' && newValue !== oldValue) {
+                            populateCategories(row, newValue);
+                        }
+                    });
+                },
+
+                });
+                function populateCategories(row, departmentName) {
+                  console.log("@#$%^")
+                  const department = departments.find(d => d.name === departmentName);
+                  if (!department) {
+                      console.error('Department not found');
+                      return;
+                }
+                fetch(`/department/api/categories/${department.id}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let columns = hot.getSettings().columns;
+                        let categoryColumnIndex = columns.findIndex(col => col.title === "Category");
+                        if (categoryColumnIndex !== -1) {
+                            columns[categoryColumnIndex].source = data.map(category => category.name);
+                            hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
+                            console.log("@#$%^")
+                            hot.setDataAtCell(row, categoryColumnIndex, data[0]?.name);
+                            hot.render();
+                            console.log("@#$%^")
+                            if (data.length > 0) {
+                                populateSubCategories(row, data[0].name);
+                             }
+                          }
+                    })
+                    .catch(error => console.error('Error loading categories:', error));
+                }
+                function populateSubCategories(row, categoryName) {
+                  console.log("@#$12345678%^")
+                      const category = categories.find(c => c.name === categoryName);
+                      if (!category) {
+                          console.error('Category not found');
+                          return;
+                      }
+                      fetch(`/department/api/subcategories/${category.id}/`)
+                          .then(response => response.json())
+                          .then(data => {
+                              let columns = hot.getSettings().columns;
+                              let subCategoryColumnIndex = columns.findIndex(col => col.title === "Sub-Category");
+                              if (subCategoryColumnIndex !== -1) {
+                                  columns[subCategoryColumnIndex].source = data.map(subCategory => subCategory.name);
+                                  hot.setCellMeta(row, subCategoryColumnIndex, 'source', data.map(subCategory => subCategory.name));
+                                  hot.setDataAtCell(row, subCategoryColumnIndex, data[0]?.name);
+                                  hot.render();
+                              }
+                          })
+                          .catch(error => console.error('Error loading subcategories:', error));
+                  }
+                  hot.getData().forEach((rowData, rowIndex) => {
+                        console.log("RTYU")
+                          let departmentName = rowData[3]; // Adjust index accordingly
+                          if (departmentName && typeof departmentName === 'string' && departmentName.trim() !== '') {
+                              populateCategories(rowIndex, departmentName);
+                          }
+                  });
                 const loaderComp=document.getElementById('loader')
                 loaderComp.style.display="none";
                 const updateDataButton2 = document.getElementById('updateDataButton2');
