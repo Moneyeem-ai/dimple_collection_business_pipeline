@@ -3,6 +3,8 @@ import uuid
 import base64
 from django.db.models.query import QuerySet
 import pytz
+import os
+import zipfile 
 
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views import generic
@@ -16,6 +18,7 @@ from django_pandas.io import read_frame
 from django.db import transaction
 from django.views.generic import ListView, DetailView
 from django.db.models import Sum
+from django.conf import settings
 
 import pandas as pd
 
@@ -30,6 +33,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from openpyxl import load_workbook
+from io import BytesIO
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import (
@@ -552,4 +556,27 @@ class ExportPTFilesView(View):
                 f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
             )
 
+        return response
+
+
+class ExportImagesAPIView(View):
+    def get(self, request, batch_id):
+        # Retrieve PTFileEntry instances associated with the batch
+        batch = PTFileBatch.objects.get(id=batch_id)
+        ptfile_entry_ids = batch.ptfile_entry_ids
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+
+        # Create a BytesIO object to hold the zip file contents
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+            for ptfile_entry in ptfile_entries:
+                product = ptfile_entry.product
+                product_images = product.product_images
+                if product_images.product_image:
+                    image_path = str(product_images.product_image.path)
+                    zip_file.write(image_path, arcname=f"{product.id}.jpg")
+
+        # Build the response with the zip file contents
+        response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename=product_images_batch_{batch_id}.zip'
         return response
