@@ -40,7 +40,7 @@ from apps.product.models import (
     PTStatus,
     PTFileBatch,
 )
-from apps.department.models import Department, Category, SubCategory, Brand
+from apps.department.models import Department, Category, SubCategory, Brand, Size
 from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
@@ -48,6 +48,7 @@ from apps.product.serializers import (
     CategorySerializer,
     SubCategorySerializer,
     BrandSerializer,
+    SizeSerializer,
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag, get_or_create_product
@@ -341,6 +342,7 @@ class PTFileEntryAPIView(generics.ListAPIView):
         categories = CategorySerializer(Category.objects.all(), many=True).data
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
+        sizes = SizeSerializer(Size.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
@@ -348,6 +350,7 @@ class PTFileEntryAPIView(generics.ListAPIView):
             "categories": categories,
             "subcategories": subcategories,
             "brands": brands,
+            "sizes": sizes,
         }
         return Response(result)
 
@@ -365,6 +368,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         categories = CategorySerializer(Category.objects.all(), many=True).data
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
+        sizes = SizeSerializer(Size.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
@@ -372,6 +376,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             "categories": categories,
             "subcategories": subcategories,
             "brands": brands,
+             "sizes": sizes,
         }
         return Response(result)
 
@@ -396,12 +401,16 @@ class PTFileEntryUpdateAPIView(APIView):
                 entry_id = pt_entry[0]
                 if entry_id:
                     pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                    print("@#$%")
+                    print(pt_entry)
                     product_data = pt_entry_to_product_mapper(pt_entry)
                     product = pt_file_entry.product
                     for key, value in product_data.items():
                         setattr(product, key, value)
                     product.save()
                     pt_entry_data = pt_entry_to_pt_entry_mapper(pt_entry)
+                    print("!@#$%^&*")
+                    print(pt_entry_data)
                     serializer = PTFileEntrySerializer(
                         pt_file_entry, data=pt_entry_data, partial=True
                     )
@@ -500,11 +509,14 @@ class ExportPTFilesView(View):
             "product__article_number",
             "id",
             "color",
-            "size",
+            "size__size_value",
             "product__brand__brand_code",
+            "product__brand__supplier_name",
             "mrp",
             "per_price",
             "quantity",
+            "invoice_number",
+            "invoice_date",
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
         column_mapping = {
@@ -514,11 +526,14 @@ class ExportPTFilesView(View):
             "product__article_number": "Article Number",
             "id": "Description",
             "color": "Color",
-            "size": "Size",
+            "size__size_value": "Size",
             "product__brand__brand_code": "Brand",
+            "product__brand__supplier_name": "Supplier",
             "mrp": "ItemMRP",
             "per_price": "ItemWSP",
             "quantity": "Quantity",
+            "invoice_number": "InvoiceNo",
+            "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
 
@@ -527,12 +542,9 @@ class ExportPTFilesView(View):
         df.insert(7, "ExtDescription", None)
         df.insert(10, "Style", None)
         df.insert(12, "HSNCode", None)
-        df.insert(13, "Supplier", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)
         df.insert(16, "PurPrice", None)
-        df.insert(20, "InvoiceNo", None)
-        df.insert(21, "InvoiceDt", None)
 
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)

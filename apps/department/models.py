@@ -31,3 +31,11 @@ class Brand(models.Model):
 
     def __str__(self):
         return self.brand_name
+    
+
+class Size(models.Model):
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
+    size_value = models.CharField(max_length=64, null=True, blank=True)
+
+    def __str__(self):
+        return self.size_value

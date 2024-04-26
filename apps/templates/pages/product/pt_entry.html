@@ -144,7 +144,7 @@
             .then(data => {
                 console.log("this is api response",data);
                 var ptfile = data.data;
-                console.log("data",ptfile)
+                console.log("dataaaaaaaaaaaaa",ptfile)
                 ptfile = ptfile.map(row => {
                     if(row.product.category == null)
                         row.product.category={category_name:"None", id: 0}
@@ -152,12 +152,15 @@
                         row.product.subcategory={subcategory_name:"None", id: 0}
                     if(row.product.brand == null)
                         row.product.brand={brand_code:"None", id: 0}
+                    if(row.size == null)
+                        row.size={size_value:"None", id: 0}
                     return row;
                 })
                 var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
                 var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
                 var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
                 var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
+                var sizes = data.sizes.map((size) => ({value: size.size_value, id: size.id}));
                 console.log("***")
                 console.log(brands)
                 hot = new Handsontable(container, {
@@ -234,7 +237,18 @@
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
-                        { title: "Size", data: 'size' },
+                        { 
+                            title: "Size",
+                            data: 'size.size_value',
+                            type: 'autocomplete',
+                            source: sizes.map(size => size.value),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                const matchedSize = sizes.find(size => size.value === value);
+                                td.setAttribute('data-size-id', matchedSize ? matchedSize.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
                         { title: "Quantity", data: 'quantity' },
                         { title: "Color", data: 'color' },
                         { title: "MRP", data: 'mrp' },
@@ -275,41 +289,62 @@
                     autoWrapCol: true,
                     licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
                     afterChange: function(changes, source) {
-                    if (!changes || source !== 'edit') return;
+                        if (!changes || source !== 'edit') return;
 
-                    changes.forEach(([row, prop, oldValue, newValue]) => {
-                        if (prop === 'product.department.department_name' && newValue !== oldValue) {
-                            populateCategories(row, newValue);
-                        }
-                    });
-                },
+                        changes.forEach(([row, prop, oldValue, newValue]) => {
+                            if (prop === 'product.department.department_name' && newValue !== oldValue) {
+                                populateCategories(row, newValue);
+                                populateSizes(row, newValue);
+                            }
+                        });
+                    },
 
                 });
                 function populateCategories(row, departmentName) {
-                  console.log("@#$%^")
-                  const department = departments.find(d => d.name === departmentName);
-                  if (!department) {
-                      console.error('Department not found');
-                      return;
-                }
-                fetch(`/department/api/categories/${department.id}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        let columns = hot.getSettings().columns;
-                        let categoryColumnIndex = columns.findIndex(col => col.title === "Category");
-                        if (categoryColumnIndex !== -1) {
-                            columns[categoryColumnIndex].source = data.map(category => category.name);
-                            hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
-                            console.log("@#$%^")
-                            hot.setDataAtCell(row, categoryColumnIndex, data[0]?.name);
-                            hot.render();
-                            console.log("@#$%^")
-                            if (data.length > 0) {
-                                populateSubCategories(row, data[0].name);
-                             }
-                          }
-                    })
+                    console.log("@#$%^")
+                    const department = departments.find(d => d.name === departmentName);
+                    if (!department) {
+                        console.error('Department not found');
+                        return;
+                    }
+                    fetch(`/department/api/categories/${department.id}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let columns = hot.getSettings().columns;
+                            let categoryColumnIndex = columns.findIndex(col => col.title === "Category");
+                            if (categoryColumnIndex !== -1) {
+                                columns[categoryColumnIndex].source = data.map(category => category.name);
+                                hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
+                                console.log("@#$%^")
+                                // hot.setDataAtCell(row, categoryColumnIndex, data[0]?.name);
+                                hot.render();
+                                console.log("@#$%^")
+                                if (data.length > 0) {
+                                    populateSubCategories(row, data[0].name);
+                                }
+                            }
+                        })
                     .catch(error => console.error('Error loading categories:', error));
+                }
+                function populateSizes(row, departmentName) {
+                    const department = departments.find(d => d.name === departmentName);
+                    if (!department) {
+                        console.error('Department not found');
+                        return;
+                    }
+                    fetch(`/department/api/sizes/${department.id}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            let columns = hot.getSettings().columns;
+                            let sizeColumnIndex = columns.findIndex(col => col.title === "Size");
+                            if (sizeColumnIndex !== -1) {
+                                columns[sizeColumnIndex].source = data.map(size => size.value);
+                                hot.setCellMeta(row, sizeColumnIndex, 'source', data.map(size => size.value));
+                                // hot.setDataAtCell(row, sizeColumnIndex, data[0]?.value);  // Optionally set the first size as the default
+                                hot.render();
+                            }
+                        })
+                        .catch(error => console.error('Error loading sizes:', error));
                 }
                 function populateSubCategories(row, categoryName) {
                   console.log("@#$12345678%^")
@@ -326,7 +361,7 @@
                               if (subCategoryColumnIndex !== -1) {
                                   columns[subCategoryColumnIndex].source = data.map(subCategory => subCategory.name);
                                   hot.setCellMeta(row, subCategoryColumnIndex, 'source', data.map(subCategory => subCategory.name));
-                                  hot.setDataAtCell(row, subCategoryColumnIndex, data[0]?.name);
+                                //   hot.setDataAtCell(row, subCategoryColumnIndex, data[0]?.name);
                                   hot.render();
                               }
                           })
@@ -334,9 +369,10 @@
                   }
                   hot.getData().forEach((rowData, rowIndex) => {
                         console.log("RTYU")
-                          let departmentName = rowData[3]; // Adjust index accordingly
+                          let departmentName = rowData[3];
                           if (departmentName && typeof departmentName === 'string' && departmentName.trim() !== '') {
                               populateCategories(rowIndex, departmentName);
+                              populateSizes(rowIndex, departmentName);
                           }
                   }); 
                 const loaderComp=document.getElementById('loader')
@@ -362,6 +398,9 @@
                             const brandCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-brand-id][role="gridcell"][aria-colindex="7"]`);
                             const brandId = brandCell ? brandCell.getAttribute('data-brand-id') : '';
                             row[6] = brandId;
+                            const sizeCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-size-id][role="gridcell"][aria-colindex="8"]`);
+                            const sizeId = sizeCell ? sizeCell.getAttribute('data-size-id') : '';
+                            row[7] = sizeId;
                             acc.push(row);
                         }
                         return acc;

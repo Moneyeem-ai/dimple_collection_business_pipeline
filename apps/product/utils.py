@@ -6,7 +6,7 @@ import google.generativeai as genai
 
 from django.conf import settings
 
-from apps.department.models import Department, Brand, Category, SubCategory
+from apps.department.models import Department, Brand, Category, SubCategory, Size
 from apps.product.models import Product, ProductImage
 
 
@@ -56,6 +56,7 @@ def extract_data_from_tag(image_path):
 
     departments = Department.objects.values("id", "department_name")
     brands = Brand.objects.values("id", "brand_name")
+    sizes = Size.objects.values("id", "size_value")
 
     prompt_parts = [
         image_parts[0],
@@ -67,7 +68,7 @@ def extract_data_from_tag(image_path):
             "The value of color will be the color of cloth mentioned on tag. "
             "The value of article_number will be the unqine code mentioned on tag. It's name can be mentioned as - sytle, d.no, or article. "
             "The value of mrp will be the price of product mentioned on tag. "
-            "The value of size will be the size of product mentioned on tag. "
+            "The value of size can be 32, 34, 36, 38, 40, 42, 44"
             "Name of the fields will not be same exactly and you may not find all the fields but map the fields which you feel are best suited. "
             "The output you should give should only be the json, mapping the extracted data with the model Product fields. "
         ),
@@ -158,6 +159,43 @@ def extract_data_from_tag(image_path):
             json_data["brand_id"] = none_brand.id
         except:
             json_data["brand_id"] = none_brand.id
+
+    if value := json_data.get("size", None):
+        model = genai.GenerativeModel(
+            model_name="gemini-1.0-pro",
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+        try:
+            sizes_json = json.dumps(list(sizes))
+        except:
+            sizes_json = []
+        print("!!!1234567!")
+        print(value)
+        prompt = f"Perform text matching. I am providing you a json of list of size_value and there id - {sizes_json}. Match the provided list and check if '{value}' is present in size_value, it will not be same exactly, but its meaning should be similar. The output you should give should only be the matching json."
+        prompt_parts = [prompt]
+        response = model.generate_content(prompt_parts)
+        print("!!!!")
+        print(response.text)
+        try:
+            sjson_data = json.loads(response.text)
+        except:
+            none_size, _ = Size.objects.get_or_create(size_value="None")
+            sjson_data = {"id": none_size.id}
+
+        try:
+            json_data.pop("size")
+            json_data["size_id"] = sjson_data.get("id")
+        except:
+            none_size, _ = Size.objects.get_or_create(size_value="None")
+            json_data["size_id"] = none_size.id
+    else:
+        none_size, _ = Size.objects.get_or_create(size_value="None")
+        try:
+            json_data.pop("size")
+            json_data["size_id"] = none_size.id
+        except:
+            json_data["size_id"] = none_size.id
     print(json_data)
     return json_data
 
