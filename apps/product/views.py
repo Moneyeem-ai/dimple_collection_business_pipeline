@@ -1,22 +1,16 @@
-from typing import Any
 import uuid
 import base64
-from django.db.models.query import QuerySet
-import pytz
-import os
-import zipfile 
+import zipfile
 
-from django.shortcuts import redirect, render, get_object_or_404
+from django.shortcuts import redirect
 from django.views import generic
 from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import FormView
-from django.utils import timezone
 from django_pandas.io import read_frame
-from django.db import transaction
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView
 from django.db.models import Sum
 from django.conf import settings
 
@@ -233,10 +227,8 @@ class UploadFileView(FormView):
                     batch = PTFileBatch.objects.get(id=batch_id)
                 except Exception as e:
                     print(e)
-                    return self.render_to_response(
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                    
+                    return self.render_to_response(status=status.HTTP_400_BAD_REQUEST)
+
                 ptfile_entry_ids = batch.ptfile_entry_ids
                 ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
                 workbook = load_workbook(uploaded_file, read_only=True)
@@ -280,6 +272,7 @@ class UploadFileView(FormView):
                     print(p.__dict__)
                 try:
                     from django.db import transaction
+
                     with transaction.atomic():
                         ProductBarcode.objects.bulk_create(product_barcodes)
                         batch.is_file_uploaded = True
@@ -287,7 +280,7 @@ class UploadFileView(FormView):
                 except Exception as e:
                     print("#$^&*()")
                     print(e)
-                    error_message = str(e) 
+                    error_message = str(e)
                     context = self.get_context_data()
                     context["errors"] = [error_message]
                     print("!!!")
@@ -380,7 +373,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             "categories": categories,
             "subcategories": subcategories,
             "brands": brands,
-             "sizes": sizes,
+            "sizes": sizes,
         }
         return Response(result)
 
@@ -394,7 +387,9 @@ class PTFileEntryUpdateAPIView(APIView):
             batch_id = reques_data.get("id", None)
             if batch_id:
                 pt_batch = PTFileBatch.objects.get(id=batch_id)
-                existing_entries = PTFileEntry.objects.filter(status=ptstatus, id__in=pt_batch.ptfile_entry_ids)
+                existing_entries = PTFileEntry.objects.filter(
+                    status=ptstatus, id__in=pt_batch.ptfile_entry_ids
+                )
             else:
                 existing_entries = PTFileEntry.objects.filter(status=ptstatus)
             existing_ids = [entry.id for entry in existing_entries]
@@ -441,7 +436,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 if serializer.is_valid():
                     serializer.save(status=PTStatus.LIST)
                 else:
-                    print("eror1",serializer.errors)
+                    print("eror1", serializer.errors)
                     return Response(
                         serializer.errors, status=status.HTTP_400_BAD_REQUEST
                     )
@@ -453,7 +448,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     try:
                         PTFileBatch.objects.create(ptfile_entry_ids=pt_entry_ids)
                     except Exception as e:
-                        print("eror2",e)
+                        print("eror2", e)
                         return Response({"error": str(e)})
             elif batch_id is not None:
                 try:
@@ -461,7 +456,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     pt_batch.ptfile_entry_ids = pt_entry_ids
                     pt_batch.save()
                 except Exception as e:
-                    print("eror3",e)
+                    print("eror3", e)
                     return Response({"error": str(e)})
 
             return Response(
@@ -470,7 +465,7 @@ class PTFileEntryUpdateAPIView(APIView):
             )
 
         except Exception as e:
-            print("eror4",e)
+            print("eror4", e)
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
@@ -509,8 +504,12 @@ class ExportPTFilesView(View):
 
         fields_to_export = [
             "product__department__department_name",
-            "product__category__category_name",
             "product__subcategory__subcategory_name",
+            "product__category__category_name",
+            "product__department__suffix",
+            "product__subcategory__suffix",
+            "product__category__suffix",
+            "product__brand__prefix",
             "product__article_number",
             "id",
             "color",
@@ -527,11 +526,15 @@ class ExportPTFilesView(View):
         column_mapping = {
             "product__department__department_name": "Department",
             "product__category__category_name": "Category",
+            "product__department__suffix": "Department Suffix",
+            "product__subcategory__suffix": "Subcategory Suffix",
+            "product__category__suffix": "Category Suffix",
             "product__subcategory__subcategory_name": "Subcategory",
             "product__article_number": "Article Number",
             "id": "Description",
             "color": "Color",
             "size__size_value": "Size",
+            "product__brand__prefix": "Brand Prefix",
             "product__brand__brand_code": "Brand",
             "product__brand__supplier_name": "Supplier",
             "mrp": "ItemMRP",
@@ -541,6 +544,22 @@ class ExportPTFilesView(View):
             "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
+        df["Article Number"] = (
+            df["Brand Prefix"].astype(str)
+            + df["Article Number"].astype(str)
+            + df["Department Suffix"].astype(str)
+            + df["Category Suffix"].astype(str)
+            + df["Subcategory Suffix"].astype(str)
+        )
+        df.drop(
+            columns=[
+                "Department Suffix",
+                "Category Suffix",
+                "Subcategory Suffix",
+                "Brand Prefix",
+            ],
+            inplace=True,
+        )
 
         df.insert(4, "CodingType", None)
         df.insert(5, "UOMName", "pcs")
@@ -571,14 +590,12 @@ class ExportPTFilesView(View):
 
 class ExportImagesAPIView(View):
     def get(self, request, batch_id):
-        # Retrieve PTFileEntry instances associated with the batch
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
         ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
 
-        # Create a BytesIO object to hold the zip file contents
         zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+        with zipfile.ZipFile(zip_buffer, "w") as zip_file:
             for ptfile_entry in ptfile_entries:
                 product = ptfile_entry.product
                 product_images = product.product_images
@@ -590,6 +607,8 @@ class ExportImagesAPIView(View):
         batch.save()
 
         # Build the response with the zip file contents
-        response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')
-        response['Content-Disposition'] = f'attachment; filename=product_images_batch_{batch_id}.zip'
+        response = HttpResponse(zip_buffer.getvalue(), content_type="application/zip")
+        response["Content-Disposition"] = (
+            f"attachment; filename=product_images_batch_{batch_id}.zip"
+        )
         return response
