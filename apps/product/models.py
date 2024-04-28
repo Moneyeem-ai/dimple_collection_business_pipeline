@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 
-from apps.department.models import Department, Category, SubCategory, Brand
+from apps.department.models import Department, Category, SubCategory, Brand, Size
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +56,9 @@ class PTFileEntry(models.Model):
     status = models.CharField(
         max_length=64, default=PTStatus.ENTRY, choices=PTStatus.choices
     )
-    size = models.CharField(max_length=128, default=0, null=True, blank=True)
+    size = models.ForeignKey(
+        Size, max_length=64, null=True, blank=True, on_delete=models.CASCADE
+    )
     quantity = models.IntegerField(default=0)
     color = models.CharField(max_length=64, null=True, blank=True)
     per_price = models.CharField(max_length=128, null=True, blank=True)
@@ -71,7 +73,7 @@ class PTFileEntry(models.Model):
     def save(self, *args, **kwargs):
         if not self.pk:
             metadata = getattr(self.product, "metadata", {})
-            self.size = metadata.get("size", 0)
+            self.size = Size.objects.filter(id=metadata.get("size_id")).first()
             self.quantity = metadata.get("quantity", 0)
             self.color = metadata.get("color", "")
             self.mrp = metadata.get("mrp", 0)

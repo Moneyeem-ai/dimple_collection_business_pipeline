@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import PTFileEntry, Product, ProductImage
-from apps.department.models import Department, Category, SubCategory, Brand
+from apps.department.models import Department, Category, SubCategory, Brand, Size
 
 
 
@@ -45,6 +45,11 @@ class BrandSerializer(serializers.ModelSerializer):
         model = Brand
         fields = ["id", "brand_name", "brand_code","supplier_name"]
 
+class SizeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Size
+        fields = ["id", "department", "size_value"]
+
 
 class ProductReadSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer()
@@ -66,6 +71,7 @@ class ProductReadSerializer(serializers.ModelSerializer):
 
 class PTFileEntrySerializer(serializers.ModelSerializer):
     product = ProductReadSerializer(read_only=True)
+    size = SizeSerializer(read_only=True)
     product_images = serializers.SerializerMethodField()
 
     class Meta:
@@ -96,10 +102,11 @@ class PTFileEntrySerializer(serializers.ModelSerializer):
 
 class PTFileEntryCreateSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(write_only=True)
+    size_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = PTFileEntry
-        fields = ["id", "product_id", "size", "quantity", "color", "mrp", "per_price","invoice_number","invoice_date","suffix", "status"]
+        fields = ["id", "product_id", "size_id", "quantity", "color", "mrp", "per_price","invoice_number","invoice_date","suffix", "status"]
 
     def create(self, validated_data):
         product_id = validated_data.pop("product_id")

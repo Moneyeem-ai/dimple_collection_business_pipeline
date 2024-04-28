@@ -44,7 +44,7 @@ from apps.product.models import (
     PTStatus,
     PTFileBatch,
 )
-from apps.department.models import Department, Category, SubCategory, Brand
+from apps.department.models import Department, Category, SubCategory, Brand, Size
 from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
@@ -52,6 +52,7 @@ from apps.product.serializers import (
     CategorySerializer,
     SubCategorySerializer,
     BrandSerializer,
+    SizeSerializer,
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import extract_data_from_tag, get_or_create_product
@@ -215,10 +216,7 @@ class UploadFileView(FormView):
 
         barcode_entries = None
         if batch.is_file_uploaded:
-            barcode_entries = ProductBarcode.objects.filter(pt_entry_id__in=ptfile_entry_ids)
-            print("!!!!!!!!")
-            print(barcode_entries)
-            print(ptfile_entries)
+            barcode_entries = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
         context["batch_details"] = ptfile_entries
         context["batch"] = batch
         context["upload_form"] = upload_form
@@ -348,6 +346,7 @@ class PTFileEntryAPIView(generics.ListAPIView):
         categories = CategorySerializer(Category.objects.all(), many=True).data
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
+        sizes = SizeSerializer(Size.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
@@ -355,6 +354,7 @@ class PTFileEntryAPIView(generics.ListAPIView):
             "categories": categories,
             "subcategories": subcategories,
             "brands": brands,
+            "sizes": sizes,
         }
         return Response(result)
 
@@ -372,6 +372,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         categories = CategorySerializer(Category.objects.all(), many=True).data
         subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
+        sizes = SizeSerializer(Size.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
@@ -379,6 +380,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             "categories": categories,
             "subcategories": subcategories,
             "brands": brands,
+             "sizes": sizes,
         }
         return Response(result)
 
@@ -390,7 +392,11 @@ class PTFileEntryUpdateAPIView(APIView):
             pt_file_entries = reques_data.get("data")
             ptstatus = reques_data.get("status")
             batch_id = reques_data.get("id", None)
-            existing_entries = PTFileEntry.objects.filter(status=ptstatus)
+            if batch_id:
+                pt_batch = PTFileBatch.objects.get(id=batch_id)
+                existing_entries = PTFileEntry.objects.filter(status=ptstatus, id__in=pt_batch.ptfile_entry_ids)
+            else:
+                existing_entries = PTFileEntry.objects.filter(status=ptstatus)
             existing_ids = [entry.id for entry in existing_entries]
             incoming_ids = [
                 int(entry[0]) if entry[0] else None for entry in pt_file_entries
@@ -409,7 +415,8 @@ class PTFileEntryUpdateAPIView(APIView):
                         setattr(product, key, value)
                     product.save()
                     pt_entry_data = pt_entry_to_pt_entry_mapper(pt_entry)
-                    serializer = PTFileEntrySerializer(
+                    print(pt_entry_data)
+                    serializer = PTFileEntryCreateSerializer(
                         pt_file_entry, data=pt_entry_data, partial=True
                     )
                 else:
@@ -507,11 +514,14 @@ class ExportPTFilesView(View):
             "product__article_number",
             "id",
             "color",
-            "size",
+            "size__size_value",
             "product__brand__brand_code",
+            "product__brand__supplier_name",
             "mrp",
             "per_price",
             "quantity",
+            "invoice_number",
+            "invoice_date",
         ]
         df = read_frame(queryset, fieldnames=fields_to_export)
         column_mapping = {
@@ -521,11 +531,14 @@ class ExportPTFilesView(View):
             "product__article_number": "Article Number",
             "id": "Description",
             "color": "Color",
-            "size": "Size",
+            "size__size_value": "Size",
             "product__brand__brand_code": "Brand",
+            "product__brand__supplier_name": "Supplier",
             "mrp": "ItemMRP",
             "per_price": "ItemWSP",
             "quantity": "Quantity",
+            "invoice_number": "InvoiceNo",
+            "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
 
@@ -534,12 +547,9 @@ class ExportPTFilesView(View):
         df.insert(7, "ExtDescription", None)
         df.insert(10, "Style", None)
         df.insert(12, "HSNCode", None)
-        df.insert(13, "Supplier", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)
         df.insert(16, "PurPrice", None)
-        df.insert(20, "InvoiceNo", None)
-        df.insert(21, "InvoiceDt", None)
 
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)
