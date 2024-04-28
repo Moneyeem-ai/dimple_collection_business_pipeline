@@ -327,17 +327,17 @@
                         })
                     .catch(error => console.error('Error loading categories:', error));
                 }
-                function populateSuppliers(row, barndCode) {
-                    const brand = brands.find(d => d.brand_code === barndCode);
+                function populateSuppliers(row, brandCode) {
+                    const brand = brands.find(b => b.code === brandCode);
                     if (!brand) {
-                        console.error('Department not found');
+                        console.error('Brand not found');
                         return;
                     }
                     let columns = hot.getSettings().columns;
-                    let categoryColumnIndex = columns.findIndex(col => col.title === "Supplier Name");
-                    if (categoryColumnIndex !== -1) {
-                        columns[categoryColumnIndex].source = [brand.supplier_name];
-                        hot.setCellMeta(row, categoryColumnIndex, 'source', [brand.supplier_name]);
+                    let supplierColumnIndex = columns.findIndex(col => col.title === "Supplier Name");
+                    if (supplierColumnIndex !== -1) {
+                        columns[supplierColumnIndex].source = [brand.supplier_name];
+                        hot.setCellMeta(row, supplierColumnIndex, 'source', [brand.supplier_name]);
                         hot.render();
                     }
                 }
