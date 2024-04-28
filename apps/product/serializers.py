@@ -4,7 +4,6 @@ from .models import PTFileEntry, Product, ProductImage
 from apps.department.models import Department, Category, SubCategory, Brand, Size
 
 
-
 class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
@@ -21,7 +20,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = ["id", "department_name"]
+        fields = ["id", "suffix", "department_name"]
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -29,21 +28,24 @@ class ProductImageSerializer(serializers.ModelSerializer):
         model = ProductImage
         fields = ["id", "product_image", "tag_image"]
 
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "department", "category_name"]
+        fields = ["id", "department", "suffix", "category_name"]
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
-        fields = ["id", "category", "subcategory_name"]
+        fields = ["id", "category", "suffix", "subcategory_name"]
+
 
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
         fields = ["id", "brand_name", "brand_code","supplier_name"]
+
 
 class SizeSerializer(serializers.ModelSerializer):
     class Meta:
