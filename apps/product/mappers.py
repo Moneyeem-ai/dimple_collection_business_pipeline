@@ -10,9 +10,9 @@ def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=Tr
         "color": pt_entry[9],
         "mrp": pt_entry[10],
         "per_price": pt_entry[11],
-        "suffix": pt_entry[12],
-        "invoice_number": pt_entry[13],
-        "invoice_date": pt_entry[14],
+        # "suffix": pt_entry[12],
+        "invoice_number": pt_entry[12],
+        "invoice_date": pt_entry[13],
     }
     if without_id:
         mapped_data.pop("id")
