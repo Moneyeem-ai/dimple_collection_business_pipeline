@@ -90,6 +90,7 @@ class PTFileBatch(models.Model):
     ptfile_entry_ids = ArrayField(models.IntegerField(), default=list)
     is_file_uploaded = models.BooleanField(default=False)
     is_exported = models.BooleanField(default=False)
+    is_image_exported = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.batch_id:

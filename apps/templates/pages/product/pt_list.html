@@ -61,7 +61,7 @@
                                   <button type="button" id="exportDataButton" class="btn btn-block btn-primary">Export Data</button>
                                 </a>
                                 
-                                <button id="updateDataButton2" class="btn btn-block btn-primary" style="width: 120px; display: none;">Update Data</button>
+                                <button id="sumQuantitiesBtn" class="btn btn-block btn-primary" style="width: 120px; display: none;">Update Data</button>
                               </div>
                             </div>
                             {% endif %}
@@ -271,12 +271,37 @@
                         { title: "MRP", data: 'mrp' },
                     ]
                     extra_columns=[
-                        { title: "Per Price", data: 'per_price' },
+                        {
+                            title: "Per Price",
+                            data: 'per_price',
+                            
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                console.log(col)
+                                console.log("@#$%^&*(qwertyuizsdfgh)")
+                                let columns = hot.getSettings().columns;
+                                let quantityColumnIndex = columns.findIndex(col => col.title === "Quantity");
+                                let mrpColumnIndex = columns.findIndex(col => col.title === "MRP");
+                                var qty = parseFloat(instance.getDataAtCell(row, quantityColumnIndex));
+                                var mrp = parseFloat(instance.getDataAtCell(row, mrpColumnIndex));
+                                console.log(qty)
+                                console.log(mrp)
+                                if (!isNaN(qty) && !isNaN(mrp) && qty !== null && mrp !== null) {
+                                    var per_price = qty * mrp;
+                                    console.log("#$%^&")
+                                    console.log("Per Price Calculated:", per_price);
+                                    Handsontable.renderers.NumericRenderer.apply(this, arguments);
+                                    td.innerHTML = per_price.toFixed(2);
+                                } else {
+                                    Handsontable.renderers.NumericRenderer.apply(this, arguments);
+                                    td.innerHTML = '';
+                                }
+                            }
+                        },
                         { title: "Invoice Number", data: 'invoice_number' },
                         { title: "Invoice Date", data: 'invoice_date',type: 'date', dateFormat: 'YYYY-MM-DD', }, 
                     ]
                     fixed_columns=[
-                    { 
+                        { 
                             title: "Supplier Name",
                             data: 'product.brand.supplier_name',
                             type: 'autocomplete',
@@ -336,6 +361,16 @@
                             }
                             if (prop === 'product.brand.brand_code' && newValue !== oldValue){
                                 populateSuppliers(row, newValue);
+                            }
+                            if (prop === 'quantity' || prop === 'mrp') {
+                                // Directly set perPrice for changed row
+                                let columns = hot.getSettings().columns;
+                                let quantityColumnIndex = columns.findIndex(col => col.title === "Quantity");
+                                let mrpColumnIndex = columns.findIndex(col => col.title === "MRP");
+                                let ppColumnIndex = columns.findIndex(col => col.title === "Per Price");
+                                var qty = parseFloat(instance.getDataAtCell(row, quantityColumnIndex));
+                                var mrp = parseFloat(instance.getDataAtCell(row, mrpColumnIndex));
+                                hot.setDataAtCell(row, ppColumnIndex, qty * mrp);
                             }
                         });
                     },
@@ -431,7 +466,7 @@
                   });
                 const loaderComp=document.getElementById('loader')
                 loaderComp.style.display="none";
-                const updateDataButton2 = document.getElementById('updateDataButton2');
+                const updateDataButton2 = document.getElementById('updateDataButton');
                 updateDataButton2.addEventListener('click', function () {
                     // Get the data from the Handsontable instance
                     const updatedData = hot.getData().reduce((acc, row, index) => {
@@ -494,7 +529,7 @@
     
     const editDataButton = document.getElementById("editDataButton");
     const cancelButton = document.getElementById("cancelButton");
-    const updateDataButton2 = document.getElementById("updateDataButton2");
+    const sumQuantitiesBtn = document.getElementById("sumQuantitiesBtn");
     const exportDataButton = document.getElementById("exportDataButton");
 
     if (editDataButton && cancelButton) {
@@ -525,7 +560,7 @@
             // Hide edit button, show cancel button
             editDataButton.style.display = 'none';
             cancelButton.style.display = 'block';
-            updateDataButton2.style.display = 'block';
+            sumQuantitiesBtn.style.display = 'block';
             exportDataButton.style.display = 'none';
             
         });
@@ -543,7 +578,7 @@
             }
             // Hide cancel button, show edit button
             cancelButton.style.display = 'none';
-            updateDataButton2.style.display = 'none';
+            sumQuantitiesBtn.style.display = 'none';
             editDataButton.style.display = 'block';
             exportDataButton.style.display = 'block';
         });
@@ -559,6 +594,33 @@
             });
         });
     fetchDataWithCSRFToken(`/product/api/ptfile_list/${batchId}`);
+
+    document.getElementById('sumQuantitiesBtn').addEventListener('click', function () {
+            // const hot = Handsontable.getInstance(document.querySelector('#example'));
+            const data = hot.getData();
+            let sumQuantity = 0;
+            let sumPerPrice = 0;
+            data.forEach(function (row) {
+                const quantity = parseInt(row[8], 10);
+                const mrp = parseFloat(row[10]);
+                console.log(row[11])
+                console.log("perprice")
+                // console.log(perPrice)
+                console.log(quantity)
+                if (!isNaN(quantity)) {
+                    sumQuantity += quantity;
+                }
+                if (!isNaN(mrp) && !isNaN(quantity)) {
+                    let perPrice = quantity * mrp;
+                    sumPerPrice += perPrice;
+                }
+            });
+            let modalText = "Total Quantity is: " + sumQuantity;
+            modalText += "<br>Total Per Price is: " + sumPerPrice.toFixed(2);
+            $('#quantityModal .modal-title').text("Check The Quantity");
+            $('#quantityModal .modal-body').html(modalText)
+            $('#quantityModal').modal('show');
+        });
 
 };
 </script>
