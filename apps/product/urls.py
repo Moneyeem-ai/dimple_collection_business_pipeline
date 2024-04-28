@@ -14,6 +14,7 @@ from .views import (
     PTFileEntryView,
     UploadFileView,
     ExportPTFilesView,
+    ExportImagesAPIView
 )
 
 app_name = "product"
@@ -29,6 +30,7 @@ urlpatterns = [
     path("ptfile_entry/", PTFileEntryView.as_view(), name="ptfile_entry"),
     path("ptfile/batches/", BatchListView.as_view(), name="batch_list"),
     path("ptfile_list/<int:batch_id>/", PTFileEntryListView.as_view(), name="ptfile_list"),
+    path('export_images/<int:batch_id>/', ExportImagesAPIView.as_view(), name='export_images'),
     path("api/ptfile_entry/", PTFileEntryAPIView.as_view(), name="api_ptfile_entry"),
     path("api/ptfile_update/", PTFileEntryUpdateAPIView.as_view(), name="api_ptfile_update"),
     path("api/ptfile_list/<int:batch_id>/", PTFileEntryListAPIView.as_view(), name="api_ptfile_list"),
