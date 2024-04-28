@@ -5,7 +5,7 @@ def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=Tr
     mapped_data = {
         "id": pt_entry[0],
         "product_id": pt_entry[1],
-        "size": pt_entry[7],
+        "size_id": pt_entry[7],
         "quantity": pt_entry[8],
         "color": pt_entry[9],
         "mrp": pt_entry[10],
@@ -60,7 +60,7 @@ def z_order_upload_to_dict_mapper(row):
         "subcategory": row[3],
         "article_number": row[4],
         "color": row[5],
-        "size": row[6],
+        "size_id": row[6],
         "brand": row[7],
         "mrp": row[8],
         "per_price": row[9],

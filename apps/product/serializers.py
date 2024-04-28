@@ -102,10 +102,11 @@ class PTFileEntrySerializer(serializers.ModelSerializer):
 
 class PTFileEntryCreateSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(write_only=True)
+    size_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = PTFileEntry
-        fields = ["id", "product_id", "size", "quantity", "color", "mrp", "per_price","invoice_number","invoice_date","suffix", "status"]
+        fields = ["id", "product_id", "size_id", "quantity", "color", "mrp", "per_price","invoice_number","invoice_date","suffix", "status"]
 
     def create(self, validated_data):
         product_id = validated_data.pop("product_id")

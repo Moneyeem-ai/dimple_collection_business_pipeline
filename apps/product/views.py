@@ -388,7 +388,11 @@ class PTFileEntryUpdateAPIView(APIView):
             pt_file_entries = reques_data.get("data")
             ptstatus = reques_data.get("status")
             batch_id = reques_data.get("id", None)
-            existing_entries = PTFileEntry.objects.filter(status=ptstatus)
+            if batch_id:
+                pt_batch = PTFileBatch.objects.get(id=batch_id)
+                existing_entries = PTFileEntry.objects.filter(status=ptstatus, id__in=pt_batch.ptfile_entry_ids)
+            else:
+                existing_entries = PTFileEntry.objects.filter(status=ptstatus)
             existing_ids = [entry.id for entry in existing_entries]
             incoming_ids = [
                 int(entry[0]) if entry[0] else None for entry in pt_file_entries
@@ -401,17 +405,14 @@ class PTFileEntryUpdateAPIView(APIView):
                 entry_id = pt_entry[0]
                 if entry_id:
                     pt_file_entry = PTFileEntry.objects.get(id=entry_id)
-                    print("@#$%")
-                    print(pt_entry)
                     product_data = pt_entry_to_product_mapper(pt_entry)
                     product = pt_file_entry.product
                     for key, value in product_data.items():
                         setattr(product, key, value)
                     product.save()
                     pt_entry_data = pt_entry_to_pt_entry_mapper(pt_entry)
-                    print("!@#$%^&*")
                     print(pt_entry_data)
-                    serializer = PTFileEntrySerializer(
+                    serializer = PTFileEntryCreateSerializer(
                         pt_file_entry, data=pt_entry_data, partial=True
                     )
                 else:

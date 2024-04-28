@@ -159,7 +159,7 @@
                 var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
                 var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
                 var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
-                var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
+                var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id, supplier_name: brand.supplier_name}));
                 var sizes = data.sizes.map((size) => ({value: size.size_value, id: size.id}));
                 console.log("***")
                 console.log(brands)
@@ -296,12 +296,14 @@
                                 populateCategories(row, newValue);
                                 populateSizes(row, newValue);
                             }
+                            if (prop === 'product.brand.brand_code' && newValue !== oldValue){
+                                populateSuppliers(row, newValue);
+                            }
                         });
                     },
 
                 });
                 function populateCategories(row, departmentName) {
-                    console.log("@#$%^")
                     const department = departments.find(d => d.name === departmentName);
                     if (!department) {
                         console.error('Department not found');
@@ -315,16 +317,29 @@
                             if (categoryColumnIndex !== -1) {
                                 columns[categoryColumnIndex].source = data.map(category => category.name);
                                 hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
-                                console.log("@#$%^")
+        
                                 // hot.setDataAtCell(row, categoryColumnIndex, data[0]?.name);
                                 hot.render();
-                                console.log("@#$%^")
                                 if (data.length > 0) {
                                     populateSubCategories(row, data[0].name);
                                 }
                             }
                         })
                     .catch(error => console.error('Error loading categories:', error));
+                }
+                function populateSuppliers(row, barndCode) {
+                    const brand = brands.find(d => d.brand_code === barndCode);
+                    if (!brand) {
+                        console.error('Department not found');
+                        return;
+                    }
+                    let columns = hot.getSettings().columns;
+                    let categoryColumnIndex = columns.findIndex(col => col.title === "Supplier Name");
+                    if (categoryColumnIndex !== -1) {
+                        columns[categoryColumnIndex].source = [brand.supplier_name];
+                        hot.setCellMeta(row, categoryColumnIndex, 'source', [brand.supplier_name]);
+                        hot.render();
+                    }
                 }
                 function populateSizes(row, departmentName) {
                     const department = departments.find(d => d.name === departmentName);
