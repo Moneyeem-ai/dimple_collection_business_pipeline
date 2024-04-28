@@ -584,7 +584,7 @@ class ExportImagesAPIView(View):
                 product_images = product.product_images
                 if product_images.product_image:
                     image_path = str(product_images.product_image.path)
-                    zip_file.write(image_path, arcname=f"{product.id}.jpg")
+                    zip_file.write(image_path, arcname=f"{product.article_number}.jpg")
 
         # Build the response with the zip file contents
         response = HttpResponse(zip_buffer.getvalue(), content_type='application/zip')

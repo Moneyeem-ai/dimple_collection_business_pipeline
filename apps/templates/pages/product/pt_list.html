@@ -46,15 +46,17 @@
                             {% if request.user.user_type != 'FT' %}
                             
                             <div class="row">
-                              <div class="col-sm-6">
+                              <div class="col-sm-5">
                                 <form action="{% url 'product:export_images' batch_id=batch_id %}" method="get">
                                     {% csrf_token %}
-                                    <button type="submit" id="exportImageButton" class="btn btn-block btn-warning" style="width: 120px; display: block;">Export Images</button>
+                                    <button type="submit" id="exportImageButton" class="btn btn-block btn-warning" style="width: 180px; display: block;">Export Images</button>
                                 </form>
+                            </div>
+                                <div class="col-sm-3">
                                 <button id="editDataButton" class="btn btn-block btn-warning" style="width: 120px; display: block;">Edit Data</button>
                                 <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none; margin-top: 0;">Cancel</button>
                               </div>
-                              <div class="col-sm-6">
+                              <div class="col-sm-4">
                                 <a href="{% url 'product:export_ptfiles' batch_id %}">
                                   <button type="button" id="exportDataButton" class="btn btn-block btn-primary">Export Data</button>
                                 </a>
