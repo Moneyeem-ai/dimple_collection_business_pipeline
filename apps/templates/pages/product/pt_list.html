@@ -202,7 +202,7 @@
                 console.log(sizes)
                 console.log("***")
                 console.log(brands)
-                column_data=[
+                column_data = [
                         { title: "Id", data: 'id', readOnly: true },
                         { title: "Product ID", data: 'product.id' },
                         { title: "Article Number", data: 'product.article_number' },
@@ -326,16 +326,6 @@
                             if (prop === 'product.brand.brand_code' && newValue !== oldValue){
                                 populateSuppliers(row, newValue);
                             }
-                            if (prop === 'quantity' || prop === 'mrp') {
-                                // Directly set perPrice for changed row
-                                let columns = hot.getSettings().columns;
-                                let quantityColumnIndex = columns.findIndex(col => col.title === "Quantity");
-                                let mrpColumnIndex = columns.findIndex(col => col.title === "MRP");
-                                let ppColumnIndex = columns.findIndex(col => col.title === "Per Price");
-                                var qty = parseFloat(instance.getDataAtCell(row, quantityColumnIndex));
-                                var mrp = parseFloat(instance.getDataAtCell(row, mrpColumnIndex));
-                                hot.setDataAtCell(row, ppColumnIndex, qty * mrp);
-                            }
                         });
                     },
 
@@ -354,10 +344,7 @@
                             if (categoryColumnIndex !== -1) {
                                 columns[categoryColumnIndex].source = data.map(category => category.name);
                                 hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
-                                console.log("@#$%^")
-                                // hot.setDataAtCell(row, categoryColumnIndex, data[0]?.name);
                                 hot.render();
-                                console.log("@#$%^")
                                 if (data.length > 0) {
                                     populateSubCategories(row, data[0].name);
                                 }
@@ -393,14 +380,12 @@
                             if (sizeColumnIndex !== -1) {
                                 columns[sizeColumnIndex].source = data.map(size => size.value);
                                 hot.setCellMeta(row, sizeColumnIndex, 'source', data.map(size => size.value));
-                                // hot.setDataAtCell(row, sizeColumnIndex, data[0]?.value);  // Optionally set the first size as the default
                                 hot.render();
                             }
                         })
                         .catch(error => console.error('Error loading sizes:', error));
                 }
                 function populateSubCategories(row, categoryName) {
-                  console.log("@#$12345678%^")
                       const category = categories.find(c => c.name === categoryName);
                       if (!category) {
                           console.error('Category not found');
@@ -414,20 +399,11 @@
                               if (subCategoryColumnIndex !== -1) {
                                   columns[subCategoryColumnIndex].source = data.map(subCategory => subCategory.name);
                                   hot.setCellMeta(row, subCategoryColumnIndex, 'source', data.map(subCategory => subCategory.name));
-                                //   hot.setDataAtCell(row, subCategoryColumnIndex, data[0]?.name);
                                   hot.render();
                               }
                           })
                           .catch(error => console.error('Error loading subcategories:', error));
                   }
-                  hot.getData().forEach((rowData, rowIndex) => {
-                        console.log("RTYU")
-                          let departmentName = rowData[3];
-                          if (departmentName && typeof departmentName === 'string' && departmentName.trim() !== '') {
-                              populateCategories(rowIndex, departmentName);
-                              populateSizes(rowIndex, departmentName);
-                          }
-                  });
                 const loaderComp=document.getElementById('loader')
                 loaderComp.style.display="none";
                 const updateDataButton2 = document.getElementById('updateDataButton');
