@@ -544,6 +544,9 @@ class ExportPTFilesView(View):
             "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
+        df['ItemMRP'] = pd.to_numeric(df['ItemMRP'], errors='coerce')
+        df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce')
+        df['ItemWSP'] = df['ItemMRP'] * df['Quantity']
         df["Article Number"] = (
             df["Brand Prefix"].astype(str)
             + df["Article Number"].astype(str)
