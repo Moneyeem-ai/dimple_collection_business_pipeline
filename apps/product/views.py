@@ -511,13 +511,14 @@ class ExportPTFilesView(View):
             "product__category__suffix",
             "product__brand__prefix",
             "product__article_number",
+            "product__department__hsn_code",
             "id",
             "color",
             "size__size_value",
             "product__brand__brand_code",
             "product__brand__supplier_name",
-            "mrp",
             "per_price",
+            "mrp",
             "quantity",
             "invoice_number",
             "invoice_date",
@@ -536,17 +537,19 @@ class ExportPTFilesView(View):
             "size__size_value": "Size",
             "product__brand__prefix": "Brand Prefix",
             "product__brand__brand_code": "Brand",
+            "product__department__hsn_code": "HSNCode",
             "product__brand__supplier_name": "Supplier",
+            "per_price": "Pur Price",
             "mrp": "ItemMRP",
-            "per_price": "ItemWSP",
             "quantity": "Quantity",
             "invoice_number": "InvoiceNo",
             "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
-        df['ItemMRP'] = pd.to_numeric(df['ItemMRP'], errors='coerce')
-        df['Quantity'] = pd.to_numeric(df['Quantity'], errors='coerce')
-        df['ItemWSP'] = df['ItemMRP'] * df['Quantity']
+        df["Brand Prefix"].fillna('', inplace=True)
+        df["Department Suffix"].fillna('', inplace=True)
+        df["Category Suffix"].fillna('', inplace=True)
+        df["Subcategory Suffix"].fillna('', inplace=True)
         df["Article Number"] = (
             df["Brand Prefix"].astype(str)
             + df["Article Number"].astype(str)
@@ -564,14 +567,13 @@ class ExportPTFilesView(View):
             inplace=True,
         )
 
-        df.insert(4, "CodingType", None)
+        df.insert(4, "CodingType", 3)
         df.insert(5, "UOMName", "pcs")
         df.insert(7, "ExtDescription", None)
         df.insert(10, "Style", None)
-        df.insert(12, "HSNCode", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)
-        df.insert(16, "PurPrice", None)
+        df.insert(18, "ItemWSP", None)
 
         excel_file_path = "data/ptfiles_export.xlsx"
         df.to_excel(excel_file_path, index=False)

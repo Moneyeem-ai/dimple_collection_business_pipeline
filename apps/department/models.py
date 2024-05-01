@@ -4,6 +4,7 @@ from django.db import models
 class Department(models.Model):
     department_name = models.CharField(max_length=64)
     suffix = models.CharField(max_length=64, null=True, blank=True)
+    hsn_code = models.CharField(max_length=64, blank=True, null=True)
 
     def __str__(self):
         return self.department_name

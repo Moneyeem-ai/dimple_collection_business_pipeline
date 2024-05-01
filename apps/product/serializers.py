@@ -20,7 +20,7 @@ class ProductSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = ["id", "suffix", "department_name"]
+        fields = ["id", "suffix", "department_name", "hsn_code"]
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
