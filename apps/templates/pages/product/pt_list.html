@@ -202,7 +202,7 @@
                 console.log(sizes)
                 console.log("***")
                 console.log(brands)
-                column_data=[
+                column_data = [
                         { title: "Id", data: 'id', readOnly: true },
                         { title: "Product ID", data: 'product.id' },
                         { title: "Article Number", data: 'product.article_number' },
@@ -270,25 +270,19 @@
                         { title: "Color", data: 'color' },
                         { title: "MRP", data: 'mrp' },
                     ]
-                    extra_columns=[
+                    extra_columns = [
                         {
                             title: "Per Price",
                             data: 'per_price',
                             readOnly:true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                console.log(col)
-                                console.log("@#$%^&*(qwertyuizsdfgh)")
                                 let columns = hot.getSettings().columns;
                                 let quantityColumnIndex = columns.findIndex(col => col.title === "Quantity");
                                 let mrpColumnIndex = columns.findIndex(col => col.title === "MRP");
                                 var qty = parseFloat(instance.getDataAtCell(row, quantityColumnIndex));
                                 var mrp = parseFloat(instance.getDataAtCell(row, mrpColumnIndex));
-                                console.log(qty)
-                                console.log(mrp)
                                 if (!isNaN(qty) && !isNaN(mrp) && qty !== null && mrp !== null) {
                                     var per_price = qty * mrp;
-                                    console.log("#$%^&")
-                                    console.log("Per Price Calculated:", per_price);
                                     Handsontable.renderers.NumericRenderer.apply(this, arguments);
                                     td.innerHTML = per_price.toFixed(2);
                                 } else {
@@ -300,7 +294,7 @@
                         { title: "Invoice Number", data: 'invoice_number' },
                         { title: "Invoice Date", data: 'invoice_date',type: 'date', dateFormat: 'YYYY-MM-DD', }, 
                     ]
-                    fixed_columns=[
+                    fixed_columns = [
                         { 
                             title: "Supplier Name",
                             data: 'product.brand.supplier_name',
@@ -390,10 +384,7 @@
                             if (categoryColumnIndex !== -1) {
                                 columns[categoryColumnIndex].source = data.map(category => category.name);
                                 hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
-                                console.log("@#$%^")
-                                // hot.setDataAtCell(row, categoryColumnIndex, data[0]?.name);
                                 hot.render();
-                                console.log("@#$%^")
                                 if (data.length > 0) {
                                     populateSubCategories(row, data[0].name);
                                 }
@@ -429,14 +420,12 @@
                             if (sizeColumnIndex !== -1) {
                                 columns[sizeColumnIndex].source = data.map(size => size.value);
                                 hot.setCellMeta(row, sizeColumnIndex, 'source', data.map(size => size.value));
-                                // hot.setDataAtCell(row, sizeColumnIndex, data[0]?.value);  // Optionally set the first size as the default
                                 hot.render();
                             }
                         })
                         .catch(error => console.error('Error loading sizes:', error));
                 }
                 function populateSubCategories(row, categoryName) {
-                  console.log("@#$12345678%^")
                       const category = categories.find(c => c.name === categoryName);
                       if (!category) {
                           console.error('Category not found');
@@ -450,20 +439,11 @@
                               if (subCategoryColumnIndex !== -1) {
                                   columns[subCategoryColumnIndex].source = data.map(subCategory => subCategory.name);
                                   hot.setCellMeta(row, subCategoryColumnIndex, 'source', data.map(subCategory => subCategory.name));
-                                //   hot.setDataAtCell(row, subCategoryColumnIndex, data[0]?.name);
                                   hot.render();
                               }
                           })
                           .catch(error => console.error('Error loading subcategories:', error));
                   }
-                  hot.getData().forEach((rowData, rowIndex) => {
-                        console.log("RTYU")
-                          let departmentName = rowData[3];
-                          if (departmentName && typeof departmentName === 'string' && departmentName.trim() !== '') {
-                              populateCategories(rowIndex, departmentName);
-                              populateSizes(rowIndex, departmentName);
-                          }
-                  });
                 const loaderComp=document.getElementById('loader')
                 loaderComp.style.display="none";
                 const updateDataButton2 = document.getElementById('updateDataButton');
