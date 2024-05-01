@@ -182,7 +182,7 @@
                           "remove_row": {}
                         }
                     },
-                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 150, 150 ],
                     colHeaders: true,
                     data: ptfile,
                     columns: [
@@ -252,19 +252,6 @@
                         { title: "Quantity", data: 'quantity' },
                         { title: "Color", data: 'color' },
                         { title: "MRP", data: 'mrp' },
-                        { title: "Per Price", data: 'per_price' },
-                        { 
-                            title: "Supplier Name",
-                            data: 'product.brand.supplier_name',
-                            type: 'autocomplete',
-                            source: brands.map(brand => brand.supplier_name),
-                            strict: true,
-                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                const matchedBrand = brands.find(brand => brand.supplier_name === value);
-                                td.setAttribute('data-brand-id', matchedBrand ? matchedBrand.id : '0');
-                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
-                            }
-                        },
                         {
                           title: "Product Image",
                           data:'product_images.product_image',
