@@ -382,6 +382,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             "brands": brands,
             "sizes": sizes,
         }
+        print("this is the data", result)
         return Response(result)
 
 
@@ -416,7 +417,9 @@ class PTFileEntryUpdateAPIView(APIView):
                     for key, value in product_data.items():
                         setattr(product, key, value)
                     product.save()
-                    pt_entry_data = pt_entry_to_pt_entry_mapper(pt_entry)
+                    pt_entry_data = pt_entry_to_pt_entry_mapper(
+                        pt_entry, batch_id=batch_id
+                    )
                     print(pt_entry_data)
                     serializer = PTFileEntryCreateSerializer(
                         pt_file_entry, data=pt_entry_data, partial=True
@@ -435,7 +438,7 @@ class PTFileEntryUpdateAPIView(APIView):
                         product.save()
                     instance = PTFileEntry.objects.create(product=product)
                     pt_entry_data = pt_entry_to_pt_entry_mapper(
-                        pt_entry, without_product_id=False
+                        pt_entry, without_product_id=False, batch_id=batch_id
                     )
                     serializer = PTFileEntryCreateSerializer(
                         instance, data=pt_entry_data, partial=True
