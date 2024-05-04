@@ -75,6 +75,9 @@
                 {% endfor %}
                   </tbody>
                 </table>
+                <div class="pagination-container m-2" style="text-align: right;">
+                  {% include 'includes/paginator.html' %}
+                </div>
               </div>
               <!-- /.card-body -->
             </div>
@@ -127,7 +130,7 @@
   $(function () {
     showOverlay();
     $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false,
+      "responsive": true, "lengthChange": false, "autoWidth": false, "paging": false, "info": false,
       "initComplete": function () {
         hideOverlay();
         $('#example1').show();
@@ -135,30 +138,14 @@
       }
     }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
     $('#example2').DataTable({
-      "paging": true,
+      "paging": false,
       "lengthChange": false,
       "searching": false,
       "ordering": true,
-      "info": true,
+      "info": false,
       "autoWidth": false,
       "responsive": true,
     });
   });
-</script>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var uploadButtons = document.querySelectorAll('.upload-file-btn');
-        uploadButtons.forEach(function(button) {
-            button.addEventListener('click', function() {
-                // Get the batch_id from data attribute
-                var batchId = button.getAttribute('data-batch-id');
-                
-                // Set the action attribute of the form with the batch_id
-                var form = document.getElementById('uploadForm');
-                form.action = "product/upload_z_file/" + batchId;
-            });
-        });
-    });
-    
 </script>
 {% endblock extra_scripts %}

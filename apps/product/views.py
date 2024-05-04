@@ -1,6 +1,8 @@
+from typing import Any
 import uuid
 import base64
 import zipfile
+from django.db.models.query import QuerySet
 
 from django.shortcuts import redirect
 from django.views import generic
@@ -65,6 +67,7 @@ class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
     context_object_name = "products"
     parent = "product"
     segment = "product_list"
+    paginate_by = 6
 
 
 class ProductBarcodeListView(
@@ -73,17 +76,10 @@ class ProductBarcodeListView(
     model = PTFileBatch
     template_name = "pages/product/barcode_list.html"
     login_url = "user:login"
-    context_object_name = "barcodes"
+    context_object_name = "batch_list"
     parent = "product"
     segment = "barcode_list"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        upload_form = UploadFileForm()
-        context["upload_form"] = upload_form
-        batch_list = PTFileBatch.objects.all()
-        context["batch_list"] = batch_list
-        return context
+    paginate_by = 6
 
 
 class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -195,23 +191,34 @@ class ProductImageUploadView(View):
             return JsonResponse({"status": "error", "message": str(e)})
 
 
-class UploadFileView(FormView):
+class UploadFileView(SideBarSelectedMixin, ListView):
     form_class = UploadFileForm
+    model = PTFileBatch
     success_url = "product:barcode_list"
     template_name = "pages/product/barcode_batch_detail.html"
+    parent = "product"
+    segment = "barcode_list"
+    paginate_by = 6
+
+    def get_queryset(self) -> QuerySet[Any]:
+        batch_id = self.kwargs.get("batch_id")
+        batch = PTFileBatch.objects.get(id=batch_id)
+        ptfile_entry_ids = batch.ptfile_entry_ids
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+        if batch.is_file_uploaded:
+            queryset = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
+        else:
+            queryset = ptfile_entries
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         upload_form = UploadFileForm()
         batch_id = self.kwargs.get("batch_id")
         batch = PTFileBatch.objects.get(id=batch_id)
-        ptfile_entry_ids = batch.ptfile_entry_ids
-        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
-
-        barcode_entries = None
+        barcode_entries = False
         if batch.is_file_uploaded:
-            barcode_entries = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
-        context["batch_details"] = ptfile_entries
+            barcode_entries = True
         context["batch"] = batch
         context["upload_form"] = upload_form
         context["barcode_entries"] = barcode_entries
@@ -309,7 +316,7 @@ class PTFileEntryListView(
     model = PTFileEntry
     template_name = "pages/product/pt_list.html"
     parent = "product"
-    segment = "ptfile_list"
+    segment = "batch_list"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -478,6 +485,7 @@ class BatchListView(SideBarSelectedMixin, ListView):
     context_object_name = "batch_list"
     parent = "product"
     segment = "batch_list"
+    paginate_by = 6
 
 
 class ExportPTFilesView(View):
@@ -546,10 +554,10 @@ class ExportPTFilesView(View):
             "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
-        df["Brand Prefix"].fillna('', inplace=True)
-        df["Department Suffix"].fillna('', inplace=True)
-        df["Category Suffix"].fillna('', inplace=True)
-        df["Subcategory Suffix"].fillna('', inplace=True)
+        df["Brand Prefix"].fillna("", inplace=True)
+        df["Department Suffix"].fillna("", inplace=True)
+        df["Category Suffix"].fillna("", inplace=True)
+        df["Subcategory Suffix"].fillna("", inplace=True)
         df["Article Number"] = (
             df["Brand Prefix"].astype(str)
             + df["Article Number"].astype(str)
@@ -607,7 +615,7 @@ class ExportImagesAPIView(View):
                 if product_images.product_image:
                     image_path = str(product_images.product_image.path)
                     zip_file.write(image_path, arcname=f"{product.article_number}.jpg")
-        
+
         batch.is_image_exported = True
         batch.save()
 
