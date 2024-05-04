@@ -1,7 +1,7 @@
 from apps.product.models import Product
 
 
-def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=True):
+def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=True, batch_id=None):
     mapped_data = {
         "id": pt_entry[0],
         "product_id": pt_entry[1],
@@ -9,7 +9,7 @@ def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=Tr
         "quantity": pt_entry[8],
         "color": pt_entry[9],
         "mrp": pt_entry[10],
-        "per_price": pt_entry[11],
+        "per_price": None if batch_id is None else pt_entry[11],
         # "suffix": pt_entry[12],
         "invoice_number": pt_entry[12],
         "invoice_date": pt_entry[13],
