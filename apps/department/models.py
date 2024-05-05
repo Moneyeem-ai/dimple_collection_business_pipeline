@@ -4,15 +4,15 @@ from django.db import models
 class Department(models.Model):
     department_name = models.CharField(max_length=64)
     suffix = models.CharField(max_length=64, null=True, blank=True)
-    hsn_code = models.CharField(max_length=64, blank=True, null=True)
 
     def __str__(self):
         return self.department_name
 
 
 class Category(models.Model):
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='categories')
     category_name = models.CharField(max_length=64, blank=True)
+    hsn_code = models.CharField(max_length=64, blank=True, null=True)
     suffix = models.CharField(max_length=64, null=True)
 
     def __str__(self):
@@ -20,7 +20,7 @@ class Category(models.Model):
 
 
 class SubCategory(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='subcategories')
     subcategory_name = models.CharField(max_length=64)
     suffix = models.CharField(max_length=64, null=True, blank=True)
 
@@ -39,7 +39,7 @@ class Brand(models.Model):
     
 
 class Size(models.Model):
-    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True, related_name='sizes')
     size_value = models.CharField(max_length=64, null=True, blank=True)
 
     def __str__(self):

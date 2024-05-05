@@ -17,22 +17,22 @@ class ProductSerializer(serializers.ModelSerializer):
         ]
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Department
-        fields = ["id", "suffix", "department_name", "hsn_code"]
-
-
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ["id", "product_image", "tag_image"]
 
 
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ["id", "suffix", "department_name"]
+
+
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "department", "suffix", "category_name"]
+        fields = ["id", "department", "suffix", "category_name", "hsn_code"]
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
@@ -115,3 +115,32 @@ class PTFileEntryCreateSerializer(serializers.ModelSerializer):
         print("creating product")
         pt_file_entry = PTFileEntry.objects.create(product=product, **validated_data)
         return pt_file_entry
+
+
+class SubCategoryNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SubCategory
+        fields = ['id', 'subcategory_name']
+
+
+class CategoryNestedSerializer(serializers.ModelSerializer):
+    subcategories = SubCategoryNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Category
+        fields = ['id', 'category_name', 'subcategories']
+
+
+class SizeNestedSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Size
+        fields = ["id", "size_value"]
+
+
+class DepartmentNestedSerializer(serializers.ModelSerializer):
+    categories = CategoryNestedSerializer(many=True, read_only=True)
+    sizes = SizeNestedSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Department
+        fields = ['id', 'department_name', 'categories', 'sizes']

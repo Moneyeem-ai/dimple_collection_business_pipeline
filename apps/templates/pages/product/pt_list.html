@@ -180,9 +180,7 @@
             .then(data => {
                 $('.loader').hide();
                 const readOnly = userType === 'FT';
-                console.log("this is api response",data);
                 var ptfile = data.data;
-                console.log("data",ptfile)
                 ptfile = ptfile.map(row => {
                     if(row.product.category == null)
                         row.product.category={category_name:"None", id: 0}
@@ -194,14 +192,8 @@
                         row.size={size_value:"None", id: 0}
                     return row;
                 })
-                var departments = data.departments.map((department) => ({name: department.department_name, id: department.id}));
-                var categories = data.categories.map((category) => ({name: category.category_name, id: category.id}));
-                var subcategories = data.subcategories.map((subcategory) => ({name: subcategory.subcategory_name, id: subcategory.id}));
-                var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id, supplier_name: brand.supplier_name}));
-                var sizes = data.sizes.map((size) => ({value: size.size_value, id: size.id}));
-                console.log(sizes)
-                console.log("***")
-                console.log(brands)
+                var all_master_data = data.departments;
+                var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
                 column_data = [
                         { title: "Id", data: 'id', readOnly: true },
                         { title: "Product ID", data: 'product.id' },
@@ -210,10 +202,10 @@
                             title: "Department",
                             data: 'product.department.department_name',
                             type: 'autocomplete',
-                            source: departments.map(department => department.name),
+                            source: all_master_data.map(department => department.department_name),
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                const matchedDepartment = departments.find(department => department.name === value);
+                                const matchedDepartment = all_master_data.find(department => department.department_name === value);
                                 td.setAttribute('data-department-id', matchedDepartment ? matchedDepartment.id : '0');
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
@@ -222,10 +214,14 @@
                             title: "Category",
                             data: 'product.category.category_name',
                             type: 'autocomplete',
-                            source: categories.map(category => category.name),
+                            source: [],
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                const matchedCategory = categories.find(category => category.name === value);
+                                const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                                const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                                let categories = all_master_data.find(item => item.id === parseInt(departmentId));
+                                categories = categories ? categories.categories : [];
+                                const matchedCategory = categories.find(category => category.category_name === value);
                                 td.setAttribute('data-category-id', matchedCategory ? matchedCategory.id : '0');
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
@@ -234,10 +230,21 @@
                             title: "Sub-Category",
                             data: 'product.subcategory.subcategory_name',
                             type: 'autocomplete',
-                            source: subcategories.map(subcategory => subcategory.name),
+                            source: [],
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                const matchedSubCategory = subcategories.find(subcategory => subcategory.name === value);
+                                const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                                const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                                let categories = all_master_data.find(item => item.id === parseInt(departmentId));
+                                let subcategories=[];
+                                if(categories){
+                                    categories = categories.categories;
+                                    const categoryCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
+                                    const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
+                                    subcategories = categories.find(item => item.id === parseInt(categoryId));
+                                    subcategories = subcategories ? subcategories.subcategories : [];
+                                }
+                                const matchedSubCategory = subcategories.find(subcategory => subcategory.subcategory_name === value);
                                 td.setAttribute('data-subcategory-id', matchedSubCategory ? matchedSubCategory.id : '0');
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
@@ -258,11 +265,15 @@
                             title: "Size",
                             data: 'size.size_value',
                             type: 'autocomplete',
-                            source: sizes.map(size => size.value),
+                            source: [],
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
-                                const matchedSize = sizes.find(size => size.value === value);
-                                td.setAttribute('data-size-id', matchedSize ? matchedSize.id : '0');
+                                const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                                const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                                let sizes = all_master_data.find(item => item.id === parseInt(departmentId));
+                                sizes = sizes ? sizes.sizes : [];
+                                const matchedCategory = sizes.find(size => size.size_value === value);
+                                td.setAttribute('data-size-id', matchedCategory ? matchedCategory.id : '0');
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
@@ -323,87 +334,82 @@
                                 populateCategories(row, newValue);
                                 populateSizes(row, newValue);
                             }
-                            if (prop === 'product.brand.brand_code' && newValue !== oldValue){
-                                populateSuppliers(row, newValue);
+                            if (prop === 'product.category.category_name' && newValue !== oldValue) {
+                                populateSubCategories(row, newValue);
                             }
                         });
                     },
 
                 });
                 function populateCategories(row, departmentName) {
-                    const department = departments.find(d => d.name === departmentName);
-                    if (!department) {
-                        console.error('Department not found');
+                    const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                    const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                    let categories = all_master_data.find(item => item.id === parseInt(departmentId));
+                    if(!categories){
+                        console.log('DepartmentId not found');
                         return;
                     }
-                    fetch(`/department/api/categories/${department.id}/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            let columns = hot.getSettings().columns;
-                            let categoryColumnIndex = columns.findIndex(col => col.title === "Category");
-                            if (categoryColumnIndex !== -1) {
-                                columns[categoryColumnIndex].source = data.map(category => category.name);
-                                hot.setCellMeta(row, categoryColumnIndex, 'source', data.map(category => category.name));
-                                hot.render();
-                                if (data.length > 0) {
-                                    populateSubCategories(row, data[0].name);
-                                }
-                            }
-                        })
-                    .catch(error => console.error('Error loading categories:', error));
-                }
-                function populateSuppliers(row, brandCode) {
-                    const brand = brands.find(b => b.code === brandCode);
-                    if (!brand) {
-                        console.error('Brand not found');
-                        return;
-                    }
+                    categories = categories.categories;
                     let columns = hot.getSettings().columns;
-                    let supplierColumnIndex = columns.findIndex(col => col.title === "Supplier Name");
-                    if (supplierColumnIndex !== -1) {
-                        columns[supplierColumnIndex].source = [brand.supplier_name];
-                        hot.setCellMeta(row, supplierColumnIndex, 'source', [brand.supplier_name]);
+                    let categoryColumnIndex = columns.findIndex(col => col.title === "Category");
+                    if (categoryColumnIndex !== -1) {
+                        columns[categoryColumnIndex].source = categories.map(category => category.category_name);
+                        hot.setCellMeta(row, categoryColumnIndex, 'source', categories.map(category => category.category_name));
                         hot.render();
+                        if (categories.length > 0) {
+                            populateSubCategories(row, categories[0].category_name);
+                        }
                     }
                 }
                 function populateSizes(row, departmentName) {
-                    const department = departments.find(d => d.name === departmentName);
-                    if (!department) {
-                        console.error('Department not found');
+                    const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                    const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                    let sizes = all_master_data.find(item => item.id === parseInt(departmentId));
+                    if(!sizes){
+                        console.error('DepartmentID not found');
                         return;
                     }
-                    fetch(`/department/api/sizes/${department.id}/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            let columns = hot.getSettings().columns;
-                            let sizeColumnIndex = columns.findIndex(col => col.title === "Size");
-                            if (sizeColumnIndex !== -1) {
-                                columns[sizeColumnIndex].source = data.map(size => size.value);
-                                hot.setCellMeta(row, sizeColumnIndex, 'source', data.map(size => size.value));
-                                hot.render();
-                            }
-                        })
-                        .catch(error => console.error('Error loading sizes:', error));
+                    sizes = sizes.sizes;
+                    let columns = hot.getSettings().columns;
+                    let sizeColumnIndex = columns.findIndex(col => col.title === "Size");
+                    if (sizeColumnIndex !== -1) {
+                        columns[sizeColumnIndex].source = sizes.map(size => size.size_value);
+                        hot.setCellMeta(row, sizeColumnIndex, 'source', sizes.map(size => size.size_value));
+                        hot.render();
+                    }
                 }
                 function populateSubCategories(row, categoryName) {
-                      const category = categories.find(c => c.name === categoryName);
-                      if (!category) {
-                          console.error('Category not found');
-                          return;
-                      }
-                      fetch(`/department/api/subcategories/${category.id}/`)
-                          .then(response => response.json())
-                          .then(data => {
-                              let columns = hot.getSettings().columns;
-                              let subCategoryColumnIndex = columns.findIndex(col => col.title === "Sub-Category");
-                              if (subCategoryColumnIndex !== -1) {
-                                  columns[subCategoryColumnIndex].source = data.map(subCategory => subCategory.name);
-                                  hot.setCellMeta(row, subCategoryColumnIndex, 'source', data.map(subCategory => subCategory.name));
-                                  hot.render();
-                              }
-                          })
-                          .catch(error => console.error('Error loading subcategories:', error));
-                  }
+                    const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
+                    const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
+                    let categories = all_master_data.find(item => item.id === parseInt(departmentId));
+                    if(!categories){
+                        console.log('DepartmentId not found');
+                        return;
+                    }
+                    categories = categories.categories;
+                    const categoryCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
+                    const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
+                    let subcategories = categories.find(item => item.id === parseInt(categoryId));
+                    if (!subcategories) {
+                        console.log('CategoryId not found');
+                        return;
+                    }
+                    subcategories = subcategories.subcategories
+                    let columns = hot.getSettings().columns;
+                    let subCategoryColumnIndex = columns.findIndex(col => col.title === "Sub-Category");
+                    if (subCategoryColumnIndex !== -1) {
+                        columns[subCategoryColumnIndex].source = subcategories.map(subCategory => subCategory.subcategory_name);
+                        hot.setCellMeta(row, subCategoryColumnIndex, 'source', subcategories.map(subCategory => subCategory.subcategory_name));
+                        hot.render();
+                    }
+                }
+                hot.getData().forEach((rowData, rowIndex) => {
+                    let departmentName = rowData[3];
+                    if (departmentName && typeof departmentName === 'string' && departmentName.trim() !== '') {
+                        populateCategories(rowIndex, departmentName);
+                        populateSizes(rowIndex, departmentName);
+                    }
+                });
                 const loaderComp=document.getElementById('loader')
                 loaderComp.style.display="none";
                 const updateDataButton2 = document.getElementById('updateDataButton');
@@ -536,27 +542,21 @@
     fetchDataWithCSRFToken(`/product/api/ptfile_list/${batchId}`);
 
     document.getElementById('sumQuantitiesBtn').addEventListener('click', function () {
-            // const hot = Handsontable.getInstance(document.querySelector('#example'));
             const data = hot.getData();
             let sumQuantity = 0;
-            let sumPerPrice = 0;
+            let sumPurPrice = 0;
             data.forEach(function (row) {
                 const quantity = parseInt(row[8], 10);
-                const mrp = parseFloat(row[10]);
-                console.log(row[11])
-                console.log("perprice")
-                // console.log(perPrice)
-                console.log(quantity)
+                const pur_price = parseFloat(row[11]);
                 if (!isNaN(quantity)) {
                     sumQuantity += quantity;
                 }
-                if (!isNaN(mrp) && !isNaN(quantity)) {
-                    let perPrice = quantity * mrp;
-                    sumPerPrice += perPrice;
+                if (!isNaN(pur_price)) {
+                    sumPurPrice += pur_price;
                 }
             });
             let modalText = "Total Quantity is: " + sumQuantity;
-            modalText += "<br>Total Per Price is: " + sumPerPrice.toFixed(2);
+            modalText += "<br>Total Pur Price is: " + sumPurPrice.toFixed(2);
             $('#quantityModal .modal-title').text("Check The Quantity");
             $('#quantityModal .modal-body').html(modalText)
             $('#quantityModal').modal('show');

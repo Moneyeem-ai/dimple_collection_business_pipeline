@@ -45,6 +45,7 @@ from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
     DepartmentSerializer,
+    DepartmentNestedSerializer,
     CategorySerializer,
     SubCategorySerializer,
     BrandSerializer,
@@ -191,7 +192,7 @@ class ProductImageUploadView(View):
             return JsonResponse({"status": "error", "message": str(e)})
 
 
-class UploadFileView(SideBarSelectedMixin, ListView):
+class UploadFileView(SideBarSelectedMixin, generic.ListView):
     form_class = UploadFileForm
     model = PTFileBatch
     success_url = "product:barcode_list"
@@ -227,6 +228,7 @@ class UploadFileView(SideBarSelectedMixin, ListView):
     def post(self, request, *args, **kwargs):
         batch_id = kwargs.get("batch_id")
         form = self.form_class(request.POST, request.FILES)
+        self.object_list = self.get_queryset()
         try:
             if form.is_valid():
                 uploaded_file = request.FILES["file"]
@@ -297,10 +299,12 @@ class UploadFileView(SideBarSelectedMixin, ListView):
                     )
                 return self.render_to_response(self.get_context_data())
             else:
-                return self.form_invalid(form)
+                context_data = self.get_context_data()
+                context_data["upload_form"] = form
+                return self.render_to_response(context_data)
         except Exception as e:
             print(e)
-            return self.form_invalid(form)
+            return self.render_to_response(form)
 
 
 class PTFileEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -342,19 +346,13 @@ class PTFileEntryAPIView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        departments = DepartmentSerializer(Department.objects.all(), many=True).data
-        categories = CategorySerializer(Category.objects.all(), many=True).data
-        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
+        departments = DepartmentNestedSerializer(Department.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
-        sizes = SizeSerializer(Size.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
             "departments": departments,
-            "categories": categories,
-            "subcategories": subcategories,
             "brands": brands,
-            "sizes": sizes,
         }
         return Response(result)
 
@@ -368,19 +366,13 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         ptfile_entry_ids = batch.ptfile_entry_ids
         ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
         serializer = self.get_serializer(ptfile_entries, many=True)
-        departments = DepartmentSerializer(Department.objects.all(), many=True).data
-        categories = CategorySerializer(Category.objects.all(), many=True).data
-        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
+        departments = DepartmentNestedSerializer(Department.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
-        sizes = SizeSerializer(Size.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
             "departments": departments,
-            "categories": categories,
-            "subcategories": subcategories,
             "brands": brands,
-            "sizes": sizes,
         }
         print("this is the data", result)
         return Response(result)
@@ -522,7 +514,7 @@ class ExportPTFilesView(View):
             "product__category__suffix",
             "product__brand__prefix",
             "product__article_number",
-            "product__department__hsn_code",
+            "product__category__hsn_code",
             "id",
             "color",
             "size__size_value",
@@ -548,7 +540,7 @@ class ExportPTFilesView(View):
             "size__size_value": "Size",
             "product__brand__prefix": "Brand Prefix",
             "product__brand__brand_code": "Brand",
-            "product__department__hsn_code": "HSNCode",
+            "product__category__hsn_code": "HSNCode",
             "product__brand__supplier_name": "Supplier",
             "per_price": "Pur Price",
             "mrp": "ItemMRP",
