@@ -507,8 +507,8 @@ class ExportPTFilesView(View):
 
         fields_to_export = [
             "product__department__department_name",
-            "product__subcategory__subcategory_name",
             "product__category__category_name",
+            "product__subcategory__subcategory_name",
             "product__department__suffix",
             "product__subcategory__suffix",
             "product__category__suffix",
@@ -519,6 +519,7 @@ class ExportPTFilesView(View):
             "color",
             "size__size_value",
             "product__brand__brand_code",
+            "product__department__hsn_code",
             "product__brand__supplier_name",
             "per_price",
             "mrp",
@@ -549,6 +550,8 @@ class ExportPTFilesView(View):
             "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
+        df['InvoiceDt'] = pd.to_datetime(df['InvoiceDt'])
+        df['InvoiceDt'] = df['InvoiceDt'].dt.strftime('%d-%m-%Y')
         df["Brand Prefix"].fillna("", inplace=True)
         df["Department Suffix"].fillna("", inplace=True)
         df["Category Suffix"].fillna("", inplace=True)
