@@ -5,7 +5,7 @@ import pandas as pd
 from config.settings.base import BASE_DIR
 from apps.department.models import Department, Category, SubCategory
 
-csv_file_path = os.path.join(BASE_DIR, 'data', 'departments_data.csv')
+csv_file_path = os.path.join(BASE_DIR, 'data', 'final_master.csv')
 df = pd.read_csv(csv_file_path)
 
 Department.objects.all().delete()

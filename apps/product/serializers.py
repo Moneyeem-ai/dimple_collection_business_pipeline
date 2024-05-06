@@ -44,7 +44,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        fields = ["id", "brand_name", "brand_code","supplier_name"]
+        fields = ["id", "brand_name", "brand_code", "supplier_name"]
 
 
 class SizeSerializer(serializers.ModelSerializer):
@@ -58,7 +58,7 @@ class ProductReadSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     subcategory = SubCategorySerializer()
     brand = BrandSerializer()
-    
+
     class Meta:
         model = Product
         fields = [
@@ -107,7 +107,18 @@ class PTFileEntryCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PTFileEntry
-        fields = ["id", "product_id", "size_id", "quantity", "color", "mrp", "per_price","invoice_number","invoice_date", "status"]
+        fields = [
+            "id",
+            "product_id",
+            "size_id",
+            "quantity",
+            "color",
+            "mrp",
+            "per_price",
+            "invoice_number",
+            "invoice_date",
+            "status",
+        ]
 
     def create(self, validated_data):
         product_id = validated_data.pop("product_id")
@@ -120,7 +131,7 @@ class PTFileEntryCreateSerializer(serializers.ModelSerializer):
 class SubCategoryNestedSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
-        fields = ['id', 'subcategory_name']
+        fields = ["id", "subcategory_name"]
 
 
 class CategoryNestedSerializer(serializers.ModelSerializer):
@@ -128,7 +139,7 @@ class CategoryNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ['id', 'category_name', 'subcategories']
+        fields = ["id", "category_name", "subcategories"]
 
 
 class SizeNestedSerializer(serializers.ModelSerializer):
@@ -143,4 +154,4 @@ class DepartmentNestedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Department
-        fields = ['id', 'department_name', 'categories', 'sizes']
+        fields = ["id", "department_name", "categories", "sizes"]
