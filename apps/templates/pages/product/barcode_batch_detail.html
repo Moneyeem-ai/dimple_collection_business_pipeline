@@ -289,6 +289,14 @@
     var overlayWrapper = document.querySelector('.overlay-wrapper');
     overlayWrapper.parentNode.removeChild(overlayWrapper);
   }
+  $("#okbtn").click(function () {
+    // Extract batch_id from the current URL
+    var currentUrl = window.location.pathname; // Gets the path from the URL
+    var batchId = currentUrl.split('/')[3]; // Assuming 'batch_id' is the third segment after splitting by '/'
+
+    // Navigate back to the same URL with the same batch_id
+    window.location.href = '/product/upload_z_file/' + batchId;
+});
   $(function () {
     showOverlay();
     $("#example1").DataTable({
