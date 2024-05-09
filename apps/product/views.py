@@ -377,7 +377,6 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             "departments": departments,
             "brands": brands,
         }
-        print("this is the data", result)
         return Response(result)
 
 
