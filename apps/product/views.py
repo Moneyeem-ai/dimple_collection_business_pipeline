@@ -10,7 +10,6 @@ from django.http import JsonResponse, HttpResponse
 from django.views import View
 from django.core.files.base import ContentFile
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import FormView
 from django_pandas.io import read_frame
 from django.views.generic import ListView
 from django.db.models import Sum
@@ -40,19 +39,19 @@ from apps.product.models import (
     PTStatus,
     PTFileBatch,
 )
-from apps.department.models import Department, Category, SubCategory, Brand, Size
+from apps.department.models import Department, Brand
 from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
-    DepartmentSerializer,
     DepartmentNestedSerializer,
-    CategorySerializer,
-    SubCategorySerializer,
     BrandSerializer,
-    SizeSerializer,
 )
 from apps.product.forms import ProductForm
-from apps.product.utils import extract_data_from_tag, get_or_create_product
+from apps.product.utils import (
+    extract_data_from_tag,
+    get_or_create_product,
+    check_product_is_unique_or_merge,
+)
 from apps.product.mappers import (
     pt_entry_to_product_mapper,
     pt_entry_to_pt_entry_mapper,
@@ -346,7 +345,9 @@ class PTFileEntryAPIView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        departments = DepartmentNestedSerializer(Department.objects.all(), many=True).data
+        departments = DepartmentNestedSerializer(
+            Department.objects.all(), many=True
+        ).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
         data = serializer.data
         result = {
@@ -366,7 +367,9 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         ptfile_entry_ids = batch.ptfile_entry_ids
         ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
         serializer = self.get_serializer(ptfile_entries, many=True)
-        departments = DepartmentNestedSerializer(Department.objects.all(), many=True).data
+        departments = DepartmentNestedSerializer(
+            Department.objects.all(), many=True
+        ).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
         data = serializer.data
         result = {
@@ -445,6 +448,8 @@ class PTFileEntryUpdateAPIView(APIView):
                 if pt_entry_id := serializer.data.get("id"):
                     pt_entry_ids.append(pt_entry_id)
 
+            check_product_is_unique_or_merge(pt_entry_ids)
+            
             if ptstatus == PTStatus.ENTRY:
                 if len(pt_entry_ids) > 0 and batch_id is None:
                     try:
@@ -460,7 +465,6 @@ class PTFileEntryUpdateAPIView(APIView):
                 except Exception as e:
                     print("eror3", e)
                     return Response({"error": str(e)})
-
             return Response(
                 {"message": "Data updated successfully", "success": True},
                 status=status.HTTP_200_OK,
@@ -549,8 +553,8 @@ class ExportPTFilesView(View):
             "invoice_date": "InvoiceDt",
         }
         df = df.rename(columns=column_mapping)
-        df['InvoiceDt'] = pd.to_datetime(df['InvoiceDt'])
-        df['InvoiceDt'] = df['InvoiceDt'].dt.strftime('%d-%m-%Y')
+        df["InvoiceDt"] = pd.to_datetime(df["InvoiceDt"])
+        df["InvoiceDt"] = df["InvoiceDt"].dt.strftime("%d-%m-%Y")
         df["Brand Prefix"].fillna("", inplace=True)
         df["Department Suffix"].fillna("", inplace=True)
         df["Category Suffix"].fillna("", inplace=True)

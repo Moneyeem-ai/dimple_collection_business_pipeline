@@ -7,7 +7,7 @@ import google.generativeai as genai
 from django.conf import settings
 
 from apps.department.models import Department, Brand, Category, SubCategory, Size
-from apps.product.models import Product, ProductImage
+from apps.product.models import Product, ProductImage, PTFileEntry
 
 
 def extract_data_from_tag(image_path):
@@ -209,10 +209,15 @@ def clean_extracted_data(data, product_image_id):
     valid_data.update(
         {
             "metadata": data,
-            "product_images": ProductImage.objects.get(id=product_image_id), 
+            "product_images": ProductImage.objects.get(id=product_image_id),
         }
     )
     department = Department.objects.get_or_create(department_name="None")[0]
+    valid_data["article_number"] = (
+        valid_data["article_number"].upper()
+        if valid_data["article_number"]
+        else valid_data["article_number"]
+    )
     valid_data["category"] = Category.objects.get_or_create(
         category_name="None", department=department
     )[0]
@@ -232,7 +237,8 @@ def get_or_create_product(valid_data):
         and article_number != None
     ):
         try:
-            product, created = Product.objects.get_or_create(
+            article_number = article_number.replace(" ", "").upper()
+            product, _ = Product.objects.get_or_create(
                 department=department,
                 article_number=article_number,
                 brand=brand,
@@ -248,3 +254,33 @@ def get_or_create_product(valid_data):
         return product
     except Exception as e:
         raise e
+
+
+def check_product_is_unique_or_merge(pt_entry_ids):
+    processed_pt_entry = []
+    for pt_entry_id in pt_entry_ids:
+        if pt_entry_id not in processed_pt_entry:
+            product = PTFileEntry.objects.get(id=pt_entry_id).product
+            if product.id:
+                similar_products = (
+                    Product.objects.filter(
+                        department=product.department,
+                        category=product.category,
+                        subcategory=product.subcategory,
+                        article_number=product.article_number,
+                        brand=product.brand,
+                    )
+                    .exclude(id=product.id)
+                    .values_list("id", flat=True)
+                )
+                if len(similar_products) > 0:
+                    associated_pt_entries = PTFileEntry.objects.filter(
+                        product_id__in=similar_products
+                    )
+                    associated_pt_entries.update(product=product)
+                    associated_pt_entry_ids = associated_pt_entries.values_list(
+                        "id", flat=True
+                    )
+                    processed_pt_entry = list(processed_pt_entry) + list(associated_pt_entry_ids)
+                    processed_pt_entry.append(pt_entry_id)
+                    Product.objects.filter(id__in=similar_products).delete()
