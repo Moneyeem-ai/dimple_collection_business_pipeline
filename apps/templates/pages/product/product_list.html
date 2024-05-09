@@ -37,10 +37,17 @@
               <div class="card-header">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="card-title">DataTable with default features</h3>
-                    <div>
-                        <a href="{% url 'product:product_entry' %}?page=1">
-                            <button type="button" class="btn btn-block btn-primary">Add Product</button>
+                    <div class="row">
+                      <div class="col-sm-6 d-flex justify-content-end pt-2 pr-4">
+                        <a href="{% url 'product:product_list' %}" >
+                          <button type="button" class="btn btn-primary py-1 px-2" title="Reload Page" data-toggle="tooltip"><span><i class="fa fa-sync-alt"></i></span></button>
                         </a>
+                      </div>
+                      <div class="col-sm-6">
+                        <a href="{% url 'product:product_entry' %}?page=1">
+                          <button type="button" class="btn btn-block btn-primary" title="Add new Product" data-toggle="tooltip">Add Product</button>
+                        </a>
+                      </div>
                     </div>
                 </div>
               </div>
@@ -142,7 +149,7 @@
   $(function () {
     showOverlay();
     $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false, "paging": false, "info": false,
+      "responsive": true, "lengthChange": false, "autoWidth": false, "paging": false, "info": false, "ordering": false,
       "initComplete": function () {
         hideOverlay();
         $('#example1').show();
@@ -157,7 +164,7 @@
       "paging": false,
       "lengthChange": false,
       "searching": false,
-      "ordering": true,
+      "ordering": false,
       "info": false,
       "autoWidth": false,
       "responsive": true,
