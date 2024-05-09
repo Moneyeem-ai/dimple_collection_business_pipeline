@@ -547,6 +547,21 @@
             });
         });
     fetchDataWithCSRFToken(`/product/api/ptfile_list/${batchId}`);
+    function isHotEditable() {
+        if (hot) {
+            const settings = hot.getSettings();
+            return settings.readOnly === false;
+        }
+        return false;
+    }
+
+    window.onbeforeunload = function(e) {
+            if (isHotEditable() && hot && hot.getData().length > 0) {
+                var confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                e.returnValue = confirmationMessage;
+                return confirmationMessage;
+            }
+        };
 
     document.getElementById('sumQuantitiesBtn').addEventListener('click', function () {
             const data = hot.getData();

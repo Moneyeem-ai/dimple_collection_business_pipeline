@@ -26,19 +26,19 @@ class ProductImageSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Department
-        fields = ["id", "suffix", "department_name"]
+        fields = ["id", "prefix", "department_name"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
-        fields = ["id", "department", "suffix", "category_name", "hsn_code"]
+        fields = ["id", "department", "prefix", "category_name", "hsn_code"]
 
 
 class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
-        fields = ["id", "category", "suffix", "subcategory_name"]
+        fields = ["id", "category", "prefix", "subcategory_name"]
 
 
 class BrandSerializer(serializers.ModelSerializer):

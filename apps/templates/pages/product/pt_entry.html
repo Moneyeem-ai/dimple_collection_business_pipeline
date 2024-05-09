@@ -126,7 +126,7 @@
   }
     window.onload = function (){
     const container = document.querySelector('#example');
-     let hot; 
+    var hot; 
     function fetchDataWithCSRFToken(url) {
         try {
             const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
@@ -448,9 +448,24 @@
                 }
             });
         });
-
+        
     fetchDataWithCSRFToken('/product/api/ptfile_entry/');
+    function isHotEditable() {
+        if (hot) {
+            const settings = hot.getSettings();
+            return settings.readOnly === false;
+        }
+        return false;
+    }
 
+    window.onbeforeunload = function(e) {
+            if (isHotEditable() && hot && hot.getData().length > 0) {
+                var confirmationMessage = 'You have unsaved changes. Are you sure you want to leave?';
+                e.returnValue = confirmationMessage;
+                return confirmationMessage;
+            }
+        };
+    
     document.getElementById('sumQuantitiesBtn').addEventListener('click', function () {
             // const hot = Handsontable.getInstance(document.querySelector('#example'));
             const data = hot.getData();

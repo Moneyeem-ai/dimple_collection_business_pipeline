@@ -38,6 +38,14 @@
                   <div class="d-flex flex-row justify-content-center">
                     <video id="video" class="scanner-input-video"></video>
                   </div>
+                  <div class="d-flex justify-content-center mt-3">
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="cameraDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Select Camera
+                        </button>
+                        <div class="dropdown-menu" aria-labelledby="cameraDropdown" id="cameraList"></div>
+                    </div>
+                </div>
                 </div>
               </div>
               <!-- /.card -->
@@ -75,6 +83,56 @@
 {% block extra_scripts %}
 <!-- DataTables  & Plugins -->
 <!-- Page specific script -->
+<script>
+  function populateCameraDropdown(devices) {
+    const cameraList = document.getElementById("cameraList");
+    cameraList.innerHTML = "";
+    devices.forEach(device => {
+      if (device.kind === 'videoinput') {
+        const option = document.createElement("a");
+        option.className = "dropdown-item";
+        option.textContent = device.label || `Camera ${cameraList.children.length + 1}`;
+        option.addEventListener("click", () => {
+          selectCamera(device.deviceId);
+        });
+        cameraList.appendChild(option);
+      }
+    });
+  }
+
+  function selectCamera(deviceId) {
+    const constraints = {
+        video: { deviceId: { exact: deviceId } }
+    };
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(stream => {
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(err => {
+            console.error('Error accessing camera:', err);
+        });
+  }
+  function initialize() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        console.error('enumerateDevices() not supported.');
+        return;
+    }
+    navigator.mediaDevices.enumerateDevices()
+    .then(devices => {
+      populateCameraDropdown(devices);
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
+      if (videoDevices.length > 0) {
+        const defaultCameraId = videoDevices[0].deviceId;
+        selectCamera(defaultCameraId);
+      }
+    })
+    .catch(err => {
+            console.error('Error enumerating devices:', err);
+        });
+  }
+  window.addEventListener("load", initialize);
+</script>
 <script>
 
 function showOverlay() {
