@@ -38,12 +38,12 @@
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h3 class="card-title">DataTable with default features</h3>
                     <div class="row">
-                      <div class="col-sm-6 d-flex justify-content-end pt-2 pr-4">
+                      <div class="pr-4">
                         <a href="{% url 'product:product_list' %}" >
-                          <button type="button" class="btn btn-primary py-1 px-2" title="Reload Page" data-toggle="tooltip"><span><i class="fa fa-sync-alt"></i></span></button>
+                          <button type="button" class="btn btn-primary px-2" title="Reload Page" data-toggle="tooltip"><span><i class="fa fa-sync-alt"></i></span></button>
                         </a>
                       </div>
-                      <div class="col-sm-6">
+                      <div>
                         <a href="{% url 'product:product_entry' %}?page=1">
                           <button type="button" class="btn btn-block btn-primary" title="Add new Product" data-toggle="tooltip">Add Product</button>
                         </a>
