@@ -81,7 +81,7 @@
                           </td>
                           <td>
                               <h6 class="mb-1">
-                                {% if item.pt_entry.product.brand.prefix %}{{item.pt_entry.product.brand.prefix}}{% endif %}{{ item.pt_entry.product.article_number }}{% if item.pt_entry.product.department.suffix %}{{ item.pt_entry.product.department.suffix }}{% endif %}{% if item.pt_entry.category.department.suffix %}{{ item.pt_entry.category.department.suffix }}{% endif %}{% if item.pt_entry.product.subcategory.suffix %}{{ item.pt_entry.product.subcategory.suffix }}{% endif %}
+                                {% if item.pt_entry.product.department.prefix %}{{ item.pt_entry.product.department.prefix }}{% endif %}{% if item.pt_entry.category.department.prefix %}{{ item.pt_entry.category.department.prefix }}{% endif %}{% if item.pt_entry.product.subcategory.prefix %}{{ item.pt_entry.product.subcategory.prefix }}{% endif %}{{ item.pt_entry.product.article_number }}{% if item.pt_entry.product.brand.suffix %}{{item.pt_entry.product.brand.suffix}}{% endif %}
                               </h6>
                           </td>
                           <td>
@@ -112,7 +112,7 @@
                           </td>
                           <td>
                               <h6 class="mb-1">
-                                {% if item.product.brand.prefix %}{{item.product.brand.prefix}}{% endif %}{{ item.product.article_number }}{% if item.product.department.suffix %}{{ item.product.department.suffix }}{% endif %}{% if item.product.category.suffix %}{{ item.product.category.suffix }}{% endif %}{% if item.product.subcategory.suffix %}{{ item.product.subcategory.suffix }}{% endif %}
+                                {% if item.product.department.prefix %}{{ item.product.department.prefix }}{% endif %}{% if item.product.category.prefix %}{{ item.product.category.prefix }}{% endif %}{% if item.product.subcategory.prefix %}{{ item.product.subcategory.prefix }}{% endif %}{{ item.product.article_number }}{% if item.product.brand.suffix %}{{item.product.brand.suffix}}{% endif %}
                           </td>
                           <td>
                               <h6 class="mb-1">{{ item.product.department }}</h6>

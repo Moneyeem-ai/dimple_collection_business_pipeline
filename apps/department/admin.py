@@ -2,16 +2,16 @@ from django.contrib import admin
 from apps.department.models import Department, Category, SubCategory, Brand, Size
 
 class DepartmentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'department_name', 'suffix']
+    list_display = ['id', 'department_name', 'prefix']
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'department', 'category_name', 'hsn_code', 'suffix']
+    list_display = ['id', 'department', 'category_name', 'hsn_code', 'prefix']
 
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'category', 'subcategory_name', 'suffix']
+    list_display = ['id', 'category', 'subcategory_name', 'prefix']
 
 class BrandAdmin(admin.ModelAdmin):
-    list_display = ['id', 'brand_name', 'brand_code', 'supplier_name', 'prefix']
+    list_display = ['id', 'brand_name', 'brand_code', 'supplier_name', 'suffix']
 
 class SizeAdmin(admin.ModelAdmin):
     list_display = ['id', 'department', 'size_value']
