@@ -512,10 +512,10 @@ class ExportPTFilesView(View):
             "product__department__department_name",
             "product__category__category_name",
             "product__subcategory__subcategory_name",
-            "product__department__suffix",
-            "product__subcategory__suffix",
-            "product__category__suffix",
-            "product__brand__prefix",
+            "product__department__prefix",
+            "product__subcategory__prefix",
+            "product__category__prefix",
+            "product__brand__suffix",
             "product__article_number",
             "id",
             "color",
@@ -533,15 +533,15 @@ class ExportPTFilesView(View):
         column_mapping = {
             "product__department__department_name": "Department",
             "product__category__category_name": "Category",
-            "product__department__suffix": "Department Suffix",
-            "product__subcategory__suffix": "Subcategory Suffix",
-            "product__category__suffix": "Category Suffix",
+            "product__department__prefix": "Department Prefix",
+            "product__subcategory__prefix": "Subcategory Prefix",
+            "product__category__prefix": "Category Prefix",
             "product__subcategory__subcategory_name": "Subcategory",
             "product__article_number": "Article Number",
             "id": "Description",
             "color": "Color",
             "size__size_value": "Size",
-            "product__brand__prefix": "Brand Prefix",
+            "product__brand__suffix": "Brand Suffix",
             "product__brand__brand_code": "Brand",
             "product__category__hsn_code": "HSNCode",
             "product__brand__supplier_name": "Supplier",
@@ -554,23 +554,23 @@ class ExportPTFilesView(View):
         df = df.rename(columns=column_mapping)
         df["InvoiceDt"] = pd.to_datetime(df["InvoiceDt"])
         df["InvoiceDt"] = df["InvoiceDt"].dt.strftime("%d-%m-%Y")
-        df["Brand Prefix"].fillna("", inplace=True)
-        df["Department Suffix"].fillna("", inplace=True)
-        df["Category Suffix"].fillna("", inplace=True)
-        df["Subcategory Suffix"].fillna("", inplace=True)
+        df["Brand Suffix"].fillna("", inplace=True)
+        df["Department Prefix"].fillna("", inplace=True)
+        df["Category Prefix"].fillna("", inplace=True)
+        df["Subcategory Prefix"].fillna("", inplace=True)
         df["Article Number"] = (
-            df["Brand Prefix"].astype(str)
+            df["Department Prefix"].astype(str)
+            + df["Category Prefix"].astype(str)
+            + df["Subcategory Prefix"].astype(str)
             + df["Article Number"].astype(str)
-            + df["Department Suffix"].astype(str)
-            + df["Category Suffix"].astype(str)
-            + df["Subcategory Suffix"].astype(str)
+            + df["Brand Suffix"].astype(str)
         )
         df.drop(
             columns=[
-                "Department Suffix",
-                "Category Suffix",
-                "Subcategory Suffix",
-                "Brand Prefix",
+                "Department Prefix",
+                "Category Prefix",
+                "Subcategory Prefix",
+                "Brand Suffix",
             ],
             inplace=True,
         )
