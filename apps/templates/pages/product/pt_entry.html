@@ -285,13 +285,16 @@
                         }, 
                     ],
                     minRows: 100,
+                    stretchH: "all",
                     autoWrapRow: true,
                     autoWrapCol: true,
-                    licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+                    fillHandle: true,
+                    licenseKey: 'non-commercial-and-evaluation',// for non-commercial use only
                     afterChange: function(changes, source) {
-                        if (!changes || source !== 'edit') return;
+                        if (!changes || (source !== 'edit' && source!== 'Autofill.fill')) return;
 
                         changes.forEach(([row, prop, oldValue, newValue]) => {
+                            console.log("ertyu")
                             if (prop === 'product.department.department_name' && newValue !== oldValue) {
                                 populateCategories(row, newValue);
                                 populateSizes(row, newValue);
@@ -304,6 +307,7 @@
 
                 });
                 function populateCategories(row, departmentName) {
+                    console.log("RTYJ")
                     const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
                     const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
                     let categories = all_master_data.find(item => item.id === parseInt(departmentId));

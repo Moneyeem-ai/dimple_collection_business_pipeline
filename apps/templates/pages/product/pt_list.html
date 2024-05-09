@@ -54,7 +54,9 @@
                             </div>
                                 <div class="col-sm-3">
                                 <button id="editDataButton" class="btn btn-block btn-warning" style="width: 120px; display: block;">Edit Data</button>
-                                <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none; margin-top: 0;">Cancel</button>
+                                <a href="{% url 'product:ptfile_list' batch_id %}">
+                                    <button id="cancelButton" class="btn btn-block btn-warning" style="width: 120px; display: none; margin-top: 0;">Cancel</button>
+                                </a>
                               </div>
                               <div class="col-sm-4">
                                 <a href="{% url 'product:export_ptfiles' batch_id %}">
@@ -325,12 +327,14 @@
                     readOnly: true,
                     autoWrapRow: true,
                     autoWrapCol: true,
+                    fillHandle: true,
                     licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
                     afterChange: function(changes, source) {
-                        if (!changes || source !== 'edit') return;
-
+                        if (!changes || (source !== 'edit' && source!== 'Autofill.fill')) return;
                         changes.forEach(([row, prop, oldValue, newValue]) => {
+                            console.log(row)
                             if (prop === 'product.department.department_name' && newValue !== oldValue) {
+                                console.log(row)
                                 populateCategories(row, newValue);
                                 populateSizes(row, newValue);
                             }

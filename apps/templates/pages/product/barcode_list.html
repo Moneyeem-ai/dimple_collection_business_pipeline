@@ -130,7 +130,7 @@
   $(function () {
     showOverlay();
     $("#example1").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false, "paging": false, "info": false,
+      "responsive": true, "lengthChange": false, "autoWidth": false, "paging": false, "info": false, "ordering": false,
       "initComplete": function () {
         hideOverlay();
         $('#example1').show();
@@ -141,7 +141,7 @@
       "paging": false,
       "lengthChange": false,
       "searching": false,
-      "ordering": true,
+      "ordering": false,
       "info": false,
       "autoWidth": false,
       "responsive": true,

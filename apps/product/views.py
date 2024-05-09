@@ -68,6 +68,7 @@ class ProductListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
     parent = "product"
     segment = "product_list"
     paginate_by = 6
+    ordering = "-created_at"
 
 
 class ProductBarcodeListView(
@@ -80,6 +81,7 @@ class ProductBarcodeListView(
     parent = "product"
     segment = "barcode_list"
     paginate_by = 6
+    ordering = "-batch_id"
 
 
 class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -484,6 +486,7 @@ class BatchListView(SideBarSelectedMixin, ListView):
     parent = "product"
     segment = "batch_list"
     paginate_by = 6
+    ordering = "-batch_id"
 
 
 class ExportPTFilesView(View):
@@ -582,20 +585,22 @@ class ExportPTFilesView(View):
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)
         df.insert(18, "ItemWSP", None)
+        df.insert(22, "PORowId", None)
+        df.insert(23, "PurOrderId", None)
 
-        excel_file_path = "data/ptfiles_export.xlsx"
-        df.to_excel(excel_file_path, index=False)
+        csv_file_path = "data/ptfiles_export.csv"
+        df.to_csv(csv_file_path, index=False)
 
         batch.is_exported = True
         batch.save()
 
-        with open(excel_file_path, "rb") as excel_file:
+        with open(csv_file_path, "rb") as csv_file:
             response = HttpResponse(
-                excel_file.read(),
-                content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                csv_file.read(),
+                content_type="text/csv",
             )
             response["Content-Disposition"] = (
-                f'attachment; filename="pending_ptfiles_{pd.Timestamp.now().strftime("%Y-%m-%d")}.xlsx"'
+                f'attachment; filename="ptfile_{pd.Timestamp.now().strftime("%Y-%m-%d")}.csv"'
             )
 
         return response
