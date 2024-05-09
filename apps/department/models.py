@@ -16,7 +16,7 @@ class Category(models.Model):
     suffix = models.CharField(max_length=64, null=True)
 
     def __str__(self):
-        return self.category_name
+        return f"{self.category_name}({self.department})"
 
 
 class SubCategory(models.Model):
