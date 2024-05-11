@@ -44,3 +44,10 @@ class Size(models.Model):
 
     def __str__(self):
         return self.size_value
+
+
+class Color(models.Model):
+    color_name = models.CharField(max_length=64)
+
+    def __str__(self):
+        return self.color_name

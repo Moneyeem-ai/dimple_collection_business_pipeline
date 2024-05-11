@@ -39,12 +39,13 @@ from apps.product.models import (
     PTStatus,
     PTFileBatch,
 )
-from apps.department.models import Department, Brand
+from apps.department.models import Department, Brand, Color
 from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
     DepartmentNestedSerializer,
     BrandSerializer,
+    ColorSerializer
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import (
@@ -351,11 +352,13 @@ class PTFileEntryAPIView(generics.ListAPIView):
             Department.objects.all(), many=True
         ).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
+        colors = ColorSerializer(Color.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
             "departments": departments,
             "brands": brands,
+            "colors": colors,
         }
         return Response(result)
 
@@ -373,11 +376,13 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             Department.objects.all(), many=True
         ).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
+        colors = ColorSerializer(Color.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
             "departments": departments,
             "brands": brands,
+            "colors": colors,
         }
         return Response(result)
 
@@ -521,12 +526,12 @@ class ExportPTFilesView(View):
             "product__brand__suffix",
             "product__article_number",
             "id",
-            "color",
+            "color__color_name",
             "size__size_value",
             "product__brand__brand_code",
             "product__category__hsn_code",
             "product__brand__supplier_name",
-            "per_price",
+            "pur_price",
             "mrp",
             "quantity",
             "invoice_number",
@@ -542,13 +547,13 @@ class ExportPTFilesView(View):
             "product__subcategory__subcategory_name": "Subcategory",
             "product__article_number": "Article Number",
             "id": "Description",
-            "color": "Color",
+            "color__color_name": "Color",
             "size__size_value": "Size",
             "product__brand__suffix": "Brand Suffix",
             "product__brand__brand_code": "Brand",
             "product__category__hsn_code": "HSNCode",
             "product__brand__supplier_name": "Supplier",
-            "per_price": "Pur Price",
+            "pur_price": "Pur Price",
             "mrp": "ItemMRP",
             "quantity": "Quantity",
             "invoice_number": "InvoiceNo",

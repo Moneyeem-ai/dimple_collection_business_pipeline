@@ -6,7 +6,7 @@ import google.generativeai as genai
 
 from django.conf import settings
 
-from apps.department.models import Department, Brand, Category, SubCategory, Size
+from apps.department.models import Department, Brand, Category, SubCategory, Size, Color
 from apps.product.models import Product, ProductImage, PTFileEntry
 
 
@@ -57,6 +57,7 @@ def extract_data_from_tag(image_path):
     departments = Department.objects.values("id", "department_name")
     brands = Brand.objects.values("id", "brand_name")
     sizes = Size.objects.values("id", "size_value")
+    colors = Color.objects.values("id", "color_name")
 
     prompt_parts = [
         image_parts[0],
@@ -196,6 +197,43 @@ def extract_data_from_tag(image_path):
             json_data["size_id"] = none_size.id
         except:
             json_data["size_id"] = none_size.id
+
+    if value := json_data.get("color", None):
+        model = genai.GenerativeModel(
+            model_name="gemini-1.0-pro",
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+        try:
+            colors_json = json.dumps(list(colors))
+        except:
+            colors_json = []
+        print("!!!1234567!")
+        print(value)
+        prompt = f"Perform text matching. I am providing you a json of list of color_name and there id - {colors_json}. Match the provided list and check if '{value}' is present in color_name, it will not be same exactly, but its meaning should be similar. The output you should give should only be the matching json."
+        prompt_parts = [prompt]
+        response = model.generate_content(prompt_parts)
+        print("!!!!")
+        print(response.text)
+        try:
+            colorjson_data = json.loads(response.text)
+        except:
+            none_color, _ = Color.objects.get_or_create(color_name="None")
+            colorjson_data = {"id": none_color.id}
+
+        try:
+            json_data.pop("color")
+            json_data["color_id"] = colorjson_data.get("id")
+        except:
+            none_color, _ = Color.objects.get_or_create(color_name="None")
+            json_data["color_id"] = none_color.id
+    else:
+        none_color, _ = Color.objects.get_or_create(color_name="None")
+        try:
+            json_data.pop("color")
+            json_data["color_id"] = none_color.id
+        except:
+            json_data["color_id"] = none_color.id
     print(json_data)
     return json_data
 

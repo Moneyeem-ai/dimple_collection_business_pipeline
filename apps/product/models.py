@@ -8,7 +8,7 @@ from django.db import models
 from django.utils import timezone
 from django.contrib.postgres.fields import ArrayField
 
-from apps.department.models import Department, Category, SubCategory, Brand, Size
+from apps.department.models import Department, Category, SubCategory, Brand, Size, Color
 
 logger = logging.getLogger(__name__)
 
@@ -60,8 +60,10 @@ class PTFileEntry(models.Model):
         Size, max_length=64, null=True, blank=True, on_delete=models.CASCADE
     )
     quantity = models.IntegerField(default=0)
-    color = models.CharField(max_length=64, null=True, blank=True)
-    per_price = models.CharField(max_length=128, null=True, blank=True)
+    color = models.ForeignKey(
+        Color, max_length=64, null=True, blank=True, on_delete=models.CASCADE
+    )
+    pur_price = models.CharField(max_length=128, null=True, blank=True)
     mrp = models.CharField(max_length=128, null=True, blank=True, default=0)
     invoice_number = models.CharField(max_length=128, null=True, blank=True)
     invoice_date = models.DateField(null=True, blank=True)
@@ -75,7 +77,8 @@ class PTFileEntry(models.Model):
             metadata = getattr(self.product, "metadata", {})
             self.size = Size.objects.filter(id=metadata.get("size_id")).first()
             self.quantity = metadata.get("quantity", 0)
-            self.color = metadata.get("color", "")
+            color_name = metadata.get("color", None)
+            self.color = Color.objects.filter(id=metadata.get("color_id")).first()
             self.mrp = metadata.get("mrp", 0)
         return super().save(*args, **kwargs)
 
