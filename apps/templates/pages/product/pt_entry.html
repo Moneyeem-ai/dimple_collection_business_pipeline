@@ -467,6 +467,16 @@
         $("#okbtn").click(function () {
             $.ajax({
                 success: function() {
+                    if (hot) {
+                hot.updateSettings({
+                    contextMenu: {
+                        items: {
+                        }
+                    },
+                    readOnly: true,
+                });
+                console.log("Handsontable readOnly set to true.");
+            }
                     window.location.href = '/product/ptfile/batches/  ';
                 }
             });
