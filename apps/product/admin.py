@@ -12,7 +12,7 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 @admin.register(PTFileEntry)
 class PTFileEntryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'product', 'status', 'size', 'quantity', 'color', 'per_price', 'mrp', 'invoice_number', 'invoice_date', 'suffix']
+    list_display = ['id', 'product', 'status', 'size', 'quantity', 'color', 'pur_price', 'mrp', 'invoice_number', 'invoice_date', 'suffix']
 
 @admin.register(ProductBarcode)
 class ProductBarcodeAdmin(admin.ModelAdmin):

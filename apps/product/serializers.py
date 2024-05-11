@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from .models import PTFileEntry, Product, ProductImage
-from apps.department.models import Department, Category, SubCategory, Brand, Size
+from apps.department.models import Department, Category, SubCategory, Brand, Size, Color
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -52,6 +52,11 @@ class SizeSerializer(serializers.ModelSerializer):
         model = Size
         fields = ["id", "department", "size_value"]
 
+class ColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Color
+        fields = ["id", "color_name"]
+
 
 class ProductReadSerializer(serializers.ModelSerializer):
     department = DepartmentSerializer()
@@ -74,6 +79,7 @@ class ProductReadSerializer(serializers.ModelSerializer):
 class PTFileEntrySerializer(serializers.ModelSerializer):
     product = ProductReadSerializer(read_only=True)
     size = SizeSerializer(read_only=True)
+    color = ColorSerializer(read_only=True)
     product_images = serializers.SerializerMethodField()
 
     class Meta:
@@ -85,7 +91,7 @@ class PTFileEntrySerializer(serializers.ModelSerializer):
             "quantity",
             "color",
             "mrp",
-            "per_price",
+            "pur_price",
             "invoice_number",
             "invoice_date",
             "status",
@@ -104,6 +110,7 @@ class PTFileEntrySerializer(serializers.ModelSerializer):
 class PTFileEntryCreateSerializer(serializers.ModelSerializer):
     product_id = serializers.IntegerField(write_only=True)
     size_id = serializers.IntegerField(write_only=True)
+    color_id = serializers.IntegerField(write_only=True)
 
     class Meta:
         model = PTFileEntry
@@ -112,9 +119,9 @@ class PTFileEntryCreateSerializer(serializers.ModelSerializer):
             "product_id",
             "size_id",
             "quantity",
-            "color",
+            "color_id",
             "mrp",
-            "per_price",
+            "pur_price",
             "invoice_number",
             "invoice_date",
             "status",

@@ -143,6 +143,8 @@
             })
             .then(response => response.json())
             .then(data => {
+                console.log(data)
+                console.log("*&^%$")
                 var ptfile = data.data;
                 ptfile = ptfile.map(row => {
                     if(row.product.category == null)
@@ -153,10 +155,15 @@
                         row.product.brand={brand_code:"None", id: 0}
                     if(row.size == null)
                         row.size={size_value:"None", id: 0}
+                    if(row.color == null)
+                        row.color={color_name:"None", id: 0}
                     return row;
                 })
                 var all_master_data = data.departments;
                 var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
+                var colors = data.colors.map((color) => ({name: color.color_name, id: color.id}));
+                console.log(colors)
+                console.log("@#$%^&87")
                 hot = new Handsontable(container, {
                     height: 700,
                     contextMenu: {
@@ -263,7 +270,20 @@
                             }
                         },
                         { title: "Quantity", data: 'quantity' },
-                        { title: "Color", data: 'color' },
+                        { 
+                            title: "Color",
+                            data: 'color.color_name',
+                            type: 'autocomplete',
+                            source: colors.map(color => color.name),
+                            strict: true,
+                            renderer: function(instance, td, row, col, prop, value, cellProperties) {
+                                console.log(value)
+                                
+                                const matchedColor = colors.find(color => color.name === value);
+                                td.setAttribute('data-color-id', matchedColor ? matchedColor.id : '0');
+                                Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
+                            }
+                        },
                         { title: "MRP", data: 'mrp' },
                         {
                           title: "Product Image",
@@ -401,6 +421,9 @@
                             const sizeCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-size-id][role="gridcell"][aria-colindex="8"]`);
                             const sizeId = sizeCell ? sizeCell.getAttribute('data-size-id') : '';
                             row[7] = sizeId;
+                            const colorCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-color-id][role="gridcell"][aria-colindex="10"]`);
+                            const colorId = colorCell ? colorCell.getAttribute('data-color-id') : '';
+                            row[9] = colorId;
                             acc.push(row);
                         }
                         return acc;
