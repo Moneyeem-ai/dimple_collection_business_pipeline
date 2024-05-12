@@ -13,7 +13,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django_pandas.io import read_frame
 from django.views.generic import ListView
 from django.db.models import Sum
-from django.conf import settings
 
 import pandas as pd
 
@@ -39,13 +38,16 @@ from apps.product.models import (
     PTStatus,
     PTFileBatch,
 )
-from apps.department.models import Department, Brand, Color
+from apps.department.models import Department, Brand, Color, Category, SubCategory, Size
 from apps.product.serializers import (
     PTFileEntrySerializer,
     PTFileEntryCreateSerializer,
     DepartmentNestedSerializer,
     BrandSerializer,
+    SubCategorySerializer,
+    CategorySerializer,
     ColorSerializer,
+    SizeSerializer
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import (
@@ -351,12 +353,18 @@ class PTFileEntryAPIView(generics.ListAPIView):
         departments = DepartmentNestedSerializer(
             Department.objects.all(), many=True
         ).data
+        categories = CategorySerializer(Category.objects.all(), many=True).data
+        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
+        sizes = SizeSerializer(Size.objects.all(), many=True).data
         brands = BrandSerializer(Brand.objects.all(), many=True).data
         colors = ColorSerializer(Color.objects.all(), many=True).data
         data = serializer.data
         result = {
             "data": data,
             "departments": departments,
+            "sizes": sizes,
+            "categories": categories,
+            "subcategories": subcategories,
             "brands": brands,
             "colors": colors,
         }
