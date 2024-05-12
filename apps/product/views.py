@@ -632,7 +632,17 @@ class ExportImagesAPIView(View):
                 product_images = product.product_images
                 if product_images.product_image:
                     image_path = str(product_images.product_image.path)
-                    zip_file.write(image_path, arcname=f"{product.article_number}.jpg")
+                    image_name = ""
+                    if product.department.prefix is not None:
+                        image_name += product.department.prefix
+                    if product.category.prefix is not None:
+                        image_name += product.category.prefix
+                    if product.subcategory.prefix is not None:
+                        image_name += product.subcategory.prefix
+                    image_name += f"{product.article_number}"
+                    if product.brand.suffix is not None:
+                        image_name += product.brand.suffix
+                    zip_file.write(image_path, arcname=f"{image_name}.jpg")
 
         batch.is_image_exported = True
         batch.save()
