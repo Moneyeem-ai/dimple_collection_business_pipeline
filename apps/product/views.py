@@ -45,7 +45,7 @@ from apps.product.serializers import (
     PTFileEntryCreateSerializer,
     DepartmentNestedSerializer,
     BrandSerializer,
-    ColorSerializer
+    ColorSerializer,
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import (
@@ -455,7 +455,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     pt_entry_ids.append(pt_entry_id)
 
             check_product_is_unique_or_merge(pt_entry_ids)
-            
+
             if ptstatus == PTStatus.ENTRY:
                 if len(pt_entry_ids) > 0 and batch_id is None:
                     try:
@@ -624,7 +624,8 @@ class ExportImagesAPIView(View):
                 product_images = product.product_images
                 if product_images.product_image:
                     image_path = str(product_images.product_image.path)
-                    zip_file.write(image_path, arcname=f"{product.article_number}.jpg")
+                    image_name = f"{product.department.prefix}{product.category.prefix}{product.subcategory.prefix}{product.article_number}{product.brand.suffix}"
+                    zip_file.write(image_path, arcname=f"{image_name}.jpg")
 
         batch.is_image_exported = True
         batch.save()
