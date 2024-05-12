@@ -160,6 +160,9 @@
                     return row;
                 })
                 var all_master_data = data.departments;
+                var master_categories = data.categories;
+                var master_subcategories = data.subcategories;
+                var master_sizes = data.sizes;
                 var brands = data.brands.map((brand) => ({code: brand.brand_code, id: brand.id}));
                 var colors = data.colors.map((color) => ({name: color.color_name, id: color.id}));
                 console.log(colors)
@@ -206,7 +209,7 @@
                             title: "Category",
                             data: 'product.category.category_name',
                             type: 'autocomplete',
-                            source: [],
+                            source: master_categories.map(category => category.category_name),
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
                                 const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
@@ -222,7 +225,7 @@
                             title: "Sub-Category",
                             data: 'product.subcategory.subcategory_name',
                             type: 'autocomplete',
-                            source: [],
+                            source: master_subcategories.map(subcategory => subcategory.subcategory_name),
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
                                 const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
@@ -257,7 +260,7 @@
                             title: "Size",
                             data: 'size.size_value',
                             type: 'autocomplete',
-                            source: [],
+                            source: master_sizes.map(size => size.size_value),
                             strict: true,
                             renderer: function(instance, td, row, col, prop, value, cellProperties) {
                                 const departmentCell = document.querySelector(`tr[aria-rowindex="${row + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
