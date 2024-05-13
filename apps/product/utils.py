@@ -240,7 +240,7 @@ def extract_data_from_tag(image_path):
 
 def clean_extracted_data(data, product_image_id):
     valid_keys = [
-        field.name.replace("department", "department_id").replace("brand", "brand_id")
+        field.name.replace("department", "department_id").replace("brand", "brand_id").replace("size", "size_id").replace("color", "color_id")
         for field in Product._meta.get_fields()
     ]
     valid_data = {key: data[key] for key in valid_keys if key in data}
