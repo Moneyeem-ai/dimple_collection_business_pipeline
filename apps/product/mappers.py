@@ -1,4 +1,5 @@
 from apps.product.models import Product
+from apps.department.models import Size, Color
 
 
 def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=True, batch_id=None):
@@ -14,6 +15,10 @@ def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=Tr
         "invoice_number": pt_entry[12],
         "invoice_date": pt_entry[13],
     }
+    if mapped_data["size_id"] == '':
+        mapped_data["size_id"] = Size.objects.get_or_create(size_value="None")
+    if mapped_data["color_id"] == '':
+        mapped_data["color_id"] = Color.objects.get_or_create(color_name="None")
     if without_id:
         mapped_data.pop("id")
     if without_product_id:

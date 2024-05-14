@@ -433,26 +433,29 @@
                 const updateDataButton2 = document.getElementById('updateDataButton');
                 updateDataButton2.addEventListener('click', function () {
                     // Get the data from the Handsontable instance
-                    const updatedData = hot.getData().reduce((acc, row, index) => {
-                        if (row[1] !== null) {
-                            const departmentCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-department-id][role="gridcell"][aria-colindex="4"]`);
-                            const departmentId = departmentCell ? departmentCell.getAttribute('data-department-id') : '';
-                            row[3] = departmentId;
-                            const categoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-category-id][role="gridcell"][aria-colindex="5"]`);
-                            const categoryId = categoryCell ? categoryCell.getAttribute('data-category-id') : '';
-                            row[4] = categoryId; 
-                            const subCategoryCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-subcategory-id][role="gridcell"][aria-colindex="6"]`);
-                            const subCategoryId = subCategoryCell ? subCategoryCell.getAttribute('data-subcategory-id') : '';
-                            row[5] = subCategoryId;
-                            const brandCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-brand-id][role="gridcell"][aria-colindex="7"]`);
-                            const brandId = brandCell ? brandCell.getAttribute('data-brand-id') : '';
-                            row[6] = brandId;
-                            const sizeCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-size-id][role="gridcell"][aria-colindex="8"]`);
-                            const sizeId = sizeCell ? sizeCell.getAttribute('data-size-id') : '';
-                            row[7] = sizeId;
-                            const colorCell = document.querySelector(`tr[aria-rowindex="${index + 2}"] > td[data-color-id][role="gridcell"][aria-colindex="10"]`);
-                            const colorId = colorCell ? colorCell.getAttribute('data-color-id') : '';
-                            row[9] = colorId;
+                    console.log(document.getElementsByClassName("htCore"))
+                    const allData = hot.getData();  // This retrieves the data directly from Handsontable's data model.
+
+                    const updatedData = allData.reduce((acc, row, index) => {
+                        if(row[1]){
+                            const matchedDepartment = all_master_data.find(department => department.department_name === row[3]);
+                            row[3] = matchedDepartment ? matchedDepartment.id : '0'
+                            let categories = all_master_data.find(item => item.id === parseInt(row[3]));
+                            categories = categories ? categories.categories : [];
+                            const matchedCategory = categories.find(category => category.category_name === row[4]);
+                            row[4] = matchedCategory ? matchedCategory.id : '0';
+                            let subcategories = categories.find(item => item.id === parseInt(row[4]));
+                            subcategories = subcategories ? subcategories.subcategories : [];
+                            const matchedSubCategory = subcategories.find(subcategory => subcategory.subcategory_name === row[5]);
+                            row[5] = matchedSubCategory ? matchedSubCategory.id : '0';
+                            const matchedBrand = brands.find(brand => brand.code === row[6]);
+                            row[6] = matchedBrand ? matchedBrand.id : '0';
+                            let sizes = all_master_data.find(item => item.id === parseInt(row[3]));
+                            sizes = sizes ? sizes.sizes : [];
+                            const matchedSize = sizes.find(size => size.size_value === row[7]);
+                            row[7] = matchedSize ? matchedSize.id : '0';
+                            const matchedColor = colors.find(color => color.name === row[9]);
+                            row[9] = matchedColor ? matchedColor.id : '0';
                             acc.push(row);
                         }
                         return acc;

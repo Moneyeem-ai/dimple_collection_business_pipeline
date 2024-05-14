@@ -457,7 +457,7 @@ class PTFileEntryUpdateAPIView(APIView):
                 else:
                     print("eror1", serializer.errors)
                     return Response(
-                        serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                        serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR
                     )
                 if pt_entry_id := serializer.data.get("id"):
                     pt_entry_ids.append(pt_entry_id)
