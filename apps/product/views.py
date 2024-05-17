@@ -552,8 +552,8 @@ class ExportPTFilesView(View):
             "product__department__prefix": "Department Prefix",
             "product__subcategory__prefix": "Subcategory Prefix",
             "product__category__prefix": "Category Prefix",
-            "product__subcategory__subcategory_name": "Subcategory",
-            "product__article_number": "Article Number",
+            "product__subcategory__subcategory_name": "SubCategory",
+            "product__article_number": "ArticleNo",
             "id": "Description",
             "color__color_name": "Color",
             "size__size_value": "Size",
@@ -561,8 +561,8 @@ class ExportPTFilesView(View):
             "product__brand__brand_code": "Brand",
             "product__category__hsn_code": "HSNCode",
             "product__brand__supplier_name": "Supplier",
-            "pur_price": "Pur Price",
-            "mrp": "ItemMRP",
+            "pur_price": "PurPrice",
+            "mrp": "ItemMrp",
             "quantity": "Quantity",
             "invoice_number": "InvoiceNo",
             "invoice_date": "InvoiceDt",
@@ -574,11 +574,11 @@ class ExportPTFilesView(View):
         df["Department Prefix"].fillna("", inplace=True)
         df["Category Prefix"].fillna("", inplace=True)
         df["Subcategory Prefix"].fillna("", inplace=True)
-        df["Article Number"] = (
+        df["ArticleNo"] = (
             df["Department Prefix"].astype(str)
             + df["Category Prefix"].astype(str)
             + df["Subcategory Prefix"].astype(str)
-            + df["Article Number"].astype(str)
+            + df["ArticleNo"].astype(str)
             + df["Brand Suffix"].astype(str)
         )
         df.drop(
@@ -597,7 +597,7 @@ class ExportPTFilesView(View):
         df.insert(10, "Style", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)
-        df.insert(18, "ItemWSP", None)
+        df.insert(18, "ItemWsp", None)
         df.insert(22, "PORowId", None)
         df.insert(23, "PurOrderId", None)
 
