@@ -13,7 +13,6 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django_pandas.io import read_frame
 from django.views.generic import ListView
 from django.db.models import Sum
-
 import pandas as pd
 
 from apps.utils.utils import SideBarSelectedMixin
@@ -158,35 +157,6 @@ class ProductImageView(View):
                 process_image_data.delay(tag_image, product_image_instance.id)
                 print("product_id_after", "done save product")
                 context = {}
-            except Exception as e:
-                print(e)
-                context = {}
-            return JsonResponse({"status": "success", "context": context})
-        except Exception as e:
-            print(e)
-            return JsonResponse({"status": "error", "message": str(e)})
-
-
-class ProductImageUploadView(View):
-    def post(self, request, *args, **kwargs):
-        id = kwargs.get("id")
-        try:
-            image_data = request.body.decode("utf-8").split(",")[1]
-            while len(image_data) % 4 != 0:
-                image_data += "="
-            decoded_image_data = base64.b64decode(image_data)
-            image_name = str(uuid.uuid4())
-            image_file = ContentFile(decoded_image_data, name=f"{image_name}.png")
-            try:
-                product = Product.objects.get(id=id)
-                product.product_image = image_file
-                tag_image = product.tag_image.name.split("/")[1]
-                data = extract_data_from_tag(tag_image)
-                for key, value in data.items():
-                    setattr(product, key, value)
-                product.metadata = data
-                product.save()
-                context = {"product_id": product.id}
             except Exception as e:
                 print(e)
                 context = {}
@@ -535,6 +505,7 @@ class ExportPTFilesView(View):
             "product__article_number",
             "id",
             "color__color_name",
+            "color_code",
             "size__size_value",
             "product__brand__brand_code",
             "product__category__hsn_code",
@@ -555,6 +526,7 @@ class ExportPTFilesView(View):
             "product__subcategory__subcategory_name": "SubCategory",
             "product__article_number": "ArticleNo",
             "id": "Description",
+            "color_code": "ExtDescription",
             "color__color_name": "Color",
             "size__size_value": "Size",
             "product__brand__suffix": "Brand Suffix",
@@ -593,7 +565,6 @@ class ExportPTFilesView(View):
 
         df.insert(4, "CodingType", 3)
         df.insert(5, "UOMName", "pcs")
-        df.insert(7, "ExtDescription", None)
         df.insert(10, "Style", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)
@@ -607,13 +578,22 @@ class ExportPTFilesView(View):
         batch.is_exported = True
         batch.save()
 
+        queryset = PTFileEntry.objects.filter(
+            id__in=batch.ptfile_entry_ids
+        )
+        ptfile_entry = queryset.first()
+        product = ptfile_entry.product
+        brand = product.brand
+        brand_name = brand.brand_name
+        file_name = f'{brand_name}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+
         with open(csv_file_path, "rb") as csv_file:
             response = HttpResponse(
                 csv_file.read(),
                 content_type="text/csv",
             )
             response["Content-Disposition"] = (
-                f'attachment; filename="ptfile_{pd.Timestamp.now().strftime("%Y-%m-%d")}.csv"'
+                f'attachment; filename="{file_name}"'
             )
 
         return response

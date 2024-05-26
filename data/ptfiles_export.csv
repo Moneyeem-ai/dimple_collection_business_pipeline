@@ -1,4 +1,6 @@
-Department,Category,Subcategory,Article Number,CodingType,UOMName,Description,ExtDescription,Color,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,Pur Price,ItemMRP,ItemWSP,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,5,,Black,36,,1111,3456,S1,,,2,2195.00,,2,234,08-05-2024,,
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,6,,L.Grey,36,,1111,3456,S1,,,3,2195.00,,3,345,15-05-2024,,
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,4,,L.Grey,36,,1111,3456,S1,,,1,2195.00,,1,123,07-05-2024,,
+Department,Category,SubCategory,ArticleNo,CodingType,UOMName,Description,Color,ExtDescription,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,PurPrice,ItemMrp,ItemWsp,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
+TROUSER,CHINOS,JEANS,CH4114,3,pcs,663,Black,c33,40,,2222,3456,S2,,,,2195.00,,2,,,,
+TROUSER,CHINOS,JEANS,CH4114,3,pcs,657,Black,c11,50,,2222,3456,S2,,,,2195.00,,2,,,,
+TROUSER,CHINOS,JEANS,CH4114,3,pcs,664,Black,c12,50,,2222,3456,S2,,,,2195.00,,2,,,,
+TROUSER,CHINOS,JEANS,CH4114,3,pcs,666,Black,c22,50,,2222,3456,S2,,,,2195.00,,2,,,,
+TROUSER,CHINOS,JEANS,CH4114,3,pcs,665,Black,c11,36,,2222,3456,S2,,,,2195.00,,2,,,,
