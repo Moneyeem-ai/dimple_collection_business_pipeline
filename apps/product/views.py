@@ -85,6 +85,24 @@ class ProductBarcodeListView(
     paginate_by = 6
     ordering = "-batch_id"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        batch_entries = []
+        for batch in context['batch_list']:
+            entries = PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids)
+            if entries:
+                # Assuming you want the brand name of the first entry's product
+                first_entry = entries.first()
+                product = first_entry.product
+                brand_name = product.brand.brand_name if product.brand else "No Brand"
+            else:
+                brand_name = "No Entries"
+                
+            batch_entries.append({'batch': batch, 'brand_name': brand_name})
+        
+        context['batch_entries'] = batch_entries
+        return context
+
 
 class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
     template_name = "pages/product/product_entry_photo.html"
@@ -470,6 +488,24 @@ class BatchListView(SideBarSelectedMixin, ListView):
     segment = "batch_list"
     paginate_by = 6
     ordering = "-batch_id"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        batch_entries = []
+        for batch in context['batch_list']:
+            entries = PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids)
+            if entries:
+                # Assuming you want the brand name of the first entry's product
+                first_entry = entries.first()
+                product = first_entry.product
+                brand_name = product.brand.brand_name if product.brand else "No Brand"
+            else:
+                brand_name = "No Entries"
+                
+            batch_entries.append({'batch': batch, 'brand_name': brand_name})
+        
+        context['batch_entries'] = batch_entries
+        return context
 
 
 class ExportPTFilesView(View):
