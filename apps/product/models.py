@@ -90,7 +90,7 @@ class PTFileBatch(models.Model):
         now = timezone.now().astimezone(tz)
         return now.strftime("%Y-%m-%d_%H:%M:%S")
 
-    batch_id = models.CharField(max_length=20, default=generate_batch_id)
+    batch_id = models.CharField(max_length=1024, default=generate_batch_id)
     ptfile_entry_ids = ArrayField(models.IntegerField(), default=list)
     is_file_uploaded = models.BooleanField(default=False)
     is_exported = models.BooleanField(default=False)
