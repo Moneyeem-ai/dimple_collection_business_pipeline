@@ -20,4 +20,4 @@ class ProductBarcodeAdmin(admin.ModelAdmin):
 
 @admin.register(PTFileBatch)
 class PTFileBatchAdmin(admin.ModelAdmin):
-    list_display = ['id', 'batch_id', 'ptfile_entry_ids', 'is_file_uploaded', 'is_exported', 'is_image_exported']
+    list_display = ['id', 'batch_id', 'ptfile_entry_ids', 'is_file_uploaded', 'is_exported', 'is_image_exported', 'created_at']
