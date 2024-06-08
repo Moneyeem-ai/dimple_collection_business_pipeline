@@ -83,7 +83,7 @@ class ProductBarcodeListView(
     parent = "product"
     segment = "barcode_list"
     paginate_by = 6
-    ordering = "-batch_id"
+    ordering = "-created_at"
 
 
 class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
@@ -473,7 +473,7 @@ class BatchListView(SideBarSelectedMixin, ListView):
     parent = "product"
     segment = "batch_list"
     paginate_by = 6
-    ordering = "-batch_id"
+    ordering = "-created_at"
 
 
 class ExportPTFilesView(View):
