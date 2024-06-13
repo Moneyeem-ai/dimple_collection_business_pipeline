@@ -13,7 +13,7 @@ class Category(models.Model):
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='categories')
     category_name = models.CharField(max_length=64, blank=True)
     hsn_code = models.CharField(max_length=64, blank=True, null=True)
-    prefix = models.CharField(max_length=64, null=True)
+    prefix = models.CharField(max_length=64, null=True, blank=True)
 
     def __str__(self):
         return f"{self.category_name}({self.department})"
