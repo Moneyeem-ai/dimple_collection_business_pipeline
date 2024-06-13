@@ -496,6 +496,8 @@ class ExportPTFilesView(View):
             "product__category",
             "product__subcategory",
             "product__brand",
+        ).order_by(
+            "product__article_number", "size__size_value"
         )
 
         fields_to_export = [

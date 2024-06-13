@@ -1,5 +1,6 @@
 Department,Category,SubCategory,ArticleNo,CodingType,UOMName,Description,ExtDescription,Color,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,PurPrice,ItemMrp,ItemWsp,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
-TROUSER,CHINOS,JEANS,CHANSMN,3,pcs,667,,L.Grey,40,,1111,3456,S1,,,,2000,,2,,,,
-SHIRT,Full Sleeves,COTTON,FSA 1142/2,3,pcs,581,,L.Grey,42,,3333,123,S3,,,100,2699.0,,1,1123,04-06-2024,,
-SHIRT,Full Sleeves,COTTON,FSA 1142/2,3,pcs,669,,L.Grey,42,,3333,123,S3,,,,2699.0,,1,,05-06-2024,,
-TROUSER,CHINOS,JEANS,CHANSMN,3,pcs,668,,L.Grey,36,,1111,3456,S1,,,111,2000,,2,,,,
+SHIRT,Full Sleeves,COTTON,FSA 1142/2,3,pcs,669,,L.Grey,42,,3333,123,S3,,,100,2699.0,,1,,,,
+SHIRT,Full Sleeves,COTTON,FSA 1142/2,3,pcs,670,,L.Grey,42,,3333,123,S3,,,100,2699.0,,1,,,,
+TROUSER,CHINOS,JEANS,CHANSMN,3,pcs,667,,L.Grey,36,,1111,3456,S1,,,100,2000,,2,,,,
+TROUSER,CHINOS,JEANS,CHANSMN,3,pcs,671,,L.Grey,40,,1111,3456,S1,,,100,2000,,2,,,,
+TROUSER,CHINOS,JEANS,CHANSMN,3,pcs,672,,L.Grey,50,,1111,3456,S1,,,100,2000,,2,,,,
