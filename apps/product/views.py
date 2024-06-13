@@ -179,7 +179,7 @@ class UploadFileView(SideBarSelectedMixin, generic.ListView):
         batch_id = self.kwargs.get("batch_id")
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
-        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).order_by('product__article_number', 'size__size_value')
         if batch.is_file_uploaded:
             queryset = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
         else:
@@ -314,7 +314,7 @@ class PTFileEntryListView(
 
 
 class PTFileEntryAPIView(generics.ListAPIView):
-    queryset = PTFileEntry.objects.filter(status="ENTRY")
+    queryset = PTFileEntry.objects.filter(status="ENTRY").order_by('product__article_number', 'size__size_value')
     serializer_class = PTFileEntrySerializer
 
     def list(self, request, *args, **kwargs):
@@ -348,7 +348,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         print("pt_list_batch_id", batch_id)
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
-        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids)
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).order_by('product__article_number', 'size__size_value')
         serializer = self.get_serializer(ptfile_entries, many=True)
         departments = DepartmentNestedSerializer(
             Department.objects.all(), many=True
@@ -509,7 +509,6 @@ class ExportPTFilesView(View):
             "product__article_number",
             "id",
             "color__color_name",
-            "color_code",
             "size__size_value",
             "product__brand__brand_code",
             "product__category__hsn_code",
@@ -569,6 +568,7 @@ class ExportPTFilesView(View):
 
         df.insert(4, "CodingType", 3)
         df.insert(5, "UOMName", "pcs")
+        df.insert(7, "ExtDescription", None)
         df.insert(10, "Style", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)

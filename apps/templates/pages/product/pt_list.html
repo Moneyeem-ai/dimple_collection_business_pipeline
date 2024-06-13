@@ -311,7 +311,6 @@
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
-                        { title: "Color Code", data: 'color_code' },
                         { title: "MRP", data: 'mrp' },
                     ]
                     extra_columns=[
@@ -349,7 +348,7 @@
                         items: {
                         }
                     },
-                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 130, 150, 150,150,150 ],
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150,150,150 ],
                     colHeaders: true,
                     data: ptfile,
                     columns: column_data,
@@ -634,12 +633,12 @@
             let sumPurPrice = 0;
             data.forEach(function (row) {
                 const quantity = parseInt(row[8], 10);
-                const pur_price = parseFloat(row[12]);
+                const pur_price = parseFloat(row[11]);
                 if (!isNaN(quantity)) {
                     sumQuantity += quantity;
                 }
                 if (!isNaN(pur_price)) {
-                    sumPurPrice += pur_price;
+                    sumPurPrice += pur_price * quantity;
                 }
             });
             let modalText = "Total Quantity is: " + sumQuantity;
