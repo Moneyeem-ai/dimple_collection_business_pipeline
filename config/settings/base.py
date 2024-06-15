@@ -53,7 +53,13 @@ THIRD_PARTY_APPS = [
     "rest_framework",
 ]
 
-LOCAL_APPS = ["apps.user", "apps.product", "apps.department", "apps.customtags"]
+LOCAL_APPS = [
+    "apps.user",
+    "apps.product",
+    "apps.department",
+    "apps.customtags",
+    "apps.procurement",
+]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
