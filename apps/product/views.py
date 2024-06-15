@@ -13,7 +13,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django_pandas.io import read_frame
 from django.views.generic import ListView
 from django.db.models import Sum
-import pandas as pd
+from django.db import transaction
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductImage, ProductBarcode
@@ -27,6 +27,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from openpyxl import load_workbook
 from io import BytesIO
+import pandas as pd
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import (
@@ -365,6 +366,7 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         return Response(result)
 
 
+
 class PTFileEntryUpdateAPIView(APIView):
     def post(self, request):
         try:
@@ -372,94 +374,97 @@ class PTFileEntryUpdateAPIView(APIView):
             pt_file_entries = reques_data.get("data")
             ptstatus = reques_data.get("status")
             batch_id = reques_data.get("id", None)
-            if batch_id:
-                pt_batch = PTFileBatch.objects.get(id=batch_id)
-                existing_entries = PTFileEntry.objects.filter(
-                    status=ptstatus, id__in=pt_batch.ptfile_entry_ids
-                )
-            else:
-                existing_entries = PTFileEntry.objects.filter(status=ptstatus)
-            existing_ids = [entry.id for entry in existing_entries]
-            incoming_ids = [
-                int(entry[0]) if entry[0] else None for entry in pt_file_entries
-            ]
-            ids_to_delete = list(set(existing_ids) - set(incoming_ids))
-            PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
-            pt_entry_ids = []
 
-            for pt_entry in pt_file_entries:
-                entry_id = pt_entry[0]
-                if entry_id:
-                    pt_file_entry = PTFileEntry.objects.get(id=entry_id)
-                    product_data = pt_entry_to_product_mapper(pt_entry)
-                    product = pt_file_entry.product
-                    for key, value in product_data.items():
-                        setattr(product, key, value)
-                    product.save()
-                    pt_entry_data = pt_entry_to_pt_entry_mapper(
-                        pt_entry, batch_id=batch_id
-                    )
-                    print(pt_entry_data)
-                    serializer = PTFileEntryCreateSerializer(
-                        pt_file_entry, data=pt_entry_data, partial=True
+            with transaction.atomic():
+                if batch_id:
+                    pt_batch = PTFileBatch.objects.get(id=batch_id)
+                    existing_entries = PTFileEntry.objects.filter(
+                        status=ptstatus, id__in=pt_batch.ptfile_entry_ids
                     )
                 else:
-                    product_id = pt_entry[1]
-                    product_data = pt_entry_to_product_mapper(
-                        pt_entry, without_images=False, without_metadata=False
-                    )
-                    if product_id is None:
-                        product = get_or_create_product(product_data)
-                    else:
-                        product = Product.objects.get(id=product_id)
+                    existing_entries = PTFileEntry.objects.filter(status=ptstatus)
+                
+                existing_ids = [entry.id for entry in existing_entries]
+                incoming_ids = [
+                    int(entry[0]) if entry[0] else None for entry in pt_file_entries
+                ]
+                ids_to_delete = list(set(existing_ids) - set(incoming_ids))
+                PTFileEntry.objects.filter(id__in=ids_to_delete).delete()
+                pt_entry_ids = []
+
+                for pt_entry in pt_file_entries:
+                    entry_id = pt_entry[0]
+                    if entry_id:
+                        pt_file_entry = PTFileEntry.objects.get(id=entry_id)
+                        product_data = pt_entry_to_product_mapper(pt_entry)
+                        product = pt_file_entry.product
                         for key, value in product_data.items():
                             setattr(product, key, value)
                         product.save()
-                    instance = PTFileEntry.objects.create(product=product)
-                    pt_entry_data = pt_entry_to_pt_entry_mapper(
-                        pt_entry, without_product_id=False, batch_id=batch_id
-                    )
-                    serializer = PTFileEntryCreateSerializer(
-                        instance, data=pt_entry_data, partial=True
-                    )
-                if serializer.is_valid():
-                    serializer.save(status=PTStatus.LIST)
-                else:
-                    print("eror1", serializer.errors)
-                    return Response(
-                        serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                    )
-                if pt_entry_id := serializer.data.get("id"):
-                    pt_entry_ids.append(pt_entry_id)
+                        pt_entry_data = pt_entry_to_pt_entry_mapper(
+                            pt_entry, batch_id=batch_id
+                        )
+                        serializer = PTFileEntryCreateSerializer(
+                            pt_file_entry, data=pt_entry_data, partial=True
+                        )
+                    else:
+                        product_id = pt_entry[1]
+                        product_data = pt_entry_to_product_mapper(
+                            pt_entry, without_images=False, without_metadata=False
+                        )
+                        if product_id is None:
+                            product = get_or_create_product(product_data)
+                        else:
+                            product = Product.objects.get(id=product_id)
+                            for key, value in product_data.items():
+                                setattr(product, key, value)
+                            product.save()
+                        instance = PTFileEntry.objects.create(product=product)
+                        pt_entry_data = pt_entry_to_pt_entry_mapper(
+                            pt_entry, without_product_id=False, batch_id=batch_id
+                        )
+                        serializer = PTFileEntryCreateSerializer(
+                            instance, data=pt_entry_data, partial=True
+                        )
+                    if serializer.is_valid():
+                        serializer.save(status=PTStatus.LIST)
+                    else:
+                        print("error1", serializer.errors)
+                        return Response(
+                            serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                        )
 
-            check_product_is_unique_or_merge(pt_entry_ids)
+                    if pt_entry_id := serializer.data.get("id"):
+                        pt_entry_ids.append(pt_entry_id)
 
-            if ptstatus == PTStatus.ENTRY:
-                if len(pt_entry_ids) > 0 and batch_id is None:
+                check_product_is_unique_or_merge(pt_entry_ids)
+
+                if ptstatus == PTStatus.ENTRY:
+                    if len(pt_entry_ids) > 0 and batch_id is None:
+                        try:
+                            ptb = PTFileBatch.objects.create(ptfile_entry_ids=pt_entry_ids)
+                            if ptb.ptfile_entry_ids != []:
+                                pt = PTFileEntry.objects.get(id=ptb.ptfile_entry_ids[0])
+                                ptb.batch_id = f"{pt.product.brand.brand_name}_{ptb.batch_id}"
+                                ptb.save()
+                        except Exception as e:
+                            print("error2", e)
+                            return Response({"error": str(e)})
+                elif batch_id is not None:
                     try:
-                        ptb = PTFileBatch.objects.create(ptfile_entry_ids=pt_entry_ids)
-                        if ptb.ptfile_entry_ids != []:
-                            pt = PTFileEntry.objects.get(id=ptb.ptfile_entry_ids[0])
-                            ptb.batch_id = f"{pt.product.brand.brand_name}_{ptb.batch_id}"
-                            ptb.save()
+                        pt_batch = PTFileBatch.objects.get(id=batch_id)
+                        pt_batch.ptfile_entry_ids = pt_entry_ids
+                        pt_batch.save()
                     except Exception as e:
-                        print("eror2", e)
+                        print("error3", e)
                         return Response({"error": str(e)})
-            elif batch_id is not None:
-                try:
-                    pt_batch = PTFileBatch.objects.get(id=batch_id)
-                    pt_batch.ptfile_entry_ids = pt_entry_ids
-                    pt_batch.save()
-                except Exception as e:
-                    print("eror3", e)
-                    return Response({"error": str(e)})
             return Response(
                 {"message": "Data updated successfully", "success": True},
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
-            print("eror4", e)
+            print("error4", e)
             return Response(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
