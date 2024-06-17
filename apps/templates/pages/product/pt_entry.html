@@ -186,7 +186,7 @@
                           "remove_row": {}
                         }
                     },
-                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 150, 150 ],
                     colHeaders: true,
                     data: ptfile,
                     columns: [
@@ -275,11 +275,9 @@
 
                                     let shouldBeYellow = false;
                                     if (!isNaN(sizeValue)) {
-                                        if (sizeValue > 44) {
+                                        if (sizeValue > 44 || ((departmentValue === '▼\nJEANS' || departmentValue === '▼\nTROUSER') && sizeValue > 38)) {
                                             shouldBeYellow = true;
-                                        } else if ((departmentValue === 'JEANS' || departmentValue === 'TROUSER') && sizeValue > 38) {
-                                            shouldBeYellow = true;
-                                        }
+                                        } 
                                     }
                                     if (shouldBeYellow) {
                                         td.style.backgroundColor = 'yellow';
@@ -303,7 +301,6 @@
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
-                        { title: "Color Code", data: 'color_code' },
                         { title: "MRP", data: 'mrp' },
                         {
                           title: "Product Image",
@@ -347,11 +344,9 @@
                                     const departmentValue = prop === 'product.department.department_name' ? newValue : hot.getDataAtRowProp(row, 'product.department.department_name');
                                     let shouldBeYellow = false;
                                     if (!isNaN(sizeValue)) {
-                                        if (sizeValue > 44) {
+                                        if (sizeValue > 44 || ((departmentValue === 'JEANS' || departmentValue === 'TROUSER') && sizeValue > 38)) {
                                             shouldBeYellow = true;
-                                        } else if ((departmentValue === 'JEANS' || departmentValue === 'TROUSER') && sizeValue > 38) {
-                                            shouldBeYellow = true;
-                                        }
+                                        } 
                                     }
                                     const sizeColIndex = hot.propToCol('size.size_value');
                                     const cell = hot.getCell(row, sizeColIndex);

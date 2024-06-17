@@ -1,6 +1,10 @@
-Department,Category,SubCategory,ArticleNo,CodingType,UOMName,Description,Color,ExtDescription,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,PurPrice,ItemMrp,ItemWsp,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,663,Black,c33,40,,2222,3456,S2,,,,2195.00,,2,,,,
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,657,Black,c11,50,,2222,3456,S2,,,,2195.00,,2,,,,
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,664,Black,c12,50,,2222,3456,S2,,,,2195.00,,2,,,,
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,666,Black,c22,50,,2222,3456,S2,,,,2195.00,,2,,,,
-TROUSER,CHINOS,JEANS,CH4114,3,pcs,665,Black,c11,36,,2222,3456,S2,,,,2195.00,,2,,,,
+Department,Category,SubCategory,ArticleNo,CodingType,UOMName,Description,ExtDescription,Color,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,PurPrice,ItemMrp,ItemWsp,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
+JEANS,J1,B1,j1234,3,pcs,711,,White,34,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,705,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,706,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,707,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,708,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,709,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,712,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,704,,White,40,,3333,12342,S3,,,,,,0,,,,
+JEANS,J1,B1,j1234,3,pcs,710,,White,50,,3333,12342,S3,,,,,,0,,,,
