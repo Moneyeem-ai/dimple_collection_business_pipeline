@@ -536,7 +536,6 @@ class ExportPTFilesView(View):
             "product__subcategory__subcategory_name": "SubCategory",
             "product__article_number": "ArticleNo",
             "id": "Description",
-            "color_code": "ExtDescription",
             "color__color_name": "Color",
             "size__size_value": "Size",
             "product__brand__suffix": "Brand Suffix",
