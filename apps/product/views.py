@@ -125,7 +125,7 @@ class ProductImageView(View):
     def post(self, request, *args, **kwargs):
         try:
             data = request.POST
-            image_data = data.get("image")
+            image_data = data.get("image").split(",")[1]
             article_data = data.get("article_number")
             color_data = data.get("color")
             print(len(image_data))
