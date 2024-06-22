@@ -239,15 +239,19 @@ def extract_data_from_tag(image_path):
 
 
 def clean_extracted_data(data, product_image_id):
+    product_images = ProductImage.objects.get(id=product_image_id)
     valid_keys = [
-        field.name.replace("department", "department_id").replace("brand", "brand_id").replace("size", "size_id").replace("color", "color_id")
+        field.name.replace("department", "department_id").replace("brand", "brand_id").replace("size", "size_id")
         for field in Product._meta.get_fields()
     ]
     valid_data = {key: data[key] for key in valid_keys if key in data}
+    if product_images.metadata:
+        if color:=product_images.metadata.get("color"):
+            data["color_id"] = Color.objects.filter(color_name__icontains=color).first().id
     valid_data.update(
         {
             "metadata": data,
-            "product_images": ProductImage.objects.get(id=product_image_id),
+            "product_images": product_images,
         }
     )
     department = Department.objects.get_or_create(department_name="None")[0]
@@ -262,6 +266,10 @@ def clean_extracted_data(data, product_image_id):
     valid_data["subcategory"] = SubCategory.objects.get_or_create(
         subcategory_name="None", category=valid_data["category"]
     )[0]
+    print(valid_data)
+    if product_images.metadata:
+        if artcile_number:=product_images.metadata.get("article_number"):
+            valid_data["article_number"] = artcile_number.upper()
     return valid_data
 
 

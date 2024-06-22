@@ -47,7 +47,7 @@ from apps.product.serializers import (
     SubCategorySerializer,
     CategorySerializer,
     ColorSerializer,
-    SizeSerializer
+    SizeSerializer,
 )
 from apps.product.forms import ProductForm
 from apps.product.utils import (
@@ -97,6 +97,7 @@ class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.Templat
         data = self.request.GET
         context = super().get_context_data()
         context["photo"] = "Cloth" if data.get("page") == "1" else "Tag"
+        context["show_fields"] = data.get("page") == "1"
         if data.get("page") == "3":
             id = data.get("id")
             product = Product.objects.get(id=id)
@@ -123,13 +124,21 @@ class ProductEntryView(SideBarSelectedMixin, LoginRequiredMixin, generic.Templat
 class ProductImageView(View):
     def post(self, request, *args, **kwargs):
         try:
-            image_data = request.body.decode("utf-8").split(",")[1]
+            data = request.POST
+            image_data = data.get("image")
+            article_data = data.get("article_number")
+            color_data = data.get("color")
+            print(len(image_data))
             while len(image_data) % 4 != 0:
                 image_data += "="
+            print(image_data)
             decoded_image_data = base64.b64decode(image_data)
             image_name = str(uuid.uuid4())
             image_file = ContentFile(decoded_image_data, name=f"{image_name}.png")
-            product_instance = ProductImage.objects.create(product_image=image_file)
+            product_instance = ProductImage.objects.create(
+                product_image=image_file,
+                metadata={"article_number": article_data, "color": color_data},
+            )
             context = {"product_id": product_instance.id}
             print("product_id", product_instance.id)
             return JsonResponse({"status": "success", "context": context})
@@ -180,7 +189,9 @@ class UploadFileView(SideBarSelectedMixin, generic.ListView):
         batch_id = self.kwargs.get("batch_id")
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
-        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).order_by('product__article_number', 'size__size_value')
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).order_by(
+            "product__article_number", "size__size_value"
+        )
         if batch.is_file_uploaded:
             queryset = ProductBarcode.objects.filter(pt_entry__in=ptfile_entries)
         else:
@@ -315,7 +326,9 @@ class PTFileEntryListView(
 
 
 class PTFileEntryAPIView(generics.ListAPIView):
-    queryset = PTFileEntry.objects.filter(status="ENTRY").order_by('product__article_number', 'size__size_value')
+    queryset = PTFileEntry.objects.filter(status="ENTRY").order_by(
+        "product__article_number", "size__size_value"
+    )
     serializer_class = PTFileEntrySerializer
 
     def list(self, request, *args, **kwargs):
@@ -349,7 +362,9 @@ class PTFileEntryListAPIView(generics.ListAPIView):
         print("pt_list_batch_id", batch_id)
         batch = PTFileBatch.objects.get(id=batch_id)
         ptfile_entry_ids = batch.ptfile_entry_ids
-        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).order_by('product__article_number', 'size__size_value')
+        ptfile_entries = PTFileEntry.objects.filter(id__in=ptfile_entry_ids).order_by(
+            "product__article_number", "size__size_value"
+        )
         serializer = self.get_serializer(ptfile_entries, many=True)
         departments = DepartmentNestedSerializer(
             Department.objects.all(), many=True
@@ -364,7 +379,6 @@ class PTFileEntryListAPIView(generics.ListAPIView):
             "colors": colors,
         }
         return Response(result)
-
 
 
 class PTFileEntryUpdateAPIView(APIView):
@@ -383,7 +397,7 @@ class PTFileEntryUpdateAPIView(APIView):
                     )
                 else:
                     existing_entries = PTFileEntry.objects.filter(status=ptstatus)
-                
+
                 existing_ids = [entry.id for entry in existing_entries]
                 incoming_ids = [
                     int(entry[0]) if entry[0] else None for entry in pt_file_entries
@@ -431,7 +445,8 @@ class PTFileEntryUpdateAPIView(APIView):
                     else:
                         print("error1", serializer.errors)
                         return Response(
-                            serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                            serializer.errors,
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                         )
 
                     if pt_entry_id := serializer.data.get("id"):
@@ -442,10 +457,14 @@ class PTFileEntryUpdateAPIView(APIView):
                 if ptstatus == PTStatus.ENTRY:
                     if len(pt_entry_ids) > 0 and batch_id is None:
                         try:
-                            ptb = PTFileBatch.objects.create(ptfile_entry_ids=pt_entry_ids)
+                            ptb = PTFileBatch.objects.create(
+                                ptfile_entry_ids=pt_entry_ids
+                            )
                             if ptb.ptfile_entry_ids != []:
                                 pt = PTFileEntry.objects.get(id=ptb.ptfile_entry_ids[0])
-                                ptb.batch_id = f"{pt.product.brand.brand_name}_{ptb.batch_id}"
+                                ptb.batch_id = (
+                                    f"{pt.product.brand.brand_name}_{ptb.batch_id}"
+                                )
                                 ptb.save()
                         except Exception as e:
                             print("error2", e)
@@ -493,16 +512,16 @@ class ExportPTFilesView(View):
             return HttpResponse("Batch not found", status=404)
 
         # Filter PTFileEntries based on the ptfile_entry_ids field of the PTFileBatch.
-        queryset = PTFileEntry.objects.filter(
-            id__in=batch.ptfile_entry_ids
-        ).select_related(
-            "product",
-            "product__department",
-            "product__category",
-            "product__subcategory",
-            "product__brand",
-        ).order_by(
-            "product__article_number", "size__size_value"
+        queryset = (
+            PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids)
+            .select_related(
+                "product",
+                "product__department",
+                "product__category",
+                "product__subcategory",
+                "product__brand",
+            )
+            .order_by("product__article_number", "size__size_value")
         )
 
         fields_to_export = [
@@ -588,23 +607,21 @@ class ExportPTFilesView(View):
         batch.is_exported = True
         batch.save()
 
-        queryset = PTFileEntry.objects.filter(
-            id__in=batch.ptfile_entry_ids
-        )
+        queryset = PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids)
         ptfile_entry = queryset.first()
         product = ptfile_entry.product
         brand = product.brand
         brand_name = brand.brand_name
-        file_name = f'{brand_name}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        file_name = (
+            f'{brand_name}_{pd.Timestamp.now().strftime("%Y-%m-%d_%H-%M-%S")}.csv'
+        )
 
         with open(csv_file_path, "rb") as csv_file:
             response = HttpResponse(
                 csv_file.read(),
                 content_type="text/csv",
             )
-            response["Content-Disposition"] = (
-                f'attachment; filename="{file_name}"'
-            )
+            response["Content-Disposition"] = f'attachment; filename="{file_name}"'
 
         return response
 
