@@ -1,10 +1,2 @@
-Department,Category,SubCategory,ArticleNo,CodingType,UOMName,Description,ExtDescription,Color,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,PurPrice,ItemMrp,ItemWsp,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
-JEANS,J1,B1,j1234,3,pcs,711,,White,34,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,705,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,706,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,707,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,708,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,709,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,712,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,704,,White,40,,3333,12342,S3,,,,,,0,,,,
-JEANS,J1,B1,j1234,3,pcs,710,,White,50,,3333,12342,S3,,,,,,0,,,,
+Department,Category,SubCategory,ArticleNo,CodingType,UOMName,Description,Color,ExtDescription,Size,Style,Brand,HSNCode,Supplier,ItemCode,ItemId,PurPrice,ItemMrp,ItemWsp,Quantity,InvoiceNo,InvoiceDt,PORowId,PurOrderId
+JEANS,J1,B1,j1234,3,pcs,712,White,100,40,,3333,12342,S3,,,1500,2,,2,1234,04-06-2024,,
