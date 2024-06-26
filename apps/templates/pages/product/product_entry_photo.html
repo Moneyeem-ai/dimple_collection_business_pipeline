@@ -28,6 +28,12 @@
         <div class="container-fluid">
           <div class="row">
             <div class="col-lg-6">
+              {% if show_fields %}
+              <div class="col-lg-12">
+                <!-- Inside your HTML -->
+                <input class="form-control mb-3" id="articleval" type="text" placeholder="Enter Article No.">
+              </div>
+              {% endif %}
               <div class="card">
                 <div class="card-header border-0">
                   <div class="d-flex justify-content-between">
@@ -52,6 +58,12 @@
             </div>
             <!-- /.col-md-6 -->
             <div class="col-lg-6">
+              {% if show_fields %}
+              <div class="col-lg-12">
+                <!-- Inside your HTML -->
+                <input class="form-control mb-3" id="colorval" type="text" placeholder="Enter Color">
+              </div>
+              {% endif %}
               <div class="card">
                 <div class="card-header border-0">
                   <div class="d-flex justify-content-between">
@@ -342,7 +354,6 @@ function hideOverlay() {
           .then(response => response.json())
           .then(response_data => {
             hideOverlay();
-            console.log(response_data.context);
             if (response_data.status == "success") {
               window.location.href = `/product/entry/?page=1`;
             } else {
@@ -355,13 +366,15 @@ function hideOverlay() {
           });
         }
         else{
+          var articleval = document.getElementById("articleval").value;
+          var colorval = document.getElementById("colorval").value;
+          formData.append("article_number", articleval);
+          formData.append("color", colorval);
           fetch('/product/upload_product_image/', {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
                 'X-CSRFToken': cstfToken
               },
-              credentials: 'include',
               body: formData,
           })
           .then(response => response.json())

@@ -18,6 +18,7 @@ class ProductImage(models.Model):
         upload_to="product_images/", null=True, blank=True
     )
     tag_image = models.ImageField(upload_to="tag_images/", null=True, blank=True)
+    metadata = models.JSONField(null=True, blank=True)
 
 
 class Product(models.Model):
@@ -78,7 +79,6 @@ class PTFileEntry(models.Model):
             metadata = getattr(self.product, "metadata", {})
             self.size = Size.objects.filter(id=metadata.get("size_id")).first()
             self.quantity = metadata.get("quantity", 0)
-            color_name = metadata.get("color", None)
             self.color = Color.objects.filter(id=metadata.get("color_id")).first()
             self.mrp = metadata.get("mrp", 0)
         return super().save(*args, **kwargs)

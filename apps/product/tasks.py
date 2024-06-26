@@ -20,7 +20,9 @@ def process_image_data(image_data, product_image_id):
     # Task to process image data
     try:
         data = extract_data_from_tag(image_data)
+        print(data)
         valid_data = clean_extracted_data(data, product_image_id)
+        print(valid_data)
         product = get_or_create_product(valid_data)
         PTFileEntry.objects.create(product=product)
         logger.info("Product saved successfully.")
