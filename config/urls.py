@@ -10,6 +10,7 @@ urlpatterns = [
     path('product/', include('apps.product.urls')),
     path('department/', include('apps.department.urls')),
     path('user/', include('apps.user.urls')),
+    path('po/', include('apps.procurement.urls')),
     path('', RedirectView.as_view(url=reverse_lazy('user:login'))),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

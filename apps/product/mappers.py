@@ -9,11 +9,12 @@ def pt_entry_to_pt_entry_mapper(pt_entry, without_id=True, without_product_id=Tr
         "size_id": pt_entry[7],
         "quantity": pt_entry[8],
         "color_id": pt_entry[9],
-        "mrp": pt_entry[10],
-        "pur_price": None if batch_id is None else pt_entry[11],
+        "color_code": pt_entry[10],
+        "mrp": pt_entry[11],
+        "pur_price": None if batch_id is None else pt_entry[12],
         # "suffix": pt_entry[12],
-        "invoice_number": pt_entry[12],
-        "invoice_date": pt_entry[13],
+        "invoice_number": pt_entry[13],
+        "invoice_date": pt_entry[14],
     }
     if mapped_data["size_id"] == '':
         mapped_data["size_id"] = Size.objects.get_or_create(size_value="None")

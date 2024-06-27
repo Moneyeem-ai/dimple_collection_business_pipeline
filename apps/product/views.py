@@ -535,6 +535,7 @@ class ExportPTFilesView(View):
             "product__article_number",
             "id",
             "color__color_name",
+            "color_code",   
             "size__size_value",
             "product__brand__brand_code",
             "product__category__hsn_code",
@@ -555,6 +556,7 @@ class ExportPTFilesView(View):
             "product__subcategory__subcategory_name": "SubCategory",
             "product__article_number": "ArticleNo",
             "id": "Description",
+            "color_code": "ExtDescription",
             "color__color_name": "Color",
             "size__size_value": "Size",
             "product__brand__suffix": "Brand Suffix",
@@ -593,7 +595,6 @@ class ExportPTFilesView(View):
 
         df.insert(4, "CodingType", 3)
         df.insert(5, "UOMName", "pcs")
-        df.insert(7, "ExtDescription", None)
         df.insert(10, "Style", None)
         df.insert(14, "ItemCode", None)
         df.insert(15, "ItemId", None)

@@ -186,7 +186,7 @@
                           "remove_row": {}
                         }
                     },
-                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 150, 150 ],
+                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
                     colHeaders: true,
                     data: ptfile,
                     columns: [
@@ -301,6 +301,7 @@
                                 Handsontable.renderers.AutocompleteRenderer.apply(this, arguments);
                             }
                         },
+                        { title: "Color Code", data: 'color_code' },
                         { title: "MRP", data: 'mrp' },
                         {
                           title: "Product Image",

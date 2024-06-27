@@ -64,6 +64,7 @@ class PTFileEntry(models.Model):
     color = models.ForeignKey(
         Color, max_length=64, null=True, blank=True, on_delete=models.CASCADE
     )
+    color_code = models.CharField(max_length=64, null=True, blank=True)
     pur_price = models.CharField(max_length=128, null=True, blank=True)
     mrp = models.CharField(max_length=128, null=True, blank=True, default=0)
     invoice_number = models.CharField(max_length=128, null=True, blank=True)
