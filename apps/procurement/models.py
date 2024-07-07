@@ -6,17 +6,17 @@ from apps.department.models import Brand
 from apps.product.models import Product, PTFileEntry
 
 
-class ProcurmentStatus(models.TextChoices):
+class ProcurementStatus(models.TextChoices):
     ONGOING = "ongoing", gtl("On Going")
     PAUSE = "pause", gtl("Pause")
     DONE = "done", gtl("Done")
 
 
-class ProcurmentOrder(models.Model):
+class ProcurementOrder(models.Model):
     status = models.CharField(
         max_length=16,
-        choices=ProcurmentStatus.choices,
-        default=ProcurmentStatus.ONGOING,
+        choices=ProcurementStatus.choices,
+        default=ProcurementStatus.ONGOING,
     )
     brand = models.ForeignKey(Brand, null=True, blank=True, default=None, on_delete=models.CASCADE)
     intent_number = models.CharField(max_length=512, default=None, null=True)
@@ -27,9 +27,9 @@ class ProcurmentOrder(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
 
-class ProcurmentItem(models.Model):
+class ProcurementItem(models.Model):
     order = models.ForeignKey(
-        ProcurmentOrder, related_name="procurment_order", on_delete=models.CASCADE
+        ProcurementOrder, related_name="procurement_order", on_delete=models.CASCADE
     )
     color = models.CharField(max_length=512, default=None, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

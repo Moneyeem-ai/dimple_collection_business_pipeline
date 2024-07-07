@@ -1,39 +1,38 @@
 {% load i18n static customtags %}
 
 <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-    <!-- Add icons to the links using the .nav-icon class
-           with font-awesome or any other icon font library -->
+    <!-- Add icons to the links using the .nav-icon class with font-awesome or any other icon font library -->
     {% admin_get_menu as app_list %}
     {% if app_list %}
     {% for app in app_list %}
     {% if app.has_perms and not app.pinned %}
     <li class="nav-item {% if 'dashboard' in parent %} menu-open {% endif %}">
-      <a class="nav-link {% if app_label != app.label and app.url not in request.path|urlencode  %} collapsed{% endif %}"
+        <a class="nav-link {% if app_label != app.label and app.url not in request.path|urlencode %} collapsed{% endif %}"
         data-bs-toggle="collapse" data-bs-target="#submenu-{{ app.app_label }}" href="{{ app.url }}">
         <i class="nav-icon {{ app.icon }}"></i>
         <p>
-          {{ app.label|slice:10 }}{% if app.label|length > 10 %}..{% endif %}
-          <i class="right fas fa-angle-left"></i>
+        {{ app.label|slice:10 }}{% if app.label|length > 10 %}..{% endif %}
+        <i class="right fas fa-angle-left"></i>
         </p>
-      </a>
+        </a>
 
-      {% if app.models %}
-      <ul class="nav nav-treeview">
+        {% if app.models %}
+        <ul class="nav nav-treeview">
         {% for model in app.models %}
         {% if model.url %}
         <li class="nav-item">
-          <a class="nav-link {% if 'bootstrap-tables' in segment or model.url in request.path|urlencode %} active {% endif %}"
+            <a class="nav-link {% if 'bootstrap-tables' in segment or model.url in request.path|urlencode %} active {% endif %}"
             href="{{ model.url }}">
             <i class="far fa-circle nav-icon"></i>
             <p>{{ model.label }}</p>
-          </a>
+            </a>
         </li>
         {% else %}
         <li class="nav-item">{{ model.label }}</li>
         {% endif %}
         {% endfor %}
-      </ul>
-      {% endif %}
+        </ul>
+        {% endif %}
     </li>
     {% endif %}
     {% endfor %}
@@ -41,70 +40,90 @@
 
     {% if request.user.is_authenticated %}
     <li class="nav-item {% if 'product' in parent %} menu-open {% endif %}">
-      <a href="#" class="nav-link {% if 'product' in parent %} active {% endif %}">
+        <a href="#" class="nav-link {% if 'product' in parent %} active {% endif %}">
         <i class="nav-icon fas fa-th"></i>
         <p>
-          Product
-          <i class="fas fa-angle-left right"></i>
+            Product
+            <i class="fas fa-angle-left right"></i>
         </p>
-      </a>
-      <ul class="nav nav-treeview">
-        <li class="nav-item">
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
             <a href="{% url 'product:product_list' %}" class="nav-link {% if 'product_list' in segment %} active {% endif %}">
-              <i class="far fa-plus-square nav-icon"></i>
-              <p>Product List & Entry</p>
+                <i class="far fa-plus-square nav-icon"></i>
+                <p>Product List & Entry</p>
             </a>
-          </li>
-          <li class="nav-item">
+            </li>
+            <li class="nav-item">
             <a href="{% url 'product:ptfile_entry' %}" class="nav-link {% if 'ptfile_entry' in segment %} active {% endif %}">
-              <i class="far fa-plus-square nav-icon"></i>
-              <p>PTFile Entry</p>
+                <i class="far fa-plus-square nav-icon"></i>
+                <p>PTFile Entry</p>
             </a>
-          </li>
-          <li class="nav-item">
+            </li>
+            <li class="nav-item">
             <a href="{% url 'product:batch_list' %}" class="nav-link {% if 'batch_list' in segment %} active {% endif %}">
-              <i class="far fa-plus-square nav-icon"></i>
-              <p>PTFile List</p>
+                <i class="far fa-plus-square nav-icon"></i>
+                <p>PTFile List</p>
             </a>
-          </li>
-          {% if request.user.user_type != 'FT' %}
-          <li class="nav-item">
+            </li>
+            {% if request.user.user_type != 'FT' %}
+            <li class="nav-item">
             <a href="{% url 'product:barcode_list' %}" class="nav-link {% if 'barcode_list' in segment %} active {% endif %}">
-              <i class="fas fa-table nav-icon"></i>
-              <p>Barcode List</p>
+                <i class="fas fa-table nav-icon"></i>
+                <p>Barcode List</p>
             </a>
-          </li>
-          {% endif %}
-      </ul>
+            </li>
+            {% endif %}
+        </ul>
     </li>
+
+    <!-- Procurement Order Section -->
+    <li class="nav-item {% if 'procurement' in parent %} menu-open {% endif %}">
+        <a href="#" class="nav-link {% if 'procurement' in parent %} active {% endif %}">
+        <i class="nav-icon fas fa-clipboard-list"></i>
+        <p>
+            Procurement Order
+            <i class="fas fa-angle-left right"></i>
+        </p>
+        </a>
+        <ul class="nav nav-treeview">
+            <li class="nav-item">
+            <a href="{% url 'procurement:procurement_order_list' %}" class="nav-link {% if 'procurement_order_list' in segment %} active {% endif %}">
+                <i class="far fa-list-alt nav-icon"></i>
+                <p>Procurement Order List</p>
+            </a>
+            </li>
+        </ul>
+    </li>
+
     {% if request.user.user_type != 'FT' and request.user.user_type != 'BT'%}
     <li class="nav-item">
-      <a href="{% url 'user:register' %}" class="nav-link">
+        <a href="{% url 'user:register' %}" class="nav-link">
         <i class="fa fa-user-plus nav-icon"></i>
         <p>Register</p>
-      </a>
+        </a>
     </li>
     {% endif %}
     {% endif %}
     {% if request.user.is_authenticated %}
     <li class="nav-item">
-      <a href="{% url 'user:logout' %}" class="nav-link">
+        <a href="{% url 'user:logout' %}" class="nav-link">
         <i class="fa fa-sign-out-alt nav-icon"></i>
         <p>Logout</p>
-      </a>
+        </a>
     </li>
     {% else %}
     <li class="nav-item">
-      <a href="{% url 'user:login' %}" class="nav-link">
+        <a href="{% url 'user:login' %}" class="nav-link">
         <i class="fa fa-sign-in-alt nav-icon"></i>
         <p>Login</p>
-      </a>
+        </a>
     </li>
     <li class="nav-item">
-      <a href="{% url 'user:register' %}" class="nav-link">
+        <a href="{% url 'user:register' %}" class="nav-link">
         <i class="fa fa-user-plus nav-icon"></i>
         <p>Register</p>
-      </a>
+        </a>
     </li>        
     {% endif %}        
-  </ul>
+</ul>

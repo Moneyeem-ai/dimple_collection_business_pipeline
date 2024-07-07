@@ -1,12 +1,12 @@
 from django.urls import path
 
-from .views import ProcurmentOrderCreateView, ProcurmentOrderListView
+from .views import ProcurementOrderCreateView, ProcurementOrderListView
 
 
 app_name = 'procurement'
 
 
 urlpatterns = [
-    path('create/', ProcurmentOrderCreateView.as_view(), name='create_procurment_order'),
-    path('list/', ProcurmentOrderListView.as_view(), name='procurment_order_list'),
+    path('create/', ProcurementOrderCreateView.as_view(), name='create_procurement_order'),
+    path('list/', ProcurementOrderListView.as_view(), name='procurement_order_list'),
 ]

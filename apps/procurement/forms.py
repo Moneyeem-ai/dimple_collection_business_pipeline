@@ -1,8 +1,8 @@
 from django import forms
-from .models import ProcurmentOrder
+from .models import ProcurementOrder
 
 
-class ProcurmentOrderForm(forms.ModelForm):
+class ProcurementOrderForm(forms.ModelForm):
     class Meta:
-        model = ProcurmentOrder
+        model = ProcurementOrder
         fields = "__all__"
