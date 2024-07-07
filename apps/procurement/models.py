@@ -18,6 +18,11 @@ class ProcurmentOrder(models.Model):
         choices=ProcurmentStatus.choices,
         default=ProcurmentStatus.ONGOING,
     )
+    brand = models.ForeignKey(Brand, null=True, blank=True, default=None, on_delete=models.CASCADE)
+    intent_number = models.CharField(max_length=512, default=None, null=True)
+    terms_of_shipment = models.CharField(
+        max_length=1024, default="Please Send All Good As soon As Possible.", null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -26,9 +31,9 @@ class ProcurmentItem(models.Model):
     order = models.ForeignKey(
         ProcurmentOrder, related_name="procurment_order", on_delete=models.CASCADE
     )
-    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
-    quantity = models.IntegerField(default=0)
+    color = models.CharField(max_length=512, default=None, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity_and_size = models.JSONField(default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
