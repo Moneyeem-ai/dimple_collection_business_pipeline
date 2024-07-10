@@ -93,6 +93,12 @@
                 <p>Procurement Order List</p>
             </a>
             </li>
+            <li class="nav-item">
+                <a href="{% url 'procurement:create_procurement_order' %}" class="nav-link {% if 'create_procurement_order' in segment %} active {% endif %}">
+                    <i class="far fa-list-alt nav-icon"></i>
+                    <p>Create PO</p>
+                </a>
+                </li>
         </ul>
     </li>
 
