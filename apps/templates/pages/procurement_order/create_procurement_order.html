@@ -1,163 +1,197 @@
-{% extends 'layouts/base.html' %}
-{% load static %}
-
-{% block title %}Procurement Order{% endblock title %}
-{% block extrastyle %}
-<link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
-<link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+{% extends 'layouts/base.html' %} {% load static %} {% block title %}Procurement
+Order{% endblock title %} {% block extrastyle %}
+<link
+  rel="stylesheet"
+  href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}"
+/>
+<link
+  rel="stylesheet"
+  href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}"
+/>
 <style>
-    .logo {
-        font-size: 2rem;
-        font-weight: bold;
-    }
-    .company-info, .vendor-info, .terms-of-shipment, .order-items, .terms-and-conditions, .actions {
-        margin-bottom: 2rem;
-    }
-    .order-details table, .order-items table {
-        width: 100%;
-    }
-    .order-details td, .order-items td {
-        padding: .5rem;
-    }
-    .header, .footer {
-        text-align: center;
-    }
-    .company-logo img {
-        max-width: 100%;
-    }
-    .add-item-form .form-row > div {
-        padding: 0 5px;
-    }
-    .actions {
-        text-align: right;
-    }
+  .logo {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  .company-info,
+  .vendor-info,
+  .terms-of-shipment,
+  .order-items,
+  .terms-and-conditions,
+  .actions {
+    margin-bottom: 2rem;
+  }
+  .order-details table,
+  .order-items table {
+    width: 100%;
+  }
+  .order-details td,
+  .order-items td {
+    padding: 0.5rem;
+  }
+  .header,
+  .footer {
+    text-align: center;
+  }
+  .company-logo img {
+    max-width: 100%;
+  }
+  .add-item-form .form-row > div {
+    padding: 0 5px;
+  }
+  .actions {
+    text-align: right;
+  }
 </style>
-{% endblock extrastyle %}
-{% block content %}
+{% endblock extrastyle %} {% block content %}
 <div class="container">
-    <header class="header mb-4">
-        <h1 class="logo">Dimple Collection <small>(Procurement System)</small></h1>
-    </header>
+  <header class="header mb-4">
+    <h1 class="logo">Dimple Collection <small>(Procurement System)</small></h1>
+  </header>
 
-    <section class="company-info row mb-4">
-        <div class="company-logo col-md-3">
-            
+  <section class="company-info row mb-4">
+    <div class="company-logo col-md-3"></div>
+    <div class="company-details col-md-6">
+      <h2>DIMPLE COLLECTION</h2>
+      <p>E-21, Kamla Nagar</p>
+      <p>Agra, (UP) - 282005</p>
+      <p>Phone: +91 7060006904</p>
+      <p>Email: dimplecollectionretail@gmail.com</p>
+      <p>
+        Website:
+        <a href="https://dimplecollection.com">https://dimplecollection.com</a>
+      </p>
+    </div>
+    <div class="order-details col-md-3">
+      <table class="table table-borderless">
+        <tr>
+          <td>Date</td>
+          <td>8 July 2024</td>
+        </tr>
+        <tr>
+          <td>PO#</td>
+          <td>DC/01IFK158/0142</td>
+        </tr>
+        <tr>
+          <td>Due Date</td>
+          <td>08 July 2024</td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <section class="vendor-info mb-4">
+    <h3>VENDOR</h3>
+    <p>UMA ENTERPRISE</p>
+    <p>[STRIDE]</p>
+    <p>Jogeshwari (E), Mumbai-400060</p>
+  </section>
+
+  <section class="terms-of-shipment mb-4">
+    <h3>TERMS OF SHIPMENT</h3>
+    <p>Please send all goods as soon as possible.</p>
+  </section>
+
+  <section class="order-items mb-4">
+    <table class="table table-bordered" id="order-items-table">
+      <thead>
+        <tr>
+          <th colspan="4">INDENT NO.</th>
+          <th colspan="4">TERMS OF SHIPMENT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="4"></td>
+          <td colspan="4">Please send all goods as soon as possible.</td>
+        </tr>
+        <tr>
+          <th>ARTICLE NO</th>
+          <th>ITEM</th>
+          <th>COLOR</th>
+          <th>28</th>
+          <th>30</th>
+          <th>32</th>
+          <th>34</th>
+          <th>36</th>
+          <th>38</th>
+          <th>39</th>
+          <th>40</th>
+          <th>42</th>
+          <th>44</th>
+          <th>46</th>
+          <th>48</th>
+          <th>50</th>
+          <th>52</th>
+          <th>Quantity</th>
+          <th>Remark</th>
+        </tr>
+        <!-- Existing rows will be here -->
+      </tbody>
+    </table>
+    <form class="add-item-form mt-3" id="add-item-form">
+      <div class="form-row">
+        <div class="col">
+          <input
+            type="text"
+            name="article_no"
+            class="form-control"
+            placeholder="Article No"
+            required
+          />
         </div>
-        <div class="company-details col-md-6">
-            <h2>DIMPLE COLLECTION</h2>
-            <p>E-21, Kamla Nagar</p>
-            <p>Agra, (UP) - 282005</p>
-            <p>Phone: +91 7060006904</p>
-            <p>Email: dimplecollectionretail@gmail.com</p>
-            <p>Website: <a href="https://dimplecollection.com">https://dimplecollection.com</a></p>
+        <div class="col">
+          <input
+            type="text"
+            name="item"
+            class="form-control"
+            placeholder="Item"
+            required
+          />
         </div>
-        <div class="order-details col-md-3">
-            <table class="table table-borderless">
-                <tr>
-                    <td>Date</td>
-                    <td>8 July 2024</td>
-                </tr>
-                <tr>
-                    <td>PO#</td>
-                    <td>DC/01IFK158/0142</td>
-                </tr>
-                <tr>
-                    <td>Due Date</td>
-                    <td>08 July 2024</td>
-                </tr>
-            </table>
+        <div class="col">
+          <input
+            type="text"
+            name="color"
+            class="form-control"
+            placeholder="Color"
+            required
+          />
         </div>
-    </section>
+        <div class="col">
+          <button type="submit" class="btn btn-primary">Add</button>
+        </div>
+      </div>
+    </form>
+  </section>
 
-    <section class="vendor-info mb-4">
-        <h3>VENDOR</h3>
-        <p>UMA ENTERPRISE</p>
-        <p>[STRIDE]</p>
-        <p>Jogeshwari (E), Mumbai-400060</p>
-    </section>
+  <section class="terms-and-conditions mb-4">
+    <h3>TERMS AND CONDITIONS</h3>
+    <p>
+      NO GOODS WILL BE ACCEPTED OUTSIDE THIS INDENT. GOODS RECEIVED AFTER
+      DELIVERY DATE WILL NOT BE ACCEPTED (BILLING REQUIRED NEW GSTIN.
+      09AATFD5558R1Z8)
+    </p>
+    <p>ORDERED GOODS WILL BE ACCEPTED BEFORE DUE DATE</p>
+    <p>(NOTE: PLEASE USE COVER, HANGER & TAGS OF DIMPLE)</p>
+    <p>CONTACTS:</p>
+    <ul>
+      <li>COVER: 9892047595</li>
+      <li>HANGER: 9811415370</li>
+      <li>TRANSPORT: GANESH (9699057648)</li>
+    </ul>
+  </section>
 
-    <section class="terms-of-shipment mb-4">
-        <h3>TERMS OF SHIPMENT</h3>
-        <p>Please send all goods as soon as possible.</p>
-    </section>
-
-    <section class="order-items mb-4">
-        <table class="table table-bordered" id="order-items-table">
-            <thead>
-                <tr>
-                    <th colspan="4">INDENT NO.</th>
-                    <th colspan="4">TERMS OF SHIPMENT</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="4"></td>
-                    <td colspan="4">Please send all goods as soon as possible.</td>
-                </tr>
-                <tr>
-                    <th>ARTICLE NO</th>
-                    <th>ITEM</th>
-                    <th>COLOR</th>
-                    <th>28</th>
-                    <th>30</th>
-                    <th>32</th>
-                    <th>34</th>
-                    <th>36</th>
-                    <th>38</th>
-                    <th>39</th>
-                    <th>40</th>
-                    <th>42</th>
-                    <th>44</th>
-                    <th>46</th>
-                    <th>48</th>
-                    <th>50</th>
-                    <th>52</th>
-                    <th>Quantity</th>
-                    <th>Remark</th>
-                </tr>
-                <!-- Existing rows will be here -->
-            </tbody>
-        </table>
-        <form class="add-item-form mt-3" id="add-item-form">
-            <div class="form-row">
-                <div class="col">
-                    <input type="text" name="article_no" class="form-control" placeholder="Article No" required>
-                </div>
-                <div class="col">
-                    <input type="text" name="item" class="form-control" placeholder="Item" required>
-                </div>
-                <div class="col">
-                    <input type="text" name="color" class="form-control" placeholder="Color" required>
-                </div>
-                <div class="col">
-                    <button type="submit" class="btn btn-primary">Add</button>
-                </div>
-            </div>
-        </form>
-    </section>
-
-    <section class="terms-and-conditions mb-4">
-        <h3>TERMS AND CONDITIONS</h3>
-        <p>NO GOODS WILL BE ACCEPTED OUTSIDE THIS INDENT. GOODS RECEIVED AFTER DELIVERY DATE WILL NOT BE ACCEPTED (BILLING REQUIRED NEW GSTIN. 09AATFD5558R1Z8)</p>
-        <p>ORDERED GOODS WILL BE ACCEPTED BEFORE DUE DATE</p>
-        <p>(NOTE: PLEASE USE COVER, HANGER & TAGS OF DIMPLE)</p>
-        <p>CONTACTS:</p>
-        <ul>
-            <li>COVER: 9892047595</li>
-            <li>HANGER: 9811415370</li>
-            <li>TRANSPORT: GANESH (9699057648)</li>
-        </ul>
-    </section>
-
-    <section class="actions mb-4">
-        <button class="btn btn-warning">Draft</button>
-        <button class="btn btn-success">Print</button>
-    </section>
+  <section class="actions mb-4">
+    <button class="btn btn-warning" id="draft-btn">Draft</button>
+    <button class="btn btn-success">Print</button>
+  </section>
 </div>
-{% endblock content %}
-
-{% block extra_scripts %}
+{% endblock content %} {% block extra_scripts %}
 <!-- DataTables  & Plugins -->
 <script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
 <script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
@@ -173,55 +207,148 @@
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
 
 <script>
+    function updateQuantity(row) {
+      const cells = row.cells;
+      let sum = 0;
+      for (let i = 3; i <= 16; i++) {
+        sum += parseInt(cells[i].textContent.trim()) || 0;
+      }
+      cells[17].textContent = sum;
+    }
+
   document.addEventListener("DOMContentLoaded", function () {
-      document.getElementById("add-item-form").addEventListener("submit", function (event) {
-          event.preventDefault();
 
-          // Get input values
-          const articleNo = event.target.article_no.value;
-          const item = event.target.item.value;
-          const color = event.target.color.value;
 
-          // Create new row
-          const newRow = document.createElement("tr");
+    document
+      .getElementById("add-item-form")
+      .addEventListener("submit", function (event) {
+        event.preventDefault();
 
-          // Create cells
-          const articleNoCell = document.createElement("td");
-          articleNoCell.textContent = articleNo;
-          const itemCell = document.createElement("td");
-          itemCell.textContent = item;
-          const colorCell = document.createElement("td");
-          colorCell.textContent = color;
+        // Get input values
+        const articleNo = event.target.article_no.value;
+        const item = event.target.item.value;
+        const color = event.target.color.value;
 
-          // Append cells to row
-          newRow.appendChild(articleNoCell);
-          newRow.appendChild(itemCell);
-          newRow.appendChild(colorCell);
+        // Create new row
+        const newRow = document.createElement("tr");
 
-          // Create editable cells for sizes
-          for (let i = 0; i < 14; i++) {
-              const sizeCell = document.createElement("td");
-              sizeCell.contentEditable = "true";
-              sizeCell.textContent = "0";
-              newRow.appendChild(sizeCell);
-          }
+        // Create cells
+        const articleNoCell = document.createElement("td");
+        articleNoCell.textContent = articleNo;
+        const itemCell = document.createElement("td");
+        itemCell.textContent = item;
+        const colorCell = document.createElement("td");
+        colorCell.textContent = color;
 
-          // Append quantity and remark cells
-          const quantityCell = document.createElement("td");
-          quantityCell.contentEditable = "true";
-          quantityCell.textContent = "0";
-          newRow.appendChild(quantityCell);
+        // Append cells to row
+        newRow.appendChild(articleNoCell);
+        newRow.appendChild(itemCell);
+        newRow.appendChild(colorCell);
 
-          const remarkCell = document.createElement("td");
-          remarkCell.contentEditable = "true";
-          newRow.appendChild(remarkCell);
+        // Create editable cells for sizes
+        for (let i = 0; i < 14; i++) {
+          const sizeCell = document.createElement("td");
+          sizeCell.contentEditable = "true";
+          sizeCell.textContent = "0";
+          newRow.appendChild(sizeCell);
+        }
 
-          // Append new row to table
-          document.querySelector("#order-items-table tbody").appendChild(newRow);
+        // Append quantity and remark cells
+        const quantityCell = document.createElement("td");
+        quantityCell.contentEditable = "true";
+        quantityCell.textContent = "0";
+        newRow.appendChild(quantityCell);
 
-          // Clear form
-          event.target.reset();
+        const remarkCell = document.createElement("td");
+        remarkCell.contentEditable = "true";
+        newRow.appendChild(remarkCell);
+
+        // Append new row to table
+        document.querySelector("#order-items-table tbody").appendChild(newRow);
+
+        // Clear form
+        event.target.reset();
       });
   });
+
+  document.querySelector("#order-items-table tbody").addEventListener("input", function (event) {
+      const targetCell = event.target;
+      if (targetCell.parentElement.tagName === "TR" && targetCell.cellIndex >= 3 && targetCell.cellIndex <= 16) {
+        updateQuantity(targetCell.parentElement);
+      }
+    });
+
+  document.getElementById("draft-btn").addEventListener("click", function () {
+      const tableRows = document.querySelectorAll("#order-items-table tbody tr");
+      const items = [];
+
+      tableRows.forEach((row,index )=> {
+        if (index > 1) {
+
+        const cells = row.cells;
+        const item = {
+          article_no: cells[0].textContent.trim(),
+          item: cells[1].textContent.trim(),
+          color: cells[2].textContent.trim(),
+          quantity_and_size: {
+            "28": parseInt(cells[3].textContent.trim()),
+            "30": parseInt(cells[4].textContent.trim()),
+            "32": parseInt(cells[5].textContent.trim()),
+            "34": parseInt(cells[6].textContent.trim()),
+            "36": parseInt(cells[7].textContent.trim()),
+            "38": parseInt(cells[8].textContent.trim()),
+            "39": parseInt(cells[9].textContent.trim()),
+            "40": parseInt(cells[10].textContent.trim()),
+            "42": parseInt(cells[11].textContent.trim()),
+            "44": parseInt(cells[12].textContent.trim()),
+            "46": parseInt(cells[13].textContent.trim()),
+            "48": parseInt(cells[14].textContent.trim()),
+            "50": parseInt(cells[15].textContent.trim()),
+            "52": parseInt(cells[16].textContent.trim()),
+            "quantity": parseInt(cells[17].textContent.trim()),
+          },
+          remark: cells[18].textContent.trim()
+        };
+        items.push(item);
+    }
+      });
+
+      console.log("Draft items:", items);
+      
+      fetch('po/procurement/order/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') // Function to get CSRF token, add as per your actual implementation
+        },
+        body: JSON.stringify({ items: items })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Success:', data);
+        // Handle success response as needed
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        // Handle error as needed
+      });
+    });
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    
 </script>
 {% endblock extra_scripts %}
