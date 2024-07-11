@@ -49,6 +49,7 @@ Order{% endblock title %} {% block extrastyle %}
 </style>
 {% endblock extrastyle %} {% block content %}
 <div class="container">
+    {% include 'includes/modal.html' %}  
   <header class="header mb-4">
     <h1 class="logo">Dimple Collection <small>(Procurement System)</small></h1>
   </header>
@@ -279,41 +280,44 @@ Order{% endblock title %} {% block extrastyle %}
       }
     });
 
-  document.getElementById("draft-btn").addEventListener("click", function () {
-      const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
-      const tableRows = document.querySelectorAll("#order-items-table tbody tr");
-      const items = [];
+    document.getElementById("draft-btn").addEventListener("click", function () {
+  const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+  const tableRows = document.querySelectorAll("#order-items-table tbody tr");
+  const items = [];
 
-      tableRows.forEach((row,index )=> {
-        if (index > 1) {
+  tableRows.forEach((row, index) => {
+    if (index > 1) {
+      const cells = row.cells;
+      const quantityAndSize = {};
 
-        const cells = row.cells;
-        const item = {
-          article_no: cells[0].textContent.trim(),
-          item: cells[1].textContent.trim(),
-          color: cells[2].textContent.trim(),
-          quantity_and_size: {
-            "28": parseInt(cells[3].textContent.trim()),
-            "30": parseInt(cells[4].textContent.trim()),
-            "32": parseInt(cells[5].textContent.trim()),
-            "34": parseInt(cells[6].textContent.trim()),
-            "36": parseInt(cells[7].textContent.trim()),
-            "38": parseInt(cells[8].textContent.trim()),
-            "39": parseInt(cells[9].textContent.trim()),
-            "40": parseInt(cells[10].textContent.trim()),
-            "42": parseInt(cells[11].textContent.trim()),
-            "44": parseInt(cells[12].textContent.trim()),
-            "46": parseInt(cells[13].textContent.trim()),
-            "48": parseInt(cells[14].textContent.trim()),
-            "50": parseInt(cells[15].textContent.trim()),
-            "52": parseInt(cells[16].textContent.trim()),
-            "quantity": parseInt(cells[17].textContent.trim()),
-          },
-          remark: cells[18].textContent.trim()
-        };
-        items.push(item);
-    }
+      // List of sizes to check
+      const sizes = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
+
+      sizes.forEach((size, idx) => {
+        const value = parseInt(cells[idx + 3].textContent.trim());
+        if (!isNaN(value) && value > 0) {
+          quantityAndSize[size] = value;
+        }
       });
+
+      // Add the quantity and remark
+      quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
+      const remark = cells[18].textContent.trim();
+
+      const item = {
+        article_no: cells[0].textContent.trim(),
+        item: cells[1].textContent.trim(),
+        color: cells[2].textContent.trim(),
+        quantity_and_size: quantityAndSize,
+        remark: remark
+      };
+
+      items.push(item);
+    }
+    console.log(items);
+  });
+
+  // Here you can proceed to use `items` as needed, for example sending it in an AJAX request
 
       console.log("Draft items:", items);
       
@@ -327,14 +331,26 @@ Order{% endblock title %} {% block extrastyle %}
       })
       .then(response => response.json())
       .then(data => {
-        console.log('Success:', data);
-        // Handle success response as needed
+        if (data.status === 'success' ) {
+            console.log("!!!!!!!!!!!!!11")
+            $('#poModal .modal-title').text("Success!");
+            $('#poModal .modal-body').text("Data Saved Successfully!");
+            $('#poModal').modal('show');
+        } else {
+            console.log("@@@@@@@@@@@@@@@")
+            $('#errorModal .modal-title').text("Error!");
+            $('#errorModal .modal-body').text(data.error);
+            $('#errorModal').modal('show');
+        }
       })
       .catch((error) => {
-        console.error('Error:', error);
-        // Handle error as needed
+            console.log("^^^^^^^^^^^")
+            $('#errorModal .modal-title').text("Error!");
+            $('#errorModal .modal-body').text(error);
+            $('#errorModal').modal('show');
       });
     });
+
 
     // function getCookie(name) {
     //   let cookieValue = null;
