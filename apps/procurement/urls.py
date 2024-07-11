@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     ProcurementOrderCreateView,
     ProcurementOrderListView,
-    ProcurementOrderView,
+    BrandListAPIView
 )
 
 
@@ -15,7 +15,5 @@ urlpatterns = [
         "create/", ProcurementOrderCreateView.as_view(), name="create_procurement_order"
     ),
     path("list/", ProcurementOrderListView.as_view(), name="procurement_order_list"),
-    path(
-        "procurement/order/", ProcurementOrderView.as_view(), name="procurement_order"
-    ),
+    path("brands/", BrandListAPIView.as_view(), name="brand_list"),
 ]

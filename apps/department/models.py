@@ -33,6 +33,7 @@ class Brand(models.Model):
     brand_code = models.CharField(max_length=64, null=True, blank=True)
     supplier_name = models.CharField(max_length=128, null=True, blank=True)
     suffix = models.CharField(max_length=64, null=True, blank=True)
+    address = models.TextField(default=None, null=True, blank=True)
 
     def __str__(self):
         return self.brand_name

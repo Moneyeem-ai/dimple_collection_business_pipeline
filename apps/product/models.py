@@ -38,6 +38,7 @@ class Product(models.Model):
     product_images = models.ForeignKey(
         ProductImage, null=True, blank=True, on_delete=models.CASCADE
     )
+    po_metadata = models.JSONField(null=True, blank=True)
     metadata = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(null=True, auto_now_add=True)
     updated_at = models.DateTimeField(null=True, auto_now=True)

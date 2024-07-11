@@ -44,7 +44,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 class BrandSerializer(serializers.ModelSerializer):
     class Meta:
         model = Brand
-        fields = ["id", "brand_name", "brand_code", "supplier_name"]
+        fields = ["id", "brand_name", "brand_code", "supplier_name", "address"]
 
 
 class SizeSerializer(serializers.ModelSerializer):

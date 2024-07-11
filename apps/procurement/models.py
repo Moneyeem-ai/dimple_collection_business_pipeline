@@ -23,6 +23,7 @@ class ProcurementOrder(models.Model):
     terms_of_shipment = models.CharField(
         max_length=1024, default="Please Send All Good As soon As Possible.", null=True
     )
+    due_date = models.DateTimeField(auto_now_add=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

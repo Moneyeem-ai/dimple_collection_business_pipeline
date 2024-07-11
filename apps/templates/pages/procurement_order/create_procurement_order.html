@@ -87,9 +87,12 @@ Order{% endblock title %} {% block extrastyle %}
 
   <section class="vendor-info mb-4">
     <h3>VENDOR</h3>
-    <p>UMA ENTERPRISE</p>
+    <p>
+        <select name="vendor" id="vendor">
+        </select>
+    </p>
     <p>[STRIDE]</p>
-    <p>Jogeshwari (E), Mumbai-400060</p>
+    <p id="vendor-address"></p>
   </section>
 
   <section class="terms-of-shipment mb-4">
@@ -218,9 +221,40 @@ Order{% endblock title %} {% block extrastyle %}
       cells[17].textContent = sum;
     }
 
-  document.addEventListener("DOMContentLoaded", function () {
+    var brand, firstBrand=null;
 
+    fetch('/po/brands/')
+      .then(response => response.json())
+      .then(data => {
+        const vendorSelect = document.getElementById('vendor');
+        vendorSelect.innerHTML = ''; // Clear existing options
+        brand = data;
+        data.forEach(brand => {
+          if (!firstBrand) {
+            firstBrand = brand;
+            const addressElement = document.getElementById('vendor-address');
+            addressElement.innerHTML = firstBrand.address;
+          }
+          const option = document.createElement('option');
+          option.value = brand.id;
+          option.textContent = brand.brand_name;
+          vendorSelect.appendChild(option);
+        });
 
+        // Handle vendor change event
+        vendorSelect.addEventListener('change', function() {
+          const selectedBrandId = this.value;
+          const selectedBrand = brand.find(data => data.id == selectedBrandId);
+          const addressElement = document.getElementById('vendor-address');
+          addressElement.innerHTML = selectedBrand.address;
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // Handle error as needed
+      });
+
+    document.addEventListener("DOMContentLoaded", function () {
     document
       .getElementById("add-item-form")
       .addEventListener("submit", function (event) {
@@ -321,7 +355,7 @@ Order{% endblock title %} {% block extrastyle %}
 
       console.log("Draft items:", items);
       
-      fetch('/po/procurement/order/', {
+      fetch('/po/create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
