@@ -35,17 +35,29 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, generic.CreateView):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            items = data.get("items", [])
-            order = ProcurementOrder.objects.create()
+            items_data = data.get("items", [])
+            due_date = items_data[0]
+            print(due_date)
+            vendor_id = items_data[1]
+            print(vendor_id)
+            items = items_data[2:]
+            order = ProcurementOrder.objects.create(
+                due_date=due_date,
+                brand_id=vendor_id
+            )
+            print(items_data)        
             for item in items:
+                print("IIIIIIIIIIIIIIIIIIIIIIIIIIII")
+                print(item)
                 article_number = item.get("article_number")
                 department_name = item.get("item")
 
                 department, created = Department.objects.get_or_create(
                     department_name=department_name
                 )
-                product, _ = Product.objects.get_or_create(
-                    brand=brand,
+                po_meta = ''
+                product = Product.objects.create(
+                    # brand=brand,
                     po_metadata=po_meta
                 )
                 ProcurementItem.objects.create(

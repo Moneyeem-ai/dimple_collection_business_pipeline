@@ -12,6 +12,10 @@ Order{% endblock title %} {% block extrastyle %}
   rel="stylesheet"
   href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}"
 />
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"
+/>
 <style>
   .logo {
     font-size: 2rem;
@@ -128,7 +132,7 @@ Order{% endblock title %} {% block extrastyle %}
               </tr>
               <tr>
                   <td class="table-left-box">Due Date</td>
-                  <td>08 July 2024</td>
+                  <td><input type="text" id="due-date" class="form-control datepicker" placeholder="Select Due Date"/></td>
               </tr>
           </tbody>
       </table>
@@ -266,6 +270,7 @@ Order{% endblock title %} {% block extrastyle %}
 <script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
 <script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 
 <script>
 
@@ -352,7 +357,7 @@ document.getElementById("print-btn").addEventListener("click", function () {
 
         // Append quantity and remark cells
         const quantityCell = document.createElement("td");
-        quantityCell.contentEditable = "true";
+        // quantityCell.contentEditable = "true";
         quantityCell.textContent = "0";
         newRow.appendChild(quantityCell);
 
@@ -375,10 +380,21 @@ document.getElementById("print-btn").addEventListener("click", function () {
       }
     });
 
+    document.addEventListener("DOMContentLoaded", function() {
+  $('.datepicker').datepicker({
+    format: 'yyyy-mm-dd'
+  });
+  var today = new Date().toISOString().split('T')[0];
+    $('#due-date').val(today);
+
     document.getElementById("draft-btn").addEventListener("click", function () {
+      const dueDate = document.getElementById("due-date").value;
+    const vendor = document.getElementById("vendor").value;
   const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
   const tableRows = document.querySelectorAll("#order-items-table tbody tr");
   const items = [];
+  items.push(dueDate);
+  items.push(vendor);
 
   tableRows.forEach((row, index) => {
     if (index > 1) {
@@ -443,6 +459,14 @@ document.getElementById("print-btn").addEventListener("click", function () {
             $('#errorModal .modal-title').text("Error!");
             $('#errorModal .modal-body').text(error);
             $('#errorModal').modal('show');
+      });
+    });
+  });
+    $(document).ready(function() {
+      $('#due-date').datepicker({
+        format: 'yyyy-mm-dd',
+        autoclose: true,
+        todayHighlight: true
       });
     });
 

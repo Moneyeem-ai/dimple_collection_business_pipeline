@@ -4,7 +4,7 @@ from .models import ProcurementOrder, ProcurementItem, ProcuredProduct, Unauthor
 
 @admin.register(ProcurementOrder)
 class ProcurementOrderAdmin(admin.ModelAdmin):
-    list_display = ['status', 'brand', 'intent_number', 'terms_of_shipment', 'created_at', 'updated_at']
+    list_display = ['status', 'brand', 'intent_number', 'terms_of_shipment', 'due_date', 'created_at', 'updated_at']
 
 @admin.register(ProcurementItem)
 class ProcurementItemAdmin(admin.ModelAdmin):

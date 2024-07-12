@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as gtl
 from django.contrib.postgres.fields import ArrayField
 
@@ -23,7 +24,7 @@ class ProcurementOrder(models.Model):
     terms_of_shipment = models.CharField(
         max_length=1024, default="Please Send All Good As soon As Possible.", null=True
     )
-    due_date = models.DateTimeField(auto_now_add=True)
+    due_date = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
