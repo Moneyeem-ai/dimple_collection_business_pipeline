@@ -35,30 +35,26 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, generic.CreateView):
     def post(self, request):
         try:
             data = json.loads(request.body)
-            items_data = data.get("items", [])
-            due_date = items_data[0]
-            print(due_date)
-            vendor_id = items_data[1]
-            print(vendor_id)
-            items = items_data[2:]
+            due_date = data.get("due_date")
+            vendor_id = data.get("vendor_id")
+            items = data.get("items")
             order = ProcurementOrder.objects.create(
                 due_date=due_date,
                 brand_id=vendor_id
-            )
-            print(items_data)        
+            )       
             for item in items:
-                print("IIIIIIIIIIIIIIIIIIIIIIIIIIII")
-                print(item)
                 article_number = item.get("article_number")
-                department_name = item.get("item")
+                department_id = item.get("item")
 
-                department, created = Department.objects.get_or_create(
-                    department_name=department_name
+                department = Department.objects.get(
+                    id=department_id
                 )
-                po_meta = ''
-                product = Product.objects.create(
-                    # brand=brand,
-                    po_metadata=po_meta
+                po_metadata = {
+                    "article_number": article_number
+                }
+                product, _ = Product.objects.get_or_create(
+                    department=department,
+                    po_metadata=po_metadata
                 )
                 ProcurementItem.objects.create(
                     order=order,
@@ -73,6 +69,7 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, generic.CreateView):
                 }
             )
         except Exception as e:
+            print(e)
             return JsonResponse({"status": "error", "message": str(e)})
 
 
@@ -82,8 +79,3 @@ class ProcurementOrderListView(SideBarSelectedMixin, generic.ListView):
     segment = "procurement_order_list"
     template_name = "pages/procurement_order/procurement_order_list.html"
     context_object_name = "orders"
-
-
-class BrandListAPIView(drf_generics.ListAPIView):
-    queryset = Brand.objects.all()
-    serializer_class = BrandSerializer

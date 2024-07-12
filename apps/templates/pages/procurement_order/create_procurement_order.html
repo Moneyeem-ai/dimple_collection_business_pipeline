@@ -208,13 +208,8 @@ Order{% endblock title %} {% block extrastyle %}
           />
         </div>
         <div class="col">
-          <input
-            type="text"
-            name="item"
-            class="form-control"
-            placeholder="Item"
-            required
-          />
+          <select name="item" id="department" placeholder="Item" class="form-control" required>
+          </select>
         </div>
         <div class="col">
           <input
@@ -296,7 +291,24 @@ document.getElementById("print-btn").addEventListener("click", function () {
 
     var brand, firstBrand=null;
 
-    fetch('/po/brands/')
+    fetch('/department/api/department/list/')
+      .then(response => response.json())
+      .then(data => {
+        const departmentSelect = document.getElementById('department');
+        departmentSelect.innerHTML = ''; // Clear existing options
+        data.forEach(department => {
+          const option = document.createElement('option');
+          option.value = department.id;
+          option.textContent = department.department_name;
+          departmentSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        // Handle error as needed
+      });
+
+    fetch('/department/api/brand/list/')
       .then(response => response.json())
       .then(data => {
         const vendorSelect = document.getElementById('vendor');
@@ -335,7 +347,8 @@ document.getElementById("print-btn").addEventListener("click", function () {
 
         // Get input values
         const articleNo = event.target.article_no.value;
-        const item = event.target.item.value;
+        const item = event.target.item.innerText;
+        const itemVal = event.target.item.value;
         const color = event.target.color.value;
 
         // Create new row
@@ -346,6 +359,7 @@ document.getElementById("print-btn").addEventListener("click", function () {
         articleNoCell.textContent = articleNo;
         const itemCell = document.createElement("td");
         itemCell.textContent = item;
+        itemCell.setAttribute("data-item-val", itemVal);
         const colorCell = document.createElement("td");
         colorCell.textContent = color;
 
@@ -394,58 +408,64 @@ document.getElementById("print-btn").addEventListener("click", function () {
   var today = new Date().toISOString().split('T')[0];
     $('#due-date').val(today);
 
-    document.getElementById("draft-btn").addEventListener("click", function () {
-      const dueDate = document.getElementById("due-date").value;
+  document.getElementById("draft-btn").addEventListener("click", function () {
+    const dueDate = document.getElementById("due-date").value;
     const vendor = document.getElementById("vendor").value;
-  const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
-  const tableRows = document.querySelectorAll("#order-items-table tbody tr");
-  const items = [];
-  items.push(dueDate);
-  items.push(vendor);
+    const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+    const tableRows = document.querySelectorAll("#order-items-table tbody tr");
+    const items = [];
+    // items.push(dueDate);
+    // items.push(vendor);
 
-  tableRows.forEach((row, index) => {
-    if (index > 1) {
-      const cells = row.cells;
-      const quantityAndSize = {};
+    tableRows.forEach((row, index) => {
+      if (index > 1) {
+        const cells = row.cells;
+        const quantityAndSize = {};
 
-      // List of sizes to check
-      const sizes = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
+        // List of sizes to check
+        const sizes = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
 
-      sizes.forEach((size, idx) => {
-        const value = parseInt(cells[idx + 3].textContent.trim());
-        if (!isNaN(value) && value > 0) {
-          quantityAndSize[size] = value;
-        }
-      });
+        sizes.forEach((size, idx) => {
+          const value = parseInt(cells[idx + 3].textContent.trim());
+          if (!isNaN(value) && value > 0) {
+            quantityAndSize[size] = value;
+          }
+        });
 
-      // Add the quantity and remark
-      quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
-      const remark = cells[18].textContent.trim();
+        // Add the quantity and remark
+        quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
+        const remark = cells[18].textContent.trim();
 
-      const item = {
-        article_no: cells[0].textContent.trim(),
-        item: cells[1].textContent.trim(),
-        color: cells[2].textContent.trim(),
-        quantity_and_size: quantityAndSize,
-        remark: remark
-      };
+        const item = {
+          article_no: cells[0].textContent.trim(),
+          item: cells[1].getAttribute('data-item-val'),
+          color: cells[2].textContent.trim(),
+          quantity_and_size: quantityAndSize,
+          remark: remark
+        };
 
-      items.push(item);
-    }
-    console.log(items);
-  });
+        items.push(item);
+      }
+      console.log(items);
+    });
 
-  // Here you can proceed to use `items` as needed, for example sending it in an AJAX request
+    // Here you can proceed to use `items` as needed, for example sending it in an AJAX request
 
-      console.log("Draft items:", items);
-      
-      fetch('/po/create/', {
+    console.log("Draft items:", items);
+        
+    fetch('/po/create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': csrfToken // Function to get CSRF token, add as per your actual implementation
         },
-        body: JSON.stringify({ items: items })
+        body: JSON.stringify(
+          {
+            items: items,
+            vendor: vendor,
+            due_date: dueDate
+          }
+        )
       })
       .then(response => response.json())
       .then(data => {
@@ -466,18 +486,24 @@ document.getElementById("print-btn").addEventListener("click", function () {
             $('#errorModal .modal-title').text("Error!");
             $('#errorModal .modal-body').text(error);
             $('#errorModal').modal('show');
+        });
       });
     });
-  });
     $(document).ready(function() {
       $('#due-date').datepicker({
         format: 'yyyy-mm-dd',
         autoclose: true,
         todayHighlight: true
       });
+<<<<<<< Updated upstream
     });
     $("#okbtn2").click(function () {
       window.location.href = '/po/list/'
     }); 
+=======
+  });
+
+    
+>>>>>>> Stashed changes
 </script>
 {% endblock extra_scripts %}

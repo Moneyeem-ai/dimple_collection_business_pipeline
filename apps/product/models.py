@@ -44,6 +44,9 @@ class Product(models.Model):
     updated_at = models.DateTimeField(null=True, auto_now=True)
     hash_value = models.CharField(max_length=64, null=True, blank=True)
 
+    def create_or_get_product_po_compare(self):
+        pass
+
 
 class PTStatus(models.TextChoices):
     ENTRY = "ENTRY"
