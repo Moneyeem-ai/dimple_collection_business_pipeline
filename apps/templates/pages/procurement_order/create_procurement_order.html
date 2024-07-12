@@ -124,7 +124,7 @@ Order{% endblock title %} {% block extrastyle %}
           <tbody>
               <tr>
                   <td class="table-left-box">Date</td>
-                  <td>8 July 2024</td>
+                  <td id="current-date"></td>
               </tr>
               <tr>
                   <td class="table-left-box">PO#</td>
@@ -271,7 +271,14 @@ Order{% endblock title %} {% block extrastyle %}
 <script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
 <script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+      var currentDate = new Date();
+      var options = { year: 'numeric', month: 'long', day: 'numeric' };
+      var formattedDate = currentDate.toLocaleDateString('en-US', options);
+      document.getElementById('current-date').textContent = formattedDate;
+  });
+</script>
 <script>
 
 document.getElementById("print-btn").addEventListener("click", function () {
@@ -469,7 +476,8 @@ document.getElementById("print-btn").addEventListener("click", function () {
         todayHighlight: true
       });
     });
-
-    
+    $("#okbtn2").click(function () {
+      window.location.href = '/po/list/'
+    }); 
 </script>
 {% endblock extra_scripts %}
