@@ -104,7 +104,7 @@ Order{% endblock title %} {% block extrastyle %}
   </header>
 
   <section class="company-info row mb-4 address-container" >
-    <div class="company-details col-md-6">
+    <div class="company-details col-md-6" style="max-width: fit-content !important;">
       <h5 style="color: #fca311;">DIMPLE COLLECTION</h5>
       <p class="bottom-margin">E-21, Kamla Nagar</p>
       <p class="bottom-margin">Agra, (UP) - 282005</p>
@@ -115,7 +115,7 @@ Order{% endblock title %} {% block extrastyle %}
         <a href="https://dimplecollection.com">https://dimplecollection.com</a>
       </p>
     </div>
-    <div class="order-details col-md-3">
+    <div class="order-details col-md-3" style="max-width: fit-content !important;">
       <table class="table table-bordered table-striped" style="margin-right: 30px; max-width: fit-content;">
           <tbody>
               <tr>
@@ -153,8 +153,10 @@ Order{% endblock title %} {% block extrastyle %}
   </section> -->
 
   <section class="order-items mb-4" style="margin-top: 120px;">
-    <table class="table table-bordered" id="order-items-table">
-      <thead>
+    <div  style="overflow-x: scroll;">
+
+      <table class="table table-bordered" id="order-items-table">
+        <thead>
         <tr>
           <th colspan="4" class="table-center-box">INDENT NO.</th>
           <th colspan="4" class="table-center-box">TERMS OF SHIPMENT</th>
@@ -189,15 +191,16 @@ Order{% endblock title %} {% block extrastyle %}
         <!-- Existing rows will be here -->
       </tbody>
     </table>
+  </div>
     <form class="add-item-form mt-3" id="add-item-form">
       <div class="form-row">
         <div class="col">
           <input
-            type="text"
-            name="article_no"
-            class="form-control"
-            placeholder="Article No"
-            required
+          type="text"
+          name="article_no"
+          class="form-control"
+          placeholder="Article No"
+          required
           />
         </div>
         <div class="col">
