@@ -79,3 +79,46 @@ class ProcurementOrderListView(SideBarSelectedMixin, generic.ListView):
     segment = "procurement_order_list"
     template_name = "pages/procurement_order/procurement_order_list.html"
     context_object_name = "orders"
+
+
+class ProcurementOrderRetrieveUpdateView(SideBarSelectedMixin, generic.TemplateView):
+    model = ProcurementOrder
+    parent = "procurement"
+    segment = "retrieve_update_procurement_order"
+    template_name = "pages/procurement_order/retrieve_update_procurement_order.html"
+    success_url = reverse_lazy("procurment_order_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        instance = kwargs.get("instance")
+        items = instance.procurement_order.all()
+        context["items"] = items
+        context["po"] = instance
+        return context
+
+    def get(self, request, *args, **kwargs):
+        instance = ProcurementOrder.objects.get(id=kwargs.get("pk"))
+        context = self.get_context_data(instance=instance)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            due_date = data.get("due_date")
+            items = data.get("items")
+            for item in items:
+                item_id = item.get("item_id")
+                article_number = item.get("article_number")
+                department_id = item.get("item")
+                po_item = ProcurementItem.objects.get(id=item_id)
+                po_item.quantity_and_size = item.get("quantity_and_size")
+                po_item.save()
+            return JsonResponse(
+                {
+                    "status": "success",
+                    "message": "Procurement order drafted successfully.",
+                }
+            )
+        except Exception as e:
+            print(e)
+            return JsonResponse({"status": "error", "message": str(e)})

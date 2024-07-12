@@ -132,7 +132,7 @@ Order{% endblock title %} {% block extrastyle %}
               </tr>
               <tr>
                   <td class="table-left-box">Due Date</td>
-                  <td><input type="text" id="due-date" class="form-control datepicker" placeholder="Select Due Date"/></td>
+                  <td>{{ po.due_date }}</td>
               </tr>
           </tbody>
       </table>
@@ -193,38 +193,32 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">Remark</th>
         </tr>
         <!-- Existing rows will be here -->
+         {% for item in items %}
+            <tr>
+                <td>{{item.product.po_metadata.article_number}}</td>
+                <td>{{item.product.department}}</td>
+                <td>{{item.color}}</td>
+                <td>{{item.quantity_and_size.28}}</td>
+                <td>{{item.quantity_and_size.30}}</td>
+                <td>{{item.quantity_and_size.32}}</td>
+                <td>{{item.quantity_and_size.34}}</td>
+                <td>{{item.quantity_and_size.36}}</td>
+                <td>{{item.quantity_and_size.38}}</td>
+                <td>{{item.quantity_and_size.39}}</td>
+                <td>{{item.quantity_and_size.40}}</td>
+                <td>{{item.quantity_and_size.42}}</td>
+                <td>{{item.quantity_and_size.44}}</td>
+                <td>{{item.quantity_and_size.46}}</td>
+                <td>{{item.quantity_and_size.48}}</td>
+                <td>{{item.quantity_and_size.50}}</td>
+                <td>{{item.quantity_and_size.52}}</td>
+                <td>{{item.quantity_and_size.quantity}}</td>
+                <td>{{item.remark}}</td>
+            </tr>
+         {% endfor %}
       </tbody>
     </table>
   </div>
-    <form class="add-item-form mt-3" id="add-item-form">
-      <div class="form-row">
-        <div class="col">
-          <input
-          type="text"
-          name="article_number"
-          class="form-control"
-          placeholder="Article No"
-          required
-          />
-        </div>
-        <div class="col">
-          <select name="item" id="department" placeholder="Item" class="form-control" required>
-          </select>
-        </div>
-        <div class="col">
-          <input
-            type="text"
-            name="color"
-            class="form-control"
-            placeholder="Color"
-            required
-          />
-        </div>
-        <div class="col">
-          <button type="submit" class="btn btn-primary">Add</button>
-        </div>
-      </div>
-    </form>
   </section>
 
   <section class="terms-and-conditions mb-4" style="margin-top: 100px;">
@@ -344,7 +338,7 @@ document.getElementById("print-btn").addEventListener("click", function () {
       .getElementById("add-item-form")
       .addEventListener("submit", function (event) {
         event.preventDefault();
-
+        console.log(event)
         // Get input values
         const articleNo = event.target.article_number.value;
         const item = event.target.item.options[event.target.item.selectedIndex].text;
