@@ -76,7 +76,7 @@
             {% endif %}
         </ul>
     </li>
-
+    {% if request.user.is_authenticated %}
     <!-- Procurement Order Section -->
     <li class="nav-item {% if 'procurement' in parent %} menu-open {% endif %}">
         <a href="#" class="nav-link {% if 'procurement' in parent %} active {% endif %}">
@@ -101,6 +101,7 @@
                 </li>
         </ul>
     </li>
+    {% endif %}
 
     {% if request.user.user_type != 'FT' and request.user.user_type != 'BT'%}
     <li class="nav-item">

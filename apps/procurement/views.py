@@ -5,6 +5,7 @@ from django.urls import reverse_lazy
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 from apps.product.serializers import BrandSerializer
@@ -19,7 +20,7 @@ from rest_framework import status
 from apps.department.models import Brand
 
 
-class ProcurementOrderCreateView(SideBarSelectedMixin, generic.CreateView):
+class ProcurementOrderCreateView(SideBarSelectedMixin, LoginRequiredMixin, generic.CreateView):
     model = ProcurementOrder
     form_class = ProcurementOrderForm
     parent = "procurement"
@@ -36,11 +37,12 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, generic.CreateView):
         try:
             data = json.loads(request.body)
             due_date = data.get("due_date")
-            vendor_id = data.get("vendor_id")
+            vendor_id = data.get("vendor")
+            brand = Brand.objects.get(id=vendor_id)
             items = data.get("items")
             order = ProcurementOrder.objects.create(
                 due_date=due_date,
-                brand_id=vendor_id
+                brand=brand
             )       
             for item in items:
                 article_number = item.get("article_number")
@@ -73,7 +75,7 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, generic.CreateView):
             return JsonResponse({"status": "error", "message": str(e)})
 
 
-class ProcurementOrderListView(SideBarSelectedMixin, generic.ListView):
+class ProcurementOrderListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
     model = ProcurementOrder
     parent = "procurement"
     segment = "procurement_order_list"
@@ -81,7 +83,7 @@ class ProcurementOrderListView(SideBarSelectedMixin, generic.ListView):
     context_object_name = "orders"
 
 
-class ProcurementOrderRetrieveUpdateView(SideBarSelectedMixin, generic.TemplateView):
+class ProcurementOrderRetrieveUpdateView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
     model = ProcurementOrder
     parent = "procurement"
     segment = "retrieve_update_procurement_order"
