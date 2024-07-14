@@ -2,9 +2,11 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.generic.list import ListView
 
-from apps.department.models import Category, SubCategory, Size
+from rest_framework import generics
 
-# Create your views here.
+from apps.department.models import Department, Category, SubCategory, Size, Brand
+from apps.product.serializers import BrandSerializer, DepartmentSerializer
+
 
 class CategoriesByDepartmentView(ListView):
     model = Category
@@ -42,3 +44,13 @@ class SizesByDepartmentView(ListView):
         size_list = context['object_list']
         data = [{'id': size.id, 'value': size.size_value} for size in size_list]
         return JsonResponse(data, safe=False)
+
+
+class BrandListAPIView(generics.ListAPIView):
+    queryset = Brand.objects.all()
+    serializer_class = BrandSerializer
+
+
+class DepartmentListAPIView(generics.ListAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer

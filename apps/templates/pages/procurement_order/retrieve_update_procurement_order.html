@@ -101,18 +101,23 @@ Order{% endblock title %} {% block extrastyle %}
   }
 </style>
 {% endblock extrastyle %} {% block content %}
-<div class="" style="margin:0 50px !important;">
+<div class="" style="margin-left: 50px !important;">
     {% include 'includes/modal.html' %}  
-  <header class="header mb-4">
-    <img src="{% static 'images/FinalLogo.jpg' %}" alt="Logo" class="d-inline-block align-top" height="250" width="350" style="border-radius: 8px;">
+  <header class="header mb-4 header-dimple">
+    <h1 class="logo">Dimple Collection <small>(Procurement System)</small></h1>
   </header>
 
   <section class="company-info row mb-4 address-container" >
     <div class="company-details col-md-6" style="max-width: fit-content !important;">
+      <h5 style="color: #fca311;">DIMPLE COLLECTION</h5>
       <p class="bottom-margin">E-21, Kamla Nagar</p>
       <p class="bottom-margin">Agra, (UP) - 282005</p>
       <p class="bottom-margin">Phone: +91 7060006904</p>
       <p class="bottom-margin">Email: dimplecollectionretail@gmail.com</p>
+      <p>
+        Website:
+        <a href="https://dimplecollection.com">https://dimplecollection.com</a>
+      </p>
     </div>
     <div class="order-details col-md-3" style="max-width: fit-content !important;">
       <table class="table table-bordered table-striped" style="margin-right: 30px; max-width: fit-content;">
@@ -127,7 +132,7 @@ Order{% endblock title %} {% block extrastyle %}
               </tr>
               <tr>
                   <td class="table-left-box">Due Date</td>
-                  <td><input type="text" id="due-date" class="form-control datepicker" placeholder="Select Due Date"/></td>
+                  <td>{{ po.due_date }}</td>
               </tr>
           </tbody>
       </table>
@@ -142,8 +147,7 @@ Order{% endblock title %} {% block extrastyle %}
         <select name="vendor" id="vendor">
         </select>
     </p>
-    <p id="vendor-name"></p>
-    <p id="vendor-supplier_name"></p>
+    <p>[STRIDE]</p>
     <p id="vendor-address"></p>
   </section>
 
@@ -164,12 +168,11 @@ Order{% endblock title %} {% block extrastyle %}
       </thead>
       <tbody>
         <tr>
-          <td colspan="4" id="intent_no"></td>
-          <td colspan="4" style="color:red;" id="tos">Please Send All Good As soon As Possible.</td>
+          <td colspan="4">{{ po.intent_number }}</td>
+          <td colspan="4" style="color:red;">{{ po.terms_of_shipment }}</td>
         </tr>
         <tr >
           <th class="table-center-box">ARTICLE NO</th>
-          <th class="table-center-box">Remark</th>
           <th class="table-center-box">ITEM</th>
           <th class="table-center-box">COLOR</th>
           <th class="table-center-box">28</th>
@@ -187,48 +190,35 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">50</th>
           <th class="table-center-box">52</th>
           <th class="table-center-box">Quantity</th>
-          <th class="table-center-box">Notes</th>
+          <th class="table-center-box">Remark</th>
         </tr>
         <!-- Existing rows will be here -->
+         {% for item in items %}
+            <tr>
+                <td>{{item.product.po_metadata.article_number}}</td>
+                <td>{{item.product.department}}</td>
+                <td>{{item.color}}</td>
+                <td>{{item.quantity_and_size.28}}</td>
+                <td>{{item.quantity_and_size.30}}</td>
+                <td>{{item.quantity_and_size.32}}</td>
+                <td>{{item.quantity_and_size.34}}</td>
+                <td>{{item.quantity_and_size.36}}</td>
+                <td>{{item.quantity_and_size.38}}</td>
+                <td>{{item.quantity_and_size.39}}</td>
+                <td>{{item.quantity_and_size.40}}</td>
+                <td>{{item.quantity_and_size.42}}</td>
+                <td>{{item.quantity_and_size.44}}</td>
+                <td>{{item.quantity_and_size.46}}</td>
+                <td>{{item.quantity_and_size.48}}</td>
+                <td>{{item.quantity_and_size.50}}</td>
+                <td>{{item.quantity_and_size.52}}</td>
+                <td>{{item.quantity_and_size.quantity}}</td>
+                <td>{{item.remark}}</td>
+            </tr>
+         {% endfor %}
       </tbody>
     </table>
   </div>
-    <form class="add-item-form mt-3" id="add-item-form">
-      <div class="form-row">
-        <div class="col">
-          <input
-          type="text"
-          name="article_number"
-          class="form-control"
-          placeholder="Article No"
-          required
-          />
-        </div>
-        <div class="col">
-          <select name="item" id="department" placeholder="Item" class="form-control" required>
-          </select>
-        </div>
-        <div class="col">
-          <input
-            type="text"
-            name="color"
-            class="form-control"
-            placeholder="Color"
-          />
-        </div>
-        <div class="col">
-          <input
-            type="text"
-            name="colorCode"
-            class="form-control"
-            placeholder="Color Code"
-          />
-        </div>
-        <div class="col">
-          <button type="submit" class="btn btn-primary">Add</button>
-        </div>
-      </div>
-    </form>
   </section>
 
   <section class="terms-and-conditions mb-4" style="margin-top: 100px;">
@@ -279,23 +269,18 @@ Order{% endblock title %} {% block extrastyle %}
   });
 </script>
 <script>
-    var isColorCode = false;
-    const intent_no = document.getElementById('intent_no');
-    intent_no.contentEditable = "true";
-    const tos = document.getElementById('tos');
-    tos.contentEditable = "true";
 
-    document.getElementById("print-btn").addEventListener("click", function () {
+document.getElementById("print-btn").addEventListener("click", function () {
       window.print();
     });
 
     function updateQuantity(row) {
       const cells = row.cells;
       let sum = 0;
-      for (let i = 4; i <= 17; i++) {
+      for (let i = 3; i <= 16; i++) {
         sum += parseInt(cells[i].textContent.trim()) || 0;
       }
-      cells[18].textContent = sum;
+      cells[17].textContent = sum;
     }
 
     var brand, firstBrand=null;
@@ -328,10 +313,6 @@ Order{% endblock title %} {% block extrastyle %}
             firstBrand = brand;
             const addressElement = document.getElementById('vendor-address');
             addressElement.innerHTML = firstBrand.address;
-            const brandElement = document.getElementById("vendor-name");
-            brandElement.innerHTML = firstBrand.brand_name;
-            const supplierElement = document.getElementById('vendor-supplier_name');
-            supplierElement.innerHTML = `[${firstBrand.supplier_name}]`;
           }
           const option = document.createElement('option');
           option.value = brand.id;
@@ -345,10 +326,6 @@ Order{% endblock title %} {% block extrastyle %}
           const selectedBrand = brand.find(data => data.id == selectedBrandId);
           const addressElement = document.getElementById('vendor-address');
           addressElement.innerHTML = selectedBrand.address;
-          const brandElement = document.getElementById("vendor-name");
-          brandElement.innerHTML = firstBrand.brand_name;
-          const supplierElement = document.getElementById('vendor-supplier_name');
-          supplierElement.innerHTML = `[${selectedBrand.supplier_name}]`;
         });
       })
       .catch(error => {
@@ -361,18 +338,12 @@ Order{% endblock title %} {% block extrastyle %}
       .getElementById("add-item-form")
       .addEventListener("submit", function (event) {
         event.preventDefault();
-
+        console.log(event)
         // Get input values
         const articleNo = event.target.article_number.value;
         const item = event.target.item.options[event.target.item.selectedIndex].text;
         const itemVal = event.target.item.value;
-        var color = event.target.color.value;
-        var colorCode = event.target.colorCode.value;
-
-        if(colorCode){
-          color = colorCode;
-          isColorCode = true;
-        }
+        const color = event.target.color.value;
 
         // Create new row
         const newRow = document.createElement("tr");
@@ -380,19 +351,14 @@ Order{% endblock title %} {% block extrastyle %}
         // Create cells
         const articleNoCell = document.createElement("td");
         articleNoCell.textContent = articleNo;
-        const remarkNoCell = document.createElement("td");
-        remarkNoCell.contentEditable = "true";
-        remarkNoCell.textContent = "";
         const itemCell = document.createElement("td");
         itemCell.textContent = item;
         itemCell.setAttribute("data-item-val", itemVal);
         const colorCell = document.createElement("td");
         colorCell.textContent = color;
-        colorCell.setAttribute("data-is-color-code-val", isColorCode);
 
         // Append cells to row
         newRow.appendChild(articleNoCell);
-        newRow.appendChild(remarkNoCell);
         newRow.appendChild(itemCell);
         newRow.appendChild(colorCell);
 
@@ -410,9 +376,9 @@ Order{% endblock title %} {% block extrastyle %}
         quantityCell.textContent = "0";
         newRow.appendChild(quantityCell);
 
-        const noteCell = document.createElement("td");
-        noteCell.contentEditable = "true";
-        newRow.appendChild(noteCell);
+        const remarkCell = document.createElement("td");
+        remarkCell.contentEditable = "true";
+        newRow.appendChild(remarkCell);
 
         // Append new row to table
         document.querySelector("#order-items-table tbody").appendChild(newRow);
@@ -454,7 +420,7 @@ Order{% endblock title %} {% block extrastyle %}
         const sizes = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
 
         sizes.forEach((size, idx) => {
-          const value = parseInt(cells[idx + 4].textContent.trim());
+          const value = parseInt(cells[idx + 3].textContent.trim());
           if (!isNaN(value) && value > 0) {
             quantityAndSize[size] = value;
           }
@@ -462,17 +428,14 @@ Order{% endblock title %} {% block extrastyle %}
 
         // Add the quantity and remark
         quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
-        const note = cells[19].textContent.trim();
-        const remarks = cells[1].textContent.trim();
+        const remark = cells[18].textContent.trim();
 
         const item = {
           article_number: cells[0].textContent.trim(),
-          item: cells[2].getAttribute('data-item-val'),
-          color: cells[3].textContent.trim(),
-          is_color_code: cells[3].getAttribute('data-is-color-code-val'),
+          item: cells[1].getAttribute('data-item-val'),
+          color: cells[2].textContent.trim(),
           quantity_and_size: quantityAndSize,
-          note: note,
-          remarks: remarks
+          remark: remark
         };
 
         items.push(item);
@@ -494,8 +457,6 @@ Order{% endblock title %} {% block extrastyle %}
           {
             items: items,
             vendor: vendor,
-            intent_no: intent_no.textContent.trim(),
-            tos: tos.textContent.trim(),
             due_date: dueDate
           }
         )
@@ -503,16 +464,19 @@ Order{% endblock title %} {% block extrastyle %}
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success' ) {
+            console.log("!!!!!!!!!!!!!11")
             $('#poModal .modal-title').text("Success!");
             $('#poModal .modal-body').text("Data Saved Successfully!");
             $('#poModal').modal('show');
         } else {
+            console.log("@@@@@@@@@@@@@@@")
             $('#errorModal .modal-title').text("Error!");
             $('#errorModal .modal-body').text(data.error);
             $('#errorModal').modal('show');
         }
       })
       .catch((error) => {
+            console.log("^^^^^^^^^^^")
             $('#errorModal .modal-title').text("Error!");
             $('#errorModal .modal-body').text(error);
             $('#errorModal').modal('show');

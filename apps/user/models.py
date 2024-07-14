@@ -4,18 +4,16 @@ from django.db import models
 
 from .managers import CustomUserManager
 
-
+class UserType(models.TextChoices):
+        COMPANY_OWNER = 'CO', _('Company Owner')
+        FEEDING_TEAM = 'FT', _('Feeding Team')
+        BARCODE_TEAM = 'BT', _('Barcode Team')
 class User(AbstractUser):
     username = None
     email = models.EmailField(_('email address'), unique=True)
     is_active = models.BooleanField(default=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
-
-    class UserType(models.TextChoices):
-        COMPANY_OWNER = 'CO', _('Company Owner')
-        FEEDING_TEAM = 'FT', _('Feeding Team')
-        BARCODE_TEAM = 'BT', _('Barcode Team')
 
     user_type = models.CharField(
         max_length=2,
