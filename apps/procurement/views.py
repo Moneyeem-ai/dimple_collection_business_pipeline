@@ -97,6 +97,7 @@ class ProcurementOrderListView(
     segment = "procurement_order_list"
     template_name = "pages/procurement_order/procurement_order_list.html"
     context_object_name = "orders"
+    ordering = "-created_at"
 
     def get_queryset(self):
         user = self.request.user
@@ -106,11 +107,11 @@ class ProcurementOrderListView(
                     AdminApproveStatus.PENDING,
                     AdminApproveStatus.ACCEPTED,
                 ]
-            )
+            ).order_by("-created_at")
         else:
             return ProcurementOrder.objects.filter(
                 admin_approve_status=AdminApproveStatus.ACCEPTED
-            )
+            ).order_by("-created_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

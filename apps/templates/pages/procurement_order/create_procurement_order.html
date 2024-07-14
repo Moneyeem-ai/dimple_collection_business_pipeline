@@ -99,6 +99,14 @@ Order{% endblock title %} {% block extrastyle %}
       display: none;
     }
   }
+  .no-background {
+    background-color: transparent;
+    border: none; /* Optional: Remove border if desired */
+  }
+
+  .no-background::placeholder {
+      color: #999; /* Optional: Customize placeholder text color */
+  }
 </style>
 {% endblock extrastyle %} {% block content %}
 <div class="" style="margin:0 50px !important;">
@@ -127,7 +135,7 @@ Order{% endblock title %} {% block extrastyle %}
               </tr>
               <tr>
                   <td class="table-left-box">Due Date</td>
-                  <td><input type="text" id="due-date" class="form-control datepicker" placeholder="Select Due Date"/></td>
+                  <td><input type="text" id="due-date" class="form-control datepicker no-background" placeholder="Select Due Date"/></td>
               </tr>
           </tbody>
       </table>
