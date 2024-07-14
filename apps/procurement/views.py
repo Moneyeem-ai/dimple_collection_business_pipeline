@@ -99,6 +99,8 @@ class ProcurementOrderListView(
             or self.request.user.user_type == UserType.COMPANY_OWNER
         )
         return context
+    
+class ProcurementOrderActionView(LoginRequiredMixin, View):
 
     def post(self, request, *args, **kwargs):
         order_id = request.POST.get('order_id')
@@ -106,10 +108,10 @@ class ProcurementOrderListView(
         order = get_object_or_404(ProcurementOrder, id=order_id)
 
         if action == 'approve':
-            order.admin_approve_status = 'accepted'
+            order.admin_approve_status = AdminApproveStatus.ACCEPTED
             messages.success(request, "Order approved successfully.")
         elif action == 'reject':
-            order.admin_approve_status = 'rejected'
+            order.admin_approve_status = AdminApproveStatus.REJECTED
             messages.success(request, "Order rejected successfully.")
 
         order.save()

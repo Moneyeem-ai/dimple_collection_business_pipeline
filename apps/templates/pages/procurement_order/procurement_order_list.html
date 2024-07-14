@@ -28,6 +28,7 @@
 
     <!-- Main content -->
     <section class="content">
+      {% csrf_token %}
       <div class="container-fluid">
         <div class="row">
           <div class="col-12">
@@ -146,44 +147,38 @@
     });
   });
 
-  function getCSRFToken() {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, 10) === 'csrftoken=') {
-                cookieValue = decodeURIComponent(cookie.substring(10));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
+  
 
   function updateOrder(orderId, action) {
     showOverlay();
-    fetch("{% url 'procurement:procurement_order_list' %}", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": document.querySelector('input[name=csrfmiddlewaretoken]').value
-      },
-      body: JSON.stringify({ order_id: orderId, action: action })
-    })
-    .then(response => {
-      hideOverlay();
-      if (response.ok) {
-        location.reload();
-      } else {
-        alert("Failed to update order status.");
-      }
-    })
-    .catch(error => {
-      hideOverlay();
-      console.error("Error:", error);
-      alert("An error occurred.");
-    });
+    fetch('/po/action/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({ order_id: orderId, action: action })
+})
+.then(response => response.json())
+.then(data => {
+    if (data.status === 'success') {
+        console.log("!!!!!!!!!!!!!11")
+        $('#poModal .modal-title').text("Success!");
+        $('#poModal .modal-body').text("Data Saved Successfully!");
+        $('#poModal').modal('show');
+    } else {
+        console.log("@@@@@@@@@@@@@@@")
+        $('#errorModal .modal-title').text("Error!");
+        $('#errorModal .modal-body').text(data.error);
+        $('#errorModal').modal('show');
+    }
+})
+.catch((error) => {
+    console.log("^^^^^^^^^^^")
+    $('#errorModal .modal-title').text("Error!");
+    $('#errorModal .modal-body').text(error);
+    $('#errorModal').modal('show');
+});
   }
 </script>
 {% endblock extra_scripts %}
