@@ -66,8 +66,8 @@
                         <td>
                           <a href="{% url 'procurement:procurement_detail' order.id %}"><button class="btn btn-primary">View</button></a>
                           {% if is_admin and order.admin_approve_status == 'pending' %}
-                          <button class="btn btn-success" onclick="updateOrder('{{ order.id }}', 'approve')"><i class="fas fa-check"></i></button>
-                          <button class="btn btn-danger" onclick="updateOrder('{{ order.id }}', 'reject')"><i class="fas fa-times"></i></button>
+                          <a href="{% url 'procurement:procurement_order_action' order.id 'approve' %}" class="btn btn-success"><i class="fas fa-check"></i></a>
+                          <a href="{% url 'procurement:procurement_order_action' order.id 'reject' %}" class="btn btn-danger"><i class="fas fa-times"></i></a>
                           {% endif %}
                         </td>
                     </tr>
@@ -147,38 +147,5 @@
     });
   });
 
-  
-
-  function updateOrder(orderId, action) {
-    showOverlay();
-    fetch('/po/action/', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': document.querySelector('input[name=csrfmiddlewaretoken]').value
-    },
-    body: JSON.stringify({ order_id: orderId, action: action })
-})
-.then(response => response.json())
-.then(data => {
-    if (data.status === 'success') {
-        console.log("!!!!!!!!!!!!!11")
-        $('#poModal .modal-title').text("Success!");
-        $('#poModal .modal-body').text("Data Saved Successfully!");
-        $('#poModal').modal('show');
-    } else {
-        console.log("@@@@@@@@@@@@@@@")
-        $('#errorModal .modal-title').text("Error!");
-        $('#errorModal .modal-body').text(data.error);
-        $('#errorModal').modal('show');
-    }
-})
-.catch((error) => {
-    console.log("^^^^^^^^^^^")
-    $('#errorModal .modal-title').text("Error!");
-    $('#errorModal .modal-body').text(error);
-    $('#errorModal').modal('show');
-});
-  }
 </script>
 {% endblock extra_scripts %}

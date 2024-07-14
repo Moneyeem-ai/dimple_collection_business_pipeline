@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect,get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
 
 
@@ -86,7 +86,12 @@ class ProcurementOrderListView(
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser or user.user_type == UserType.COMPANY_OWNER:
-            return ProcurementOrder.objects.all()
+            return ProcurementOrder.objects.filter(
+                admin_approve_status__in=[
+                    AdminApproveStatus.PENDING,
+                    AdminApproveStatus.ACCEPTED,
+                ]
+            )
         else:
             return ProcurementOrder.objects.filter(
                 admin_approve_status=AdminApproveStatus.ACCEPTED
@@ -99,23 +104,24 @@ class ProcurementOrderListView(
             or self.request.user.user_type == UserType.COMPANY_OWNER
         )
         return context
-    
-class ProcurementOrderActionView(LoginRequiredMixin, View):
 
-    def post(self, request, *args, **kwargs):
-        order_id = request.POST.get('order_id')
-        action = request.POST.get('action')
+
+class ProcurementOrderActionView(LoginRequiredMixin, View):
+    def get(self, request, order_id, action, *args, **kwargs):
         order = get_object_or_404(ProcurementOrder, id=order_id)
 
-        if action == 'approve':
+        if action == "approve":
             order.admin_approve_status = AdminApproveStatus.ACCEPTED
             messages.success(request, "Order approved successfully.")
-        elif action == 'reject':
+        elif action == "reject":
             order.admin_approve_status = AdminApproveStatus.REJECTED
             messages.success(request, "Order rejected successfully.")
+        else:
+            messages.error(request, "Invalid action.")
 
         order.save()
-        return redirect('procurement:procurement_order_list')
+        return redirect("procurement:procurement_order_list")
+
 
 class ProcurementOrderRetrieveUpdateView(
     SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView
