@@ -109,15 +109,10 @@ Order{% endblock title %} {% block extrastyle %}
 
   <section class="company-info row mb-4 address-container" >
     <div class="company-details col-md-6" style="max-width: fit-content !important;">
-      <!-- <h5 style="color: #fca311;">DIMPLE COLLECTION</h5> -->
       <p class="bottom-margin">E-21, Kamla Nagar</p>
       <p class="bottom-margin">Agra, (UP) - 282005</p>
       <p class="bottom-margin">Phone: +91 7060006904</p>
       <p class="bottom-margin">Email: dimplecollectionretail@gmail.com</p>
-      <p>
-        Website:
-        <a href="https://dimplecollection.com">https://dimplecollection.com</a>
-      </p>
     </div>
     <div class="order-details col-md-3" style="max-width: fit-content !important;">
       <table class="table table-bordered table-striped" style="margin-right: 30px; max-width: fit-content;">
@@ -147,7 +142,8 @@ Order{% endblock title %} {% block extrastyle %}
         <select name="vendor" id="vendor">
         </select>
     </p>
-    <p>[STRIDE]</p>
+    <p id="vendor-name"></p>
+    <p id="vendor-supplier_name"></p>
     <p id="vendor-address"></p>
   </section>
 
@@ -168,11 +164,12 @@ Order{% endblock title %} {% block extrastyle %}
       </thead>
       <tbody>
         <tr>
-          <td colspan="4"></td>
-          <td colspan="4" style="color:red;">Please send all goods as soon as possible.</td>
+          <td colspan="4" id="intent_no"></td>
+          <td colspan="4" style="color:red;" id="tos">Please Send All Good As soon As Possible.</td>
         </tr>
         <tr >
           <th class="table-center-box">ARTICLE NO</th>
+          <th class="table-center-box">Remark</th>
           <th class="table-center-box">ITEM</th>
           <th class="table-center-box">COLOR</th>
           <th class="table-center-box">28</th>
@@ -190,7 +187,7 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">50</th>
           <th class="table-center-box">52</th>
           <th class="table-center-box">Quantity</th>
-          <th class="table-center-box">Remark</th>
+          <th class="table-center-box">Notes</th>
         </tr>
         <!-- Existing rows will be here -->
       </tbody>
@@ -217,7 +214,14 @@ Order{% endblock title %} {% block extrastyle %}
             name="color"
             class="form-control"
             placeholder="Color"
-            required
+          />
+        </div>
+        <div class="col">
+          <input
+            type="text"
+            name="colorCode"
+            class="form-control"
+            placeholder="Color Code"
           />
         </div>
         <div class="col">
@@ -275,18 +279,23 @@ Order{% endblock title %} {% block extrastyle %}
   });
 </script>
 <script>
+    var isColorCode = false;
+    const intent_no = document.getElementById('intent_no');
+    intent_no.contentEditable = "true";
+    const tos = document.getElementById('tos');
+    tos.contentEditable = "true";
 
-document.getElementById("print-btn").addEventListener("click", function () {
+    document.getElementById("print-btn").addEventListener("click", function () {
       window.print();
     });
 
     function updateQuantity(row) {
       const cells = row.cells;
       let sum = 0;
-      for (let i = 3; i <= 16; i++) {
+      for (let i = 4; i <= 17; i++) {
         sum += parseInt(cells[i].textContent.trim()) || 0;
       }
-      cells[17].textContent = sum;
+      cells[18].textContent = sum;
     }
 
     var brand, firstBrand=null;
@@ -319,6 +328,10 @@ document.getElementById("print-btn").addEventListener("click", function () {
             firstBrand = brand;
             const addressElement = document.getElementById('vendor-address');
             addressElement.innerHTML = firstBrand.address;
+            const brandElement = document.getElementById("vendor-name");
+            brandElement.innerHTML = firstBrand.brand_name;
+            const supplierElement = document.getElementById('vendor-supplier_name');
+            supplierElement.innerHTML = `[${firstBrand.supplier_name}]`;
           }
           const option = document.createElement('option');
           option.value = brand.id;
@@ -332,6 +345,10 @@ document.getElementById("print-btn").addEventListener("click", function () {
           const selectedBrand = brand.find(data => data.id == selectedBrandId);
           const addressElement = document.getElementById('vendor-address');
           addressElement.innerHTML = selectedBrand.address;
+          const brandElement = document.getElementById("vendor-name");
+          brandElement.innerHTML = firstBrand.brand_name;
+          const supplierElement = document.getElementById('vendor-supplier_name');
+          supplierElement.innerHTML = `[${selectedBrand.supplier_name}]`;
         });
       })
       .catch(error => {
@@ -349,7 +366,13 @@ document.getElementById("print-btn").addEventListener("click", function () {
         const articleNo = event.target.article_number.value;
         const item = event.target.item.options[event.target.item.selectedIndex].text;
         const itemVal = event.target.item.value;
-        const color = event.target.color.value;
+        var color = event.target.color.value;
+        var colorCode = event.target.colorCode.value;
+
+        if(colorCode){
+          color = colorCode;
+          isColorCode = true;
+        }
 
         // Create new row
         const newRow = document.createElement("tr");
@@ -357,14 +380,19 @@ document.getElementById("print-btn").addEventListener("click", function () {
         // Create cells
         const articleNoCell = document.createElement("td");
         articleNoCell.textContent = articleNo;
+        const remarkNoCell = document.createElement("td");
+        remarkNoCell.contentEditable = "true";
+        remarkNoCell.textContent = "";
         const itemCell = document.createElement("td");
         itemCell.textContent = item;
         itemCell.setAttribute("data-item-val", itemVal);
         const colorCell = document.createElement("td");
         colorCell.textContent = color;
+        colorCell.setAttribute("data-is-color-code-val", isColorCode);
 
         // Append cells to row
         newRow.appendChild(articleNoCell);
+        newRow.appendChild(remarkNoCell);
         newRow.appendChild(itemCell);
         newRow.appendChild(colorCell);
 
@@ -382,9 +410,9 @@ document.getElementById("print-btn").addEventListener("click", function () {
         quantityCell.textContent = "0";
         newRow.appendChild(quantityCell);
 
-        const remarkCell = document.createElement("td");
-        remarkCell.contentEditable = "true";
-        newRow.appendChild(remarkCell);
+        const noteCell = document.createElement("td");
+        noteCell.contentEditable = "true";
+        newRow.appendChild(noteCell);
 
         // Append new row to table
         document.querySelector("#order-items-table tbody").appendChild(newRow);
@@ -426,7 +454,7 @@ document.getElementById("print-btn").addEventListener("click", function () {
         const sizes = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
 
         sizes.forEach((size, idx) => {
-          const value = parseInt(cells[idx + 3].textContent.trim());
+          const value = parseInt(cells[idx + 4].textContent.trim());
           if (!isNaN(value) && value > 0) {
             quantityAndSize[size] = value;
           }
@@ -434,14 +462,17 @@ document.getElementById("print-btn").addEventListener("click", function () {
 
         // Add the quantity and remark
         quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
-        const remark = cells[18].textContent.trim();
+        const note = cells[19].textContent.trim();
+        const remarks = cells[1].textContent.trim();
 
         const item = {
           article_number: cells[0].textContent.trim(),
-          item: cells[1].getAttribute('data-item-val'),
-          color: cells[2].textContent.trim(),
+          item: cells[2].getAttribute('data-item-val'),
+          color: cells[3].textContent.trim(),
+          is_color_code: cells[3].getAttribute('data-is-color-code-val'),
           quantity_and_size: quantityAndSize,
-          remark: remark
+          note: note,
+          remarks: remarks
         };
 
         items.push(item);
@@ -463,6 +494,8 @@ document.getElementById("print-btn").addEventListener("click", function () {
           {
             items: items,
             vendor: vendor,
+            intent_no: intent_no.textContent.trim(),
+            tos: tos.textContent.trim(),
             due_date: dueDate
           }
         )
@@ -470,19 +503,16 @@ document.getElementById("print-btn").addEventListener("click", function () {
       .then(response => response.json())
       .then(data => {
         if (data.status === 'success' ) {
-            console.log("!!!!!!!!!!!!!11")
             $('#poModal .modal-title').text("Success!");
             $('#poModal .modal-body').text("Data Saved Successfully!");
             $('#poModal').modal('show');
         } else {
-            console.log("@@@@@@@@@@@@@@@")
             $('#errorModal .modal-title').text("Error!");
             $('#errorModal .modal-body').text(data.error);
             $('#errorModal').modal('show');
         }
       })
       .catch((error) => {
-            console.log("^^^^^^^^^^^")
             $('#errorModal .modal-title').text("Error!");
             $('#errorModal .modal-body').text(error);
             $('#errorModal').modal('show');

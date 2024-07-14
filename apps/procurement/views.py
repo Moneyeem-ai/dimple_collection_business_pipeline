@@ -45,13 +45,21 @@ class ProcurementOrderCreateView(
             data = json.loads(request.body)
             due_date = data.get("due_date")
             vendor_id = data.get("vendor")
+            intent_no = data.get("intent_no")
             brand = Brand.objects.get(id=vendor_id)
             items = data.get("items")
-            order = ProcurementOrder.objects.create(due_date=due_date, brand=brand)
+            order = ProcurementOrder.objects.create(due_date=due_date, brand=brand,)
             for item in items:
                 article_number = item.get("article_number")
                 department_id = item.get("item")
-
+                is_color_code = item.get("is_color_code")
+                if is_color_code:
+                    color_code = item.get("color")
+                    color = None
+                else:
+                    color = item.get("color")
+                    color_code = None
+                
                 department = Department.objects.get(id=department_id)
                 po_metadata = {"article_number": article_number}
                 product, _ = Product.objects.get_or_create(
@@ -59,7 +67,8 @@ class ProcurementOrderCreateView(
                 )
                 ProcurementItem.objects.create(
                     order=order,
-                    color=item.get("color"),
+                    color=color,
+                    color_code=color_code,
                     product=product,
                     quantity_and_size=item.get("quantity_and_size"),
                 )
