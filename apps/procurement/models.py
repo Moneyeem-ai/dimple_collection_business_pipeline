@@ -59,6 +59,12 @@ class ProcurementItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def get_color(self):
+        if self.color:
+            return self.color
+        return self.color_code
+
 
 class ProcuredProduct(models.Model):
     po_items = ArrayField(models.IntegerField(), default=list)
