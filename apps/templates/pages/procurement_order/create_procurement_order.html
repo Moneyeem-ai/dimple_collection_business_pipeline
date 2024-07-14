@@ -111,7 +111,7 @@ Order{% endblock title %} {% block extrastyle %}
 {% endblock extrastyle %} {% block content %}
 <div class="" style="margin:0 50px !important;">
     {% include 'includes/modal.html' %}  
-  <header class="header mb-4">
+  <header class="header mb-4 pt-4">
     <img src="{% static 'images/FinalLogo.jpg' %}" alt="Logo" class="d-inline-block align-top" height="250" width="350" style="border-radius: 8px;">
   </header>
 
@@ -257,7 +257,7 @@ Order{% endblock title %} {% block extrastyle %}
     </ol>
   </section>
 
-  <section class="actions mb-4">
+  <section class="actions pb-4 m-0">
     {% csrf_token %}
     <button class="btn btn-warning" id="draft-btn">Draft</button>
     <button class="btn btn-success" id="print-btn">Print</button>
@@ -469,7 +469,7 @@ Order{% endblock title %} {% block extrastyle %}
         });
 
         // Add the quantity and remark
-        quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
+        quantityAndSize["quantity"] = parseInt(cells[18].textContent.trim());
         const note = cells[19].textContent.trim();
         const remarks = cells[1].textContent.trim();
 

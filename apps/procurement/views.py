@@ -55,10 +55,13 @@ class ProcurementOrderCreateView(
                 intent_number=intent_number,
                 terms_of_shipment=terms_of_shipment,
             )
+            print(items)
             for item in items:
                 article_number = item.get("article_number")
                 department_id = item.get("item")
                 is_color_code = item.get("is_color_code")
+                remarks = item.get("remarks")
+                note = item.get("note")
                 if is_color_code:
                     color_code = item.get("color")
                     color = None
@@ -77,6 +80,8 @@ class ProcurementOrderCreateView(
                     color_code=color_code,
                     product=product,
                     quantity_and_size=item.get("quantity_and_size"),
+                    remarks=remarks,
+                    notes=note
                 )
             return JsonResponse(
                 {
