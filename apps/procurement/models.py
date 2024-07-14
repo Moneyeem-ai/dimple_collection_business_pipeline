@@ -19,6 +19,10 @@ class AdminApproveStatus(models.TextChoices):
     REJECTED = "rejected", gtl("Rejected")
 
 
+class TermsandCondition(models.Model):
+    tnc = models.CharField(max_length=2048, default=None, null=True)
+
+
 class ProcurementOrder(models.Model):
     status = models.CharField(
         max_length=16,
@@ -37,7 +41,6 @@ class ProcurementOrder(models.Model):
     terms_of_shipment = models.CharField(
         max_length=1024, default="Please Send All Good As soon As Possible.", null=True
     )
-    tnc = models.CharField(max_length=2048, default=None, null=True)
     due_date = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

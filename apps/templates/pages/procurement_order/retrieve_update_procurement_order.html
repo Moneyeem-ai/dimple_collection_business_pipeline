@@ -156,7 +156,7 @@ Order{% endblock title %} {% block extrastyle %}
     <p>Please send all goods as soon as possible.</p>
   </section> -->
 
-  <section class="order-items mb-4" style="margin-top: 120px;">
+  <section class="order-items mb-4">
     <div  style="overflow-x: scroll;">
 
       <table class="table table-bordered" id="order-items-table">
@@ -168,8 +168,8 @@ Order{% endblock title %} {% block extrastyle %}
       </thead>
       <tbody>
         <tr>
-          <td colspan="4"></td>
-          <td colspan="4" style="color:red;">Please send all goods as soon as possible.</td>
+          <td colspan="4">{{ po.intent_number }}</td>
+          <td colspan="4" style="color:red;">{{ po.terms_of_shipment }}</td>
         </tr>
         <tr >
           <th class="table-center-box">ARTICLE NO</th>
