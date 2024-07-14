@@ -63,7 +63,11 @@
                         <td>{{ order.created_at }}</td>
                         <td>{{ order.updated_at }}</td>
                         <td>
-                            <a href="{% url 'procurement:procurement_detail' order.id %}"><button class="btn btn-primary">View</button></a>
+                          <a href="{% url 'procurement:procurement_detail' order.id %}"><button class="btn btn-primary">View</button></a>
+                          {% if is_admin and order.admin_approve_status == 'pending' %}
+                          <button class="btn btn-success" onclick="updateOrder('{{ order.id }}', 'approve')"><i class="fas fa-check"></i></button>
+                          <button class="btn btn-danger" onclick="updateOrder('{{ order.id }}', 'reject')"><i class="fas fa-times"></i></button>
+                          {% endif %}
                         </td>
                     </tr>
                     {% endfor %}
@@ -141,5 +145,45 @@
       "responsive": true,
     });
   });
+
+  function getCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === 'csrftoken=') {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+  function updateOrder(orderId, action) {
+    showOverlay();
+    fetch("{% url 'procurement:procurement_order_list' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": document.querySelector('input[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ order_id: orderId, action: action })
+    })
+    .then(response => {
+      hideOverlay();
+      if (response.ok) {
+        location.reload();
+      } else {
+        alert("Failed to update order status.");
+      }
+    })
+    .catch(error => {
+      hideOverlay();
+      console.error("Error:", error);
+      alert("An error occurred.");
+    });
+  }
 </script>
 {% endblock extra_scripts %}

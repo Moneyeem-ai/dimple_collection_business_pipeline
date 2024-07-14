@@ -6,6 +6,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import redirect,get_object_or_404
+from django.contrib import messages
 
 
 from apps.product.serializers import BrandSerializer
@@ -14,13 +16,18 @@ from apps.product.models import Product
 from apps.department.models import Department, Brand
 from apps.procurement.models import ProcurementOrder, ProcurementItem
 from apps.procurement.forms import ProcurementOrderForm
+from apps.procurement.models import AdminApproveStatus
+from apps.user.models import UserType
 from rest_framework import generics as drf_generics
 from rest_framework.response import Response
 from rest_framework import status
 from apps.department.models import Brand
+from apps.procurement.models import AdminApproveStatus
 
 
-class ProcurementOrderCreateView(SideBarSelectedMixin, LoginRequiredMixin, generic.CreateView):
+class ProcurementOrderCreateView(
+    SideBarSelectedMixin, LoginRequiredMixin, generic.CreateView
+):
     model = ProcurementOrder
     form_class = ProcurementOrderForm
     parent = "procurement"
@@ -40,23 +47,15 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, LoginRequiredMixin, gener
             vendor_id = data.get("vendor")
             brand = Brand.objects.get(id=vendor_id)
             items = data.get("items")
-            order = ProcurementOrder.objects.create(
-                due_date=due_date,
-                brand=brand
-            )       
+            order = ProcurementOrder.objects.create(due_date=due_date, brand=brand)
             for item in items:
                 article_number = item.get("article_number")
                 department_id = item.get("item")
 
-                department = Department.objects.get(
-                    id=department_id
-                )
-                po_metadata = {
-                    "article_number": article_number
-                }
+                department = Department.objects.get(id=department_id)
+                po_metadata = {"article_number": article_number}
                 product, _ = Product.objects.get_or_create(
-                    department=department,
-                    po_metadata=po_metadata
+                    department=department, po_metadata=po_metadata
                 )
                 ProcurementItem.objects.create(
                     order=order,
@@ -75,15 +74,50 @@ class ProcurementOrderCreateView(SideBarSelectedMixin, LoginRequiredMixin, gener
             return JsonResponse({"status": "error", "message": str(e)})
 
 
-class ProcurementOrderListView(SideBarSelectedMixin, LoginRequiredMixin, generic.ListView):
+class ProcurementOrderListView(
+    SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
+):
     model = ProcurementOrder
     parent = "procurement"
     segment = "procurement_order_list"
     template_name = "pages/procurement_order/procurement_order_list.html"
     context_object_name = "orders"
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.user_type == UserType.COMPANY_OWNER:
+            return ProcurementOrder.objects.all()
+        else:
+            return ProcurementOrder.objects.filter(
+                admin_approve_status=AdminApproveStatus.ACCEPTED
+            )
 
-class ProcurementOrderRetrieveUpdateView(SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_admin"] = (
+            self.request.user.is_superuser
+            or self.request.user.user_type == UserType.COMPANY_OWNER
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
+        order_id = request.POST.get('order_id')
+        action = request.POST.get('action')
+        order = get_object_or_404(ProcurementOrder, id=order_id)
+
+        if action == 'approve':
+            order.admin_approve_status = 'accepted'
+            messages.success(request, "Order approved successfully.")
+        elif action == 'reject':
+            order.admin_approve_status = 'rejected'
+            messages.success(request, "Order rejected successfully.")
+
+        order.save()
+        return redirect('procurement:procurement_order_list')
+
+class ProcurementOrderRetrieveUpdateView(
+    SideBarSelectedMixin, LoginRequiredMixin, generic.TemplateView
+):
     model = ProcurementOrder
     parent = "procurement"
     segment = "retrieve_update_procurement_order"

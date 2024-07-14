@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import User
+from apps.user.models import UserType,User
 
 
 class LoginForm(forms.Form):
@@ -32,7 +32,7 @@ class SignUpForm(UserCreationForm):
         required=True
         )
     user_type = forms.ChoiceField(
-        choices=User.UserType.choices,
+        choices=UserType.choices,
         widget=forms.Select(
             attrs={
                 'class': 'form-control', 

@@ -12,12 +12,21 @@ class ProcurementStatus(models.TextChoices):
     PAUSE = "pause", gtl("Pause")
     DONE = "done", gtl("Done")
 
+class AdminApproveStatus(models.TextChoices):
+    PENDING = "pending", gtl("Pending")
+    ACCEPTED = "accepted", gtl("Accepted")
+    REJECTED = "rejected", gtl("Rejected")
 
 class ProcurementOrder(models.Model):
     status = models.CharField(
         max_length=16,
         choices=ProcurementStatus.choices,
         default=ProcurementStatus.ONGOING,
+    )
+    admin_approve_status = models.CharField(
+        max_length=16,
+        choices=AdminApproveStatus.choices,
+        default=AdminApproveStatus.PENDING,
     )
     brand = models.ForeignKey(Brand, null=True, blank=True, default=None, on_delete=models.CASCADE)
     intent_number = models.CharField(max_length=512, default=None, null=True)
