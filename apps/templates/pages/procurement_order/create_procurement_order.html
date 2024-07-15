@@ -98,26 +98,26 @@ Order{% endblock title %} {% block extrastyle %}
     .add-item-form, #vendor,#draft-btn,#print-btn {
       display: none;
     }
+    .company-logo img {
+      background-color: white !important;
+    }
   }
 </style>
 {% endblock extrastyle %} {% block content %}
 <div class="" style="margin:0 50px !important;">
     {% include 'includes/modal.html' %}  
   <header class="header mb-4">
-    <img src="{% static 'images/FinalLogo.jpg' %}" alt="Logo" class="d-inline-block align-top" height="250" width="350" style="border-radius: 8px;">
+    <img src="{% static 'images/FinalLogo.png' %}" alt="Logo" class="d-inline-block align-top company-logo" height="300" width="350" style="border-radius: 8px;">
   </header>
 
   <section class="company-info row mb-4 address-container" >
     <div class="company-details col-md-6" style="max-width: fit-content !important;">
       <!-- <h5 style="color: #fca311;">DIMPLE COLLECTION</h5> -->
-      <p class="bottom-margin">E-21, Kamla Nagar</p>
-      <p class="bottom-margin">Agra, (UP) - 282005</p>
-      <p class="bottom-margin">Phone: +91 7060006904</p>
-      <p class="bottom-margin">Email: dimplecollectionretail@gmail.com</p>
-      <p>
-        Website:
-        <a href="https://dimplecollection.com">https://dimplecollection.com</a>
-      </p>
+      <p class="bottom-margin">E-21, Bypass Rd </p>
+    <p class="bottom-margin">Near Anjuman Hotel, Professors Colony, Ghatwasan, </p>
+    <p class="bottom-margin">Kamla Nagar, Agra, Uttar Pradesh 282005</p>
+    <p class="bottom-margin">Phone: <a href="tel:+917060006904">+91 7060006904</a></p>
+    <p class="bottom-margin">Email: <a href="mailto:dimplecollectionretail@gmail.com">dimplecollectionretail@gmail.com</a></p>
     </div>
     <div class="order-details col-md-3" style="max-width: fit-content !important;">
       <table class="table table-bordered table-striped" style="margin-right: 30px; max-width: fit-content;">
