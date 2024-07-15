@@ -45,12 +45,29 @@ class ProcurementOrderCreateView(
             data = json.loads(request.body)
             due_date = data.get("due_date")
             vendor_id = data.get("vendor")
+            intent_number = data.get("intent_no")
+            terms_of_shipment = data.get("tos")
             brand = Brand.objects.get(id=vendor_id)
             items = data.get("items")
-            order = ProcurementOrder.objects.create(due_date=due_date, brand=brand)
+            order = ProcurementOrder.objects.create(
+                due_date=due_date,
+                brand=brand,
+                intent_number=intent_number,
+                terms_of_shipment=terms_of_shipment,
+            )
+            print(items)
             for item in items:
                 article_number = item.get("article_number")
                 department_id = item.get("item")
+                is_color_code = item.get("is_color_code")
+                remarks = item.get("remarks")
+                note = item.get("note")
+                if is_color_code:
+                    color_code = item.get("color")
+                    color = None
+                else:
+                    color = item.get("color")
+                    color_code = None
 
                 department = Department.objects.get(id=department_id)
                 po_metadata = {"article_number": article_number}
@@ -59,9 +76,12 @@ class ProcurementOrderCreateView(
                 )
                 ProcurementItem.objects.create(
                     order=order,
-                    color=item.get("color"),
+                    color=color,
+                    color_code=color_code,
                     product=product,
                     quantity_and_size=item.get("quantity_and_size"),
+                    remarks=remarks,
+                    notes=note
                 )
             return JsonResponse(
                 {
@@ -82,6 +102,7 @@ class ProcurementOrderListView(
     segment = "procurement_order_list"
     template_name = "pages/procurement_order/procurement_order_list.html"
     context_object_name = "orders"
+    ordering = "-created_at"
 
     def get_queryset(self):
         user = self.request.user
@@ -91,11 +112,11 @@ class ProcurementOrderListView(
                     AdminApproveStatus.PENDING,
                     AdminApproveStatus.ACCEPTED,
                 ]
-            )
+            ).order_by("-created_at")
         else:
             return ProcurementOrder.objects.filter(
                 admin_approve_status=AdminApproveStatus.ACCEPTED
-            )
+            ).order_by("-created_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
