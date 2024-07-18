@@ -136,7 +136,7 @@ Order{% endblock title %} {% block extrastyle %}
               </tr>
               <tr>
                   <td class="table-left-box">PO#</td>
-                  <td>-</td>
+                  <td id="po-number"></td>
               </tr>
               <tr>
                   <td class="table-left-box">Due Date</td>
@@ -172,13 +172,13 @@ Order{% endblock title %} {% block extrastyle %}
         <thead>
         <tr>
           <th colspan="4" class="table-center-box">INDENT NO.</th>
-          <th colspan="4" class="table-center-box">TERMS OF SHIPMENT</th>
+          <th colspan="16" class="table-center-box">TERMS OF SHIPMENT</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td colspan="4" id="intent_no"></td>
-          <td colspan="4" style="color:red;" id="tos">Please Send All Good As soon As Possible.</td>
+          <td colspan="4" id="intent_no" contenteditable="true"></td>
+          <td colspan="16" style="color:red;" id="tos" contenteditable="true">Please Send All Good As soon As Possible.</td>
         </tr>
         <tr >
           <th class="table-center-box">ARTICLE NO</th>
@@ -204,6 +204,26 @@ Order{% endblock title %} {% block extrastyle %}
         </tr>
         <!-- Existing rows will be here -->
       </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="table-center-box">Total Quantity</td>
+          <td class="table-center-box" id="total-28">0</td>
+          <td class="table-center-box" id="total-30">0</td>
+          <td class="table-center-box" id="total-32">0</td>
+          <td class="table-center-box" id="total-34">0</td>
+          <td class="table-center-box" id="total-36">0</td>
+          <td class="table-center-box" id="total-38">0</td>
+          <td class="table-center-box" id="total-39">0</td>
+          <td class="table-center-box" id="total-40">0</td>
+          <td class="table-center-box" id="total-42">0</td>
+          <td class="table-center-box" id="total-44">0</td>
+          <td class="table-center-box" id="total-46">0</td>
+          <td class="table-center-box" id="total-48">0</td>
+          <td class="table-center-box" id="total-50">0</td>
+          <td class="table-center-box" id="total-52">0</td>
+          <td class="table-center-box" id="total-quantity">0</td>
+          </tr>
+      </tfoot>
     </table>
   </div>
     <form class="add-item-form mt-3" id="add-item-form">
@@ -289,6 +309,7 @@ Order{% endblock title %} {% block extrastyle %}
       var options = { year: 'numeric', month: 'long', day: 'numeric' };
       var formattedDate = currentDate.toLocaleDateString('en-US', options);
       document.getElementById('current-date').textContent = formattedDate;
+      
   });
 </script>
 <script>
@@ -301,17 +322,52 @@ Order{% endblock title %} {% block extrastyle %}
     document.getElementById("print-btn").addEventListener("click", function () {
       window.print();
     });
-
     function updateQuantity(row) {
-      const cells = row.cells;
-      let sum = 0;
-      for (let i = 4; i <= 17; i++) {
-        sum += parseInt(cells[i].textContent.trim()) || 0;
-      }
-      cells[18].textContent = sum;
+        const cells = row.cells;
+        let sum = 0;
+        for (let i = 4; i <= 17; i++) {
+            sum += parseInt(cells[i].textContent.trim()) || 0;
+        }
+        cells[18].textContent = sum;
+        updateTotalQuantity();
+    }
+    function updateTotalQuantity() {
+        const tableBody = document.querySelector("#order-items-table tbody");
+        const totalCells = {};
+        const sizeColumns = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
+        
+        // Initialize totals
+        sizeColumns.forEach(size => {
+            totalCells[size] = 0;
+        });
+        
+        // Sum up each column, ignoring the first row
+        Array.from(tableBody.rows).forEach((row, rowIndex) => {
+            if (rowIndex > 1) {
+                sizeColumns.forEach((size, idx) => {
+                    const cellIndex = idx + 4; // Size columns start at index 4
+                    const value = parseInt(row.cells[cellIndex]?.textContent.trim());
+                    console.log(`Value in row ${rowIndex} for size ${size}: ${value}`);
+                    if (!isNaN(value)) {
+                        totalCells[size] += value;
+                    }
+                });
+            }
+        });
+
+        // Update total quantity cells
+        sizeColumns.forEach(size => {
+            console.log(`Total for ${size}: ${totalCells[size]}`); // Debug statement
+            document.getElementById(`total-${size}`).textContent = totalCells[size];
+        });
+
+        // Update the total of total quantities
+        const totalQuantity = sizeColumns.reduce((sum, size) => sum + totalCells[size], 0);
+        console.log(`Total quantity: ${totalQuantity}`); // Debug statement
+        document.getElementById('total-quantity').textContent = totalQuantity;
     }
 
-    var brand, firstBrand=null;
+        var brand, firstBrand=null;
 
     fetch('/department/api/department/list/')
       .then(response => response.json())
@@ -330,44 +386,47 @@ Order{% endblock title %} {% block extrastyle %}
         // Handle error as needed
       });
 
-    fetch('/department/api/brand/list/')
-      .then(response => response.json())
-      .then(data => {
-        const vendorSelect = document.getElementById('vendor');
-        vendorSelect.innerHTML = ''; // Clear existing options
-        brand = data;
-        data.forEach(brand => {
-          if (!firstBrand) {
-            firstBrand = brand;
-            const addressElement = document.getElementById('vendor-address');
-            addressElement.innerHTML = firstBrand.address;
-            const brandElement = document.getElementById("vendor-name");
-            brandElement.innerHTML = firstBrand.brand_name;
-            const supplierElement = document.getElementById('vendor-supplier_name');
-            supplierElement.innerHTML = `[${firstBrand.supplier_name}]`;
-          }
-          const option = document.createElement('option');
-          option.value = brand.id;
-          option.textContent = brand.brand_name;
-          vendorSelect.appendChild(option);
-        });
 
-        // Handle vendor change event
-        vendorSelect.addEventListener('change', function() {
-          const selectedBrandId = this.value;
-          const selectedBrand = brand.find(data => data.id == selectedBrandId);
-          const addressElement = document.getElementById('vendor-address');
-          addressElement.innerHTML = selectedBrand.address;
-          const brandElement = document.getElementById("vendor-name");
-          brandElement.innerHTML = firstBrand.brand_name;
-          const supplierElement = document.getElementById('vendor-supplier_name');
-          supplierElement.innerHTML = `[${selectedBrand.supplier_name}]`;
-        });
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // Handle error as needed
+      var brandsData = null;
+  fetch('/department/api/brand/list/')
+    .then(response => response.json())
+    .then(data => {
+      brandsData = data;
+      const vendorSelect = document.getElementById('vendor');
+      vendorSelect.innerHTML = ''; // Clear existing options
+      data.forEach(brand => {
+        const option = document.createElement('option');
+        option.value = brand.id;
+        option.textContent = brand.brand_name;
+        vendorSelect.appendChild(option);
       });
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+
+  document.getElementById('vendor').addEventListener('change', function() {
+    const selectedBrandId = this.value;
+    const selectedBrand = brandsData.find(brand => brand.id == selectedBrandId);
+    const addressElement = document.getElementById('vendor-address');
+    addressElement.innerHTML = selectedBrand.address;
+    const brandElement = document.getElementById("vendor-name");
+    brandElement.innerHTML = selectedBrand.brand_name;
+    const supplierElement = document.getElementById('vendor-supplier_name');
+    supplierElement.innerHTML = `[${selectedBrand.supplier_name}]`; 
+    const intentNumber = document.getElementById('intent_no').textContent.trim();
+    const poNumber = `DC/${selectedBrand.brand_code}/${intentNumber}`; <!-- Highlighted: Logic to update PO number -->
+    document.getElementById('po-number').textContent = poNumber; 
+  });
+
+  document.getElementById('intent_no').addEventListener('input', function() {
+    const selectedBrandId = document.getElementById('vendor').value;
+    const selectedBrand = brandsData.find(brand => brand.id == selectedBrandId);
+    const intentNumber = this.textContent.trim();
+    const poNumber = `DC/${selectedBrand.brand_code}/${intentNumber}`;
+    document.getElementById('po-number').textContent = poNumber; 
+  });
+
 
     document.addEventListener("DOMContentLoaded", function () {
     document
@@ -388,59 +447,101 @@ Order{% endblock title %} {% block extrastyle %}
         }
 
         // Create new row
-        const newRow = document.createElement("tr");
+        const colorValues = color.split(',').map(c => c.trim());
 
-        // Create cells
-        const articleNoCell = document.createElement("td");
-        articleNoCell.textContent = articleNo;
-        const remarkNoCell = document.createElement("td");
-        remarkNoCell.contentEditable = "true";
-        remarkNoCell.textContent = "";
-        const itemCell = document.createElement("td");
-        itemCell.textContent = item;
-        itemCell.setAttribute("data-item-val", itemVal);
-        const colorCell = document.createElement("td");
-        colorCell.textContent = color;
-        colorCell.setAttribute("data-is-color-code-val", isColorCode);
+        colorValues.forEach(singleColor => {
+            // Create new row
+            const newRow = document.createElement("tr");
 
-        // Append cells to row
-        newRow.appendChild(articleNoCell);
-        newRow.appendChild(remarkNoCell);
-        newRow.appendChild(itemCell);
-        newRow.appendChild(colorCell);
+            // Create cells
+            const articleNoCell = document.createElement("td");
+            articleNoCell.textContent = articleNo;
+            const remarkNoCell = document.createElement("td");
+            remarkNoCell.contentEditable = "true";
+            remarkNoCell.textContent = "";
+            const itemCell = document.createElement("td");
+            itemCell.textContent = item;
+            itemCell.setAttribute("data-item-val", itemVal);
+            const colorCell = document.createElement("td");
+            colorCell.textContent = singleColor;
+            colorCell.setAttribute("data-is-color-code-val", isColorCode);
 
-        // Create editable cells for sizes
-        for (let i = 0; i < 14; i++) {
-          const sizeCell = document.createElement("td");
-          sizeCell.contentEditable = "true";
-          sizeCell.textContent = "0";
-          newRow.appendChild(sizeCell);
-        }
+            // Append cells to row
+            newRow.appendChild(articleNoCell);
+            newRow.appendChild(remarkNoCell);
+            newRow.appendChild(itemCell);
+            newRow.appendChild(colorCell);
 
-        // Append quantity and remark cells
-        const quantityCell = document.createElement("td");
-        // quantityCell.contentEditable = "true";
-        quantityCell.textContent = "0";
-        newRow.appendChild(quantityCell);
+            // Create editable cells for sizes
+            for (let i = 0; i < 14; i++) {
+                const sizeCell = document.createElement("td");
+                sizeCell.contentEditable = "true";
+                sizeCell.textContent = "0";
+                sizeCell.addEventListener("input", function() {
+                    updateQuantity(newRow);
+                });
+                newRow.appendChild(sizeCell);
+            }
 
-        const noteCell = document.createElement("td");
-        noteCell.contentEditable = "true";
-        newRow.appendChild(noteCell);
 
-        // Append new row to table
-        document.querySelector("#order-items-table tbody").appendChild(newRow);
+            // Append quantity and remark cells
+            const quantityCell = document.createElement("td");
+            quantityCell.textContent = "0";
+            newRow.appendChild(quantityCell);
 
-        // Clear form
+            const noteCell = document.createElement("td");
+            noteCell.contentEditable = "true";
+            newRow.appendChild(noteCell);
+
+            // Append new row to table
+            document.querySelector("#order-items-table tbody").appendChild(newRow);
+            updateTotalQuantity();
+        });
         event.target.reset();
       });
   });
 
-  document.querySelector("#order-items-table tbody").addEventListener("input", function (event) {
-      const targetCell = event.target;
-      if (targetCell.parentElement.tagName === "TR" && targetCell.cellIndex >= 3 && targetCell.cellIndex <= 16) {
-        updateQuantity(targetCell.parentElement);
-      }
+  document.querySelector("#order-items-table tbody").addEventListener("keydown", function (event) {
+    const targetCell = event.target;
+    const currentRow = targetCell.parentElement;
+    const currentCellIndex = targetCell.cellIndex;
+    const tableBody = currentRow.parentElement;
+    const currentRowIndex = Array.from(tableBody.rows).indexOf(currentRow);
+
+    let nextCell = null;
+
+    if (event.key === "ArrowRight") {
+        event.preventDefault();
+        nextCell = currentRow.cells[currentCellIndex + 1] || currentRow.cells[0];
+    } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        nextCell = currentRow.cells[currentCellIndex - 1] || currentRow.cells[currentRow.cells.length - 1];
+    } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        const nextRow = tableBody.rows[currentRowIndex + 1];
+        if (nextRow) {
+            nextCell = nextRow.cells[currentCellIndex];
+        }
+    } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        const prevRow = tableBody.rows[currentRowIndex - 1];
+        if (prevRow) {
+            nextCell = prevRow.cells[currentCellIndex];
+        }
+    }
+
+    if (nextCell) {
+        nextCell.focus();
+    }
+});
+
+document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").forEach(cell => {
+    cell.addEventListener("click", function() {
+        this.focus();
     });
+});
+
+
 
     document.addEventListener("DOMContentLoaded", function() {
   $('.datepicker').datepicker({
@@ -449,12 +550,14 @@ Order{% endblock title %} {% block extrastyle %}
   var today = new Date().toISOString().split('T')[0];
     $('#due-date').val(today);
 
+
   document.getElementById("draft-btn").addEventListener("click", function () {
     const dueDate = document.getElementById("due-date").value;
     const vendor = document.getElementById("vendor").value;
     const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
     const tableRows = document.querySelectorAll("#order-items-table tbody tr");
     const items = [];
+    const poNumber = document.getElementById('po-number').textContent.trim();
     // items.push(dueDate);
     // items.push(vendor);
 

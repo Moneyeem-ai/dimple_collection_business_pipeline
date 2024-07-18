@@ -1,13 +1,16 @@
 import json
 
 from django.views import generic
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
+from django.views.generic.edit import UpdateView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 
 from apps.product.serializers import BrandSerializer
@@ -48,14 +51,15 @@ class ProcurementOrderCreateView(
             intent_number = data.get("intent_no")
             terms_of_shipment = data.get("tos")
             brand = Brand.objects.get(id=vendor_id)
+            po = f"DC/{brand.brand_code}/{intent_number}"
             items = data.get("items")
             order = ProcurementOrder.objects.create(
                 due_date=due_date,
                 brand=brand,
                 intent_number=intent_number,
                 terms_of_shipment=terms_of_shipment,
+                po=po,
             )
-            print(items)
             for item in items:
                 article_number = item.get("article_number")
                 department_id = item.get("item")
@@ -92,6 +96,7 @@ class ProcurementOrderCreateView(
         except Exception as e:
             print(e)
             return JsonResponse({"status": "error", "message": str(e)})
+
 
 
 class ProcurementOrderListView(
@@ -187,3 +192,60 @@ class ProcurementOrderRetrieveUpdateView(
         except Exception as e:
             print(e)
             return JsonResponse({"status": "error", "message": str(e)})
+
+
+# class ProcurementOrderUpdateView(LoginRequiredMixin, UpdateView):
+#     model = ProcurementOrder
+#     form_class = ProcurementOrderForm
+#     template_name = "pages/procurement_order/update_procurement_order.html"
+#     context_object_name = "order"
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context["vendors"] = Brand.objects.all()
+#         context["order"] = self.object
+#         context["items"] = self.object.procurement_order.all()
+#         return context
+
+#     @method_decorator(csrf_exempt)
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
+
+#     def form_valid(self, form):
+#         self.object = form.save()
+#         data = json.loads(self.request.body)
+#         items = data.get('items')
+
+#         # Update ProcurementOrder fields
+#         self.object.due_date = data.get('due_date')
+#         self.object.intent_number = data.get('intent_no')
+#         self.object.terms_of_shipment = data.get('tos')
+#         self.object.brand = get_object_or_404(Brand, id=data.get('vendor'))
+#         self.object.save()
+
+#         for item in items:
+#             item_id = item.get("item_id")
+#             if item_id:
+#                 # Update existing item
+#                 po_item = get_object_or_404(ProcurementItem, id=item_id)
+#                 po_item.remarks = item.get("remarks", po_item.remarks)
+#                 po_item.notes = item.get("notes", po_item.notes)
+#                 po_item.color_code = item.get("color_code", po_item.color_code)
+#                 po_item.color = item.get("color", po_item.color)
+#                 po_item.quantity_and_size = item.get("quantity_and_size", po_item.quantity_and_size)
+#                 po_item.save()
+#             else:
+#                 # Create new item
+#                 ProcurementItem.objects.create(
+#                     order=self.object,
+#                     remarks=item.get("remarks"),
+#                     notes=item.get("notes"),
+#                     color_code=item.get("color_code"),
+#                     color=item.get("color"),
+#                     product_id=item.get("product_id"),
+#                     quantity_and_size=item.get("quantity_and_size")
+#                 )
+#         return JsonResponse({'status': 'success', 'message': 'Procurement order updated successfully.'})
+
+#     def get_success_url(self):
+#         return reverse("procurement:procurement_order_list")

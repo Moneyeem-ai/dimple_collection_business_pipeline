@@ -38,6 +38,7 @@ class ProcurementOrder(models.Model):
         Brand, null=True, blank=True, default=None, on_delete=models.CASCADE
     )
     intent_number = models.CharField(max_length=512, default=None, null=True)
+    po = models.CharField(max_length=512, default=None, null=True)
     terms_of_shipment = models.CharField(
         max_length=1024, default="Please Send All Good As soon As Possible.", null=True
     )

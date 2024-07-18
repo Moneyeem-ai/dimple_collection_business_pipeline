@@ -1,0 +1,366 @@
+<!-- update_procurement_order.html -->
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Update Procurement Order{% endblock title %}
+{% block extrastyle %}
+<link rel="stylesheet" href="{% static 'plugins/datatables-bs4/css/dataTables.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/datatables-responsive/css/responsive.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="{% static 'plugins/datatables-buttons/css/buttons.bootstrap4.min.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+{% endblock extrastyle %}
+{% block content %}
+<div style="margin:0 50px;">
+    {% include 'includes/modal.html' %}
+    <header class="header mb-4">
+        <img src="{% static 'images/FinalLogo.png' %}" alt="Logo" class="company-logo" height="300" width="350" style="border-radius: 8px;">
+    </header>
+
+    <section class="company-info row mb-4 address-container">
+        <div class="company-details col-md-6">
+            <p>E-21, Bypass Rd </p>
+            <p>Near Anjuman Hotel, Professors Colony, Ghatwasan, </p>
+            <p>Kamla Nagar, Agra, Uttar Pradesh 282005</p>
+            <p>Phone: <a href="tel:+917060006904">+91 7060006904</a></p>
+            <p>Email: <a href="mailto:dimplecollectionretail@gmail.com">dimplecollectionretail@gmail.com</a></p>
+        </div>
+        <div class="order-details col-md-3">
+            <table class="table table-bordered table-striped" style="margin-right: 30px;">
+                <tbody>
+                    <tr>
+                        <td class="table-left-box">Date</td>
+                        <td id="current-date">{{ order.created_at|date:"Y-m-d" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="table-left-box">PO#</td>
+                        <td>-</td>
+                    </tr>
+                    <tr>
+                        <td class="table-left-box">Due Date</td>
+                        <td><input type="text" id="due-date" class="form-control datepicker no-background" placeholder="Select Due Date" value="{{ order.due_date|date:'Y-m-d' }}"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="vendor-info mb-4">
+        <h3 style="text-align: center;">VENDOR</h3>
+        <hr />
+        <select name="vendor" id="vendor">
+            {% for vendor in vendors %}
+            <option value="{{ vendor.id }}" {% if vendor.id == order.brand.id %}selected{% endif %}>{{ vendor.brand_name }}</option>
+            {% endfor %}
+        </select>
+        <p id="vendor-name">{{ order.brand.brand_name }}</p>
+        <p id="vendor-supplier_name">[{{ order.brand.supplier_name }}]</p>
+        <p id="vendor-address">{{ order.brand.address }}</p>
+    </section>
+
+    <section class="order-items mb-4">
+        <div style="overflow-x: scroll;">
+            <table class="table table-bordered" id="order-items-table">
+                <thead>
+                    <tr>
+                        <th colspan="4" class="table-center-box">INDENT NO.</th>
+                        <th colspan="4" class="table-center-box">TERMS OF SHIPMENT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="4" id="intent_no" contenteditable="true">{{ order.intent_number }}</td>
+                        <td colspan="4" style="color:red;" id="tos" contenteditable="true">{{ order.terms_of_shipment }}</td>
+                    </tr>
+                    <tr>
+                        <th class="table-center-box">ARTICLE NO</th>
+                        <th class="table-center-box">Remark</th>
+                        <th class="table-center-box">ITEM</th>
+                        <th class="table-center-box">COLOR</th>
+                        <th class="table-center-box">28</th>
+                        <th class="table-center-box">30</th>
+                        <th class="table-center-box">32</th>
+                        <th class="table-center-box">34</th>
+                        <th class="table-center-box">36</th>
+                        <th class="table-center-box">38</th>
+                        <th class="table-center-box">39</th>
+                        <th class="table-center-box">40</th>
+                        <th class="table-center-box">42</th>
+                        <th class="table-center-box">44</th>
+                        <th class="table-center-box">46</th>
+                        <th class="table-center-box">48</th>
+                        <th class="table-center-box">50</th>
+                        <th class="table-center-box">52</th>
+                        <th class="table-center-box">Quantity</th>
+                        <th class="table-center-box">Notes</th>
+                    </tr>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.article_number }}</td>
+                        <td contenteditable="true">{{ item.remarks }}</td>
+                        <td data-item-val="{{ item.product.id }}">{{ item.product.product_name }}</td>
+                        <td data-is-color-code-val="{{ item.color_code }}">{{ item.color }}</td>
+                        {% for size, quantity in item.quantity_and_size.items %}
+                        <td contenteditable="true">{{ quantity }}</td>
+                        {% endfor %}
+                        <td>{{ item.quantity }}</td>
+                        <td contenteditable="true">{{ item.notes }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="actions pb-4 m-0">
+        {% csrf_token %}
+        <button class="btn btn-warning" id="update-btn">Update</button>
+        <button class="btn btn-success" id="print-btn">Print</button>
+    </section>
+</div>
+{% endblock content %}
+{% block extra_scripts %}
+<script src="{% static 'plugins/datatables/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-bs4/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-responsive/js/responsive.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/dataTables.buttons.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.bootstrap4.min.js' %}"></script>
+<script src="{% static 'plugins/jszip/jszip.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/pdfmake.min.js' %}"></script>
+<script src="{% static 'plugins/pdfmake/vfs_fonts.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.html5.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.print.min.js' %}"></script>
+<script src="{% static 'plugins/datatables-buttons/js/buttons.colVis.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var currentDate = new Date();
+        var options = { year: 'numeric', month: 'long', day: 'numeric' };
+        var formattedDate = currentDate.toLocaleDateString('en-US', options);
+        document.getElementById('current-date').textContent = formattedDate;
+    });
+</script>
+<script>
+    var isColorCode = false;
+
+    document.getElementById("print-btn").addEventListener("click", function () {
+        window.print();
+    });
+
+    function updateQuantity(row) {
+        const cells = row.cells;
+        let sum = 0;
+        for (let i = 4; i <= 17; i++) {
+            sum += parseInt(cells[i].textContent.trim()) || 0;
+        }
+        cells[18].textContent = sum;
+    }
+
+    var brand;
+
+    fetch('/department/api/department/list/')
+        .then(response => response.json())
+        .then(data => {
+            const departmentSelect = document.getElementById('department');
+            departmentSelect.innerHTML = '';
+            data.forEach(department => {
+                const option = document.createElement('option');
+                option.value = department.id;
+                option.textContent = department.department_name;
+                departmentSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+    fetch('/department/api/brand/list/')
+        .then(response => response.json())
+        .then(data => {
+            const vendorSelect = document.getElementById('vendor');
+            vendorSelect.innerHTML = '';
+            brand = data;
+            data.forEach(brand => {
+                if (!firstBrand) {
+                    firstBrand = brand;
+                    const addressElement = document.getElementById('vendor-address');
+                    addressElement.innerHTML = firstBrand.address;
+                    const brandElement = document.getElementById("vendor-name");
+                    brandElement.innerHTML = firstBrand.brand_name;
+                    const supplierElement = document.getElementById('vendor-supplier_name');
+                    supplierElement.innerHTML = `[${firstBrand.supplier_name}]`;
+                }
+                const option = document.createElement('option');
+                option.value = brand.id;
+                option.textContent = brand.brand_name;
+                vendorSelect.appendChild(option);
+            });
+
+            vendorSelect.addEventListener('change', function() {
+                const selectedBrandId = this.value;
+                const selectedBrand = brand.find(data => data.id == selectedBrandId);
+                const addressElement = document.getElementById('vendor-address');
+                addressElement.innerHTML = selectedBrand.address;
+                const brandElement = document.getElementById("vendor-name");
+                brandElement.innerHTML = selectedBrand.brand_name;
+                const supplierElement = document.getElementById('vendor-supplier_name');
+                supplierElement.innerHTML = `[${selectedBrand.supplier_name}]`;
+            });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("add-item-form").addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            const articleNo = event.target.article_number.value;
+            const item = event.target.item.options[event.target.item.selectedIndex].text;
+            const itemVal = event.target.item.value;
+            var color = event.target.color.value;
+            var colorCode = event.target.colorCode.value;
+
+            if (colorCode) {
+                color = colorCode;
+                isColorCode = true;
+            }
+
+            const newRow = document.createElement("tr");
+
+            const articleNoCell = document.createElement("td");
+            articleNoCell.textContent = articleNo;
+            const remarkNoCell = document.createElement("td");
+            remarkNoCell.contentEditable = "true";
+            remarkNoCell.textContent = "";
+            const itemCell = document.createElement("td");
+            itemCell.textContent = item;
+            itemCell.setAttribute("data-item-val", itemVal);
+            const colorCell = document.createElement("td");
+            colorCell.textContent = color;
+            colorCell.setAttribute("data-is-color-code-val", isColorCode);
+
+            newRow.appendChild(articleNoCell);
+            newRow.appendChild(remarkNoCell);
+            newRow.appendChild(itemCell);
+            newRow.appendChild(colorCell);
+
+            for (let i = 0; i < 14; i++) {
+                const sizeCell = document.createElement("td");
+                sizeCell.contentEditable = "true";
+                sizeCell.textContent = "0";
+                newRow.appendChild(sizeCell);
+            }
+
+            const quantityCell = document.createElement("td");
+            quantityCell.textContent = "0";
+            newRow.appendChild(quantityCell);
+
+            const noteCell = document.createElement("td");
+            noteCell.contentEditable = "true";
+            newRow.appendChild(noteCell);
+
+            document.querySelector("#order-items-table tbody").appendChild(newRow);
+
+            event.target.reset();
+        });
+    });
+
+    document.querySelector("#order-items-table tbody").addEventListener("input", function (event) {
+        const targetCell = event.target;
+        if (targetCell.parentElement.tagName === "TR" && targetCell.cellIndex >= 3 && targetCell.cellIndex <= 16) {
+            updateQuantity(targetCell.parentElement);
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd'
+        });
+
+        document.getElementById("update-btn").addEventListener("click", function () {
+            const dueDate = document.getElementById("due-date").value;
+            const vendor = document.getElementById("vendor").value;
+            const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
+            const tableRows = document.querySelectorAll("#order-items-table tbody tr");
+            const items = [];
+
+            tableRows.forEach((row, index) => {
+                if (index > 1) {
+                    const cells = row.cells;
+                    const quantityAndSize = {};
+                    const sizes = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
+
+                    sizes.forEach((size, idx) => {
+                        const value = parseInt(cells[idx + 4].textContent.trim());
+                        if (!isNaN(value) && value > 0) {
+                            quantityAndSize[size] = value;
+                        }
+                    });
+
+                    quantityAndSize["quantity"] = parseInt(cells[18].textContent.trim());
+                    const note = cells[19].textContent.trim();
+                    const remarks = cells[1].textContent.trim();
+
+                    const item = {
+                        item_id: row.getAttribute('data-item-id'), // Ensure each row has a data-item-id attribute with the item's ID
+                        article_number: cells[0].textContent.trim(),
+                        item: cells[2].getAttribute('data-item-val'),
+                        color: cells[3].textContent.trim(),
+                        is_color_code: cells[3].getAttribute('data-is-color-code-val'),
+                        quantity_and_size: quantityAndSize,
+                        note: note,
+                        remarks: remarks
+                    };
+
+                    items.push(item);
+                }
+            });
+
+            fetch('{% url "procurement:update_procurement_order" order.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    items: items,
+                    vendor: vendor,
+                    intent_no: document.getElementById("intent_no").textContent.trim(),
+                    tos: document.getElementById("tos").textContent.trim(),
+                    due_date: dueDate
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    $('#poModal .modal-title').text("Success!");
+                    $('#poModal .modal-body').text("Data Updated Successfully!");
+                    $('#poModal').modal('show');
+                } else {
+                    $('#errorModal .modal-title').text("Error!");
+                    $('#errorModal .modal-body').text(data.error);
+                    $('#errorModal').modal('show');
+                }
+            })
+            .catch((error) => {
+                $('#errorModal .modal-title').text("Error!");
+                $('#errorModal .modal-body').text(error);
+                $('#errorModal').modal('show');
+            });
+        });
+    });
+
+    $(document).ready(function() {
+        $('#due-date').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true,
+            todayHighlight: true
+        });
+    });
+
+    $("#okbtn2").click(function () {
+        window.location.href = '/po/list/'
+    });
+</script>
+{% endblock extra_scripts %}

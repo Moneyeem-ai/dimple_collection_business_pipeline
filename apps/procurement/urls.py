@@ -4,7 +4,8 @@ from .views import (
     ProcurementOrderCreateView,
     ProcurementOrderListView,
     ProcurementOrderRetrieveUpdateView,
-    ProcurementOrderActionView
+    ProcurementOrderActionView,
+    # ProcurementOrderUpdateView
 )
 
 
@@ -18,4 +19,5 @@ urlpatterns = [
     path("list/", ProcurementOrderListView.as_view(), name="procurement_order_list"),
     path('action/<int:order_id>/<str:action>/', ProcurementOrderActionView.as_view(), name='procurement_order_action'),
     path("<int:pk>/", ProcurementOrderRetrieveUpdateView.as_view(), name="procurement_detail"),
+    # path('update/<int:pk>/', ProcurementOrderUpdateView.as_view(), name='update_procurement_order'),
 ]

@@ -112,7 +112,7 @@ Order{% endblock title %} {% block extrastyle %}
 <div class="" style="margin:0 50px !important;">
     {% include 'includes/modal.html' %}  
   <header class="header mb-4 pt-4">
-    <img src="{% static 'images/FinalLogo.jpg' %}" alt="Logo" class="d-inline-block align-top" height="250" width="350" style="border-radius: 8px;">
+    <img src="{% static 'images/FinalLogo.png' %}" alt="Logo" class="d-inline-block align-top" height="250" width="350" style="border-radius: 8px;">
   </header>
 
   <section class="company-info row mb-4 address-container" >
@@ -131,7 +131,7 @@ Order{% endblock title %} {% block extrastyle %}
               </tr>
               <tr>
                   <td class="table-left-box">PO#</td>
-                  <td>-</td>
+                  <td id="po-number">{{ po.po }}</td> 
               </tr>
               <tr>
                   <td class="table-left-box">Due Date</td>
@@ -165,13 +165,13 @@ Order{% endblock title %} {% block extrastyle %}
         <thead>
         <tr>
           <th colspan="4" class="table-center-box">INDENT NO.</th>
-          <th colspan="4" class="table-center-box">TERMS OF SHIPMENT</th>
+          <th colspan="16" class="table-center-box">TERMS OF SHIPMENT</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td colspan="4">{{ po.intent_number }}</td>
-          <td colspan="4" style="color:red;">{{ po.terms_of_shipment }}</td>
+          <td colspan="16" style="color:red;">{{ po.terms_of_shipment }}</td>
         </tr>
         <tr >
           <th class="table-center-box">ARTICLE NO</th>
@@ -220,6 +220,24 @@ Order{% endblock title %} {% block extrastyle %}
                 <td>{{item.notes}}</td>
             </tr>
          {% endfor %}
+         <tr id="total-row">
+          <td colspan="4" class="table-center-box">Total Quantity</td>
+          <td id="total-28" class="table-center-box"></td>
+          <td id="total-30" class="table-center-box"></td>
+          <td id="total-32" class="table-center-box"></td>
+          <td id="total-34" class="table-center-box"></td>
+          <td id="total-36" class="table-center-box"></td>
+          <td id="total-38" class="table-center-box"></td>
+          <td id="total-39" class="table-center-box"></td>
+          <td id="total-40" class="table-center-box"></td>
+          <td id="total-42" class="table-center-box"></td>
+          <td id="total-44" class="table-center-box"></td>
+          <td id="total-46" class="table-center-box"></td>
+          <td id="total-48" class="table-center-box"></td>
+          <td id="total-50" class="table-center-box"></td>
+          <td id="total-52" class="table-center-box"></td>
+          <td id="total-quantity" class="table-center-box"></td>
+      </tr>
       </tbody>
     </table>
   </div>
@@ -251,6 +269,47 @@ Order{% endblock title %} {% block extrastyle %}
       var options = { year: 'numeric', month: 'long', day: 'numeric' };
       var formattedDate = currentDate.toLocaleDateString('en-US', options);
       document.getElementById('current-date').textContent = formattedDate;
+  });
+
+  function updateTotalQuantity() {
+      const tableBody = document.querySelector("#order-items-table tbody");
+      const totalCells = {};
+      const sizeColumns = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
+
+      // Initialize totals
+      sizeColumns.forEach(size => {
+          totalCells[size] = 0;
+      });
+
+      // Sum up each column, ignoring the first row
+      Array.from(tableBody.rows).forEach((row, rowIndex) => {
+          if (rowIndex > 1 && row.id !== 'total-row') {
+              sizeColumns.forEach((size, idx) => {
+                  const cellIndex = idx + 4; // Size columns start at index 4
+                  const value = parseInt(row.cells[cellIndex]?.textContent.trim());
+                  console.log(`Value in row ${rowIndex} for size ${size}: ${value}`);
+                  if (!isNaN(value)) {
+                      totalCells[size] += value;
+                  }
+              });
+          }
+      });
+
+      // Update total quantity cells
+      sizeColumns.forEach(size => {
+          console.log(`Total for ${size}: ${totalCells[size]}`); // Debug statement
+          document.getElementById(`total-${size}`).textContent = totalCells[size];
+      });
+
+      // Update the total of total quantities
+      const totalQuantity = sizeColumns.reduce((sum, size) => sum + totalCells[size], 0);
+      console.log(`Total quantity: ${totalQuantity}`); // Debug statement
+      document.getElementById('total-quantity').textContent = totalQuantity;
+  }
+
+  // Call the function on page load to initialize total quantities
+  document.addEventListener("DOMContentLoaded", function() {
+      updateTotalQuantity();
   });
 </script>
 <script>
@@ -417,6 +476,7 @@ Order{% endblock title %} {% block extrastyle %}
     const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
     const tableRows = document.querySelectorAll("#order-items-table tbody tr");
     const items = [];
+    const poNumber = document.getElementById('po-number').textContent.trim();
     // items.push(dueDate);
     // items.push(vendor);
 
@@ -471,6 +531,7 @@ Order{% endblock title %} {% block extrastyle %}
             vendor: vendor,
             intent_no: intent_no.textContent.trim(),
             tos: tos.textContent.trim(),
+            po: poNumber,
             due_date: dueDate
           }
         )
