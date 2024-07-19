@@ -52,6 +52,13 @@ class ProcurementOrderCreateView(
             terms_of_shipment = data.get("tos")
             brand = Brand.objects.get(id=vendor_id)
             po = f"DC/{brand.brand_code}/{intent_number}"
+            if ProcurementOrder.objects.filter(po=po).exists():
+                return JsonResponse(
+                    {
+                        "status": "error",
+                        "message": "A procurement order with this PO number already exists.",
+                    }
+                )
             items = data.get("items")
             order = ProcurementOrder.objects.create(
                 due_date=due_date,

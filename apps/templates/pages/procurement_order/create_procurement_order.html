@@ -104,11 +104,11 @@ Order{% endblock title %} {% block extrastyle %}
   }
   .no-background {
     background-color: transparent;
-    border: none; /* Optional: Remove border if desired */
+    border: none; 
   }
 
   .no-background::placeholder {
-      color: #999; /* Optional: Customize placeholder text color */
+      color: #999; 
   }
 </style>
 {% endblock extrastyle %} {% block content %}
@@ -336,12 +336,10 @@ Order{% endblock title %} {% block extrastyle %}
         const totalCells = {};
         const sizeColumns = ["28", "30", "32", "34", "36", "38", "39", "40", "42", "44", "46", "48", "50", "52"];
         
-        // Initialize totals
         sizeColumns.forEach(size => {
             totalCells[size] = 0;
         });
         
-        // Sum up each column, ignoring the first row
         Array.from(tableBody.rows).forEach((row, rowIndex) => {
             if (rowIndex > 1) {
                 sizeColumns.forEach((size, idx) => {
@@ -373,7 +371,7 @@ Order{% endblock title %} {% block extrastyle %}
       .then(response => response.json())
       .then(data => {
         const departmentSelect = document.getElementById('department');
-        departmentSelect.innerHTML = ''; // Clear existing options
+        departmentSelect.innerHTML = '';
         data.forEach(department => {
           const option = document.createElement('option');
           option.value = department.id;
@@ -393,7 +391,7 @@ Order{% endblock title %} {% block extrastyle %}
     .then(data => {
       brandsData = data;
       const vendorSelect = document.getElementById('vendor');
-      vendorSelect.innerHTML = ''; // Clear existing options
+      vendorSelect.innerHTML = ''; 
       data.forEach(brand => {
         const option = document.createElement('option');
         option.value = brand.id;
@@ -434,7 +432,6 @@ Order{% endblock title %} {% block extrastyle %}
       .addEventListener("submit", function (event) {
         event.preventDefault();
 
-        // Get input values
         const articleNo = event.target.article_number.value;
         const item = event.target.item.options[event.target.item.selectedIndex].text;
         const itemVal = event.target.item.value;
@@ -446,14 +443,11 @@ Order{% endblock title %} {% block extrastyle %}
           isColorCode = true;
         }
 
-        // Create new row
         const colorValues = color.split(',').map(c => c.trim());
 
         colorValues.forEach(singleColor => {
-            // Create new row
             const newRow = document.createElement("tr");
 
-            // Create cells
             const articleNoCell = document.createElement("td");
             articleNoCell.textContent = articleNo;
             const remarkNoCell = document.createElement("td");
@@ -466,13 +460,11 @@ Order{% endblock title %} {% block extrastyle %}
             colorCell.textContent = singleColor;
             colorCell.setAttribute("data-is-color-code-val", isColorCode);
 
-            // Append cells to row
             newRow.appendChild(articleNoCell);
             newRow.appendChild(remarkNoCell);
             newRow.appendChild(itemCell);
             newRow.appendChild(colorCell);
 
-            // Create editable cells for sizes
             for (let i = 0; i < 14; i++) {
                 const sizeCell = document.createElement("td");
                 sizeCell.contentEditable = "true";
@@ -484,7 +476,6 @@ Order{% endblock title %} {% block extrastyle %}
             }
 
 
-            // Append quantity and remark cells
             const quantityCell = document.createElement("td");
             quantityCell.textContent = "0";
             newRow.appendChild(quantityCell);
@@ -493,7 +484,6 @@ Order{% endblock title %} {% block extrastyle %}
             noteCell.contentEditable = "true";
             newRow.appendChild(noteCell);
 
-            // Append new row to table
             document.querySelector("#order-items-table tbody").appendChild(newRow);
             updateTotalQuantity();
         });
@@ -596,15 +586,13 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
       console.log(items);
     });
 
-    // Here you can proceed to use `items` as needed, for example sending it in an AJAX request
-
     console.log("Draft items:", items);
         
     fetch('/po/create/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken // Function to get CSRF token, add as per your actual implementation
+          'X-CSRFToken': csrfToken 
         },
         body: JSON.stringify(
           {
@@ -624,7 +612,7 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
             $('#poModal').modal('show');
         } else {
             $('#errorModal .modal-title').text("Error!");
-            $('#errorModal .modal-body').text(data.error);
+            $('#errorModal .modal-body').text(data.message);
             $('#errorModal').modal('show');
         }
       })
