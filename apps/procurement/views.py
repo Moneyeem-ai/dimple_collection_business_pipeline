@@ -110,9 +110,11 @@ class ProcurementOrderListView(
     SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
 ):
     model = ProcurementOrder
+    template_name = "pages/procurement_order/procurement_order_list.html"
+    login_url = "user:login"
     parent = "procurement"
     segment = "procurement_order_list"
-    template_name = "pages/procurement_order/procurement_order_list.html"
+    paginate_by = 6
     context_object_name = "orders"
     ordering = "-created_at"
 
