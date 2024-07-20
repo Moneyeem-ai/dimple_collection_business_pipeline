@@ -174,22 +174,24 @@ Order{% endblock title %} {% block extrastyle %}
           <td colspan="16" style="color:red;">{{ po.terms_of_shipment }}</td>
         </tr>
         <tr >
-          <th class="table-center-box">ARTICLE NO</th>
-          <th class="table-center-box">Remark</th>
-          <th class="table-center-box">ITEM</th>
-          <th class="table-center-box">COLOR</th>
-          <th class="table-center-box">36</th>
-          <th class="table-center-box">38</th>
-          <th class="table-center-box">40</th>
-          <th class="table-center-box">42</th>
-          <th class="table-center-box">44</th>
-          <th class="table-center-box">46</th>
-          <th class="table-center-box">48</th>
-          <th class="table-center-box">50</th>
-          <th class="table-center-box">52</th>
-          <th class="table-center-box">54</th>
-          <th class="table-center-box">Quantity</th>
-          <th class="table-center-box">Notes</th>
+            <th class="table-center-box">ARTICLE NO</th>
+            <th class="table-center-box">Remark</th>
+            <th class="table-center-box">ITEM</th>
+            <th class="table-center-box">COLOR</th>
+            <th class="table-center-box">28</th>
+            <th class="table-center-box">30</th>
+            <th class="table-center-box">32</th>
+            <th class="table-center-box">34</th>
+            <th class="table-center-box">36</th>
+            <th class="table-center-box">38</th>
+            <th class="table-center-box">40</th>
+            <th class="table-center-box">42</th>
+            <th class="table-center-box">44</th>
+            <th class="table-center-box">46</th>
+            <th class="table-center-box">48</th>
+            <th class="table-center-box">50</th>
+            <th class="table-center-box">Quantity</th>
+            <th class="table-center-box">Notes</th>
         </tr>
         <!-- Existing rows will be here -->
          {% for item in items %}
@@ -198,6 +200,10 @@ Order{% endblock title %} {% block extrastyle %}
                 <td>{{item.remarks}}</td>
                 <td>{{item.product.department}}</td>
                 <td>{{item.get_color}}</td>
+                <td>{{item.quantity_and_size.28}}</td>
+                <td>{{item.quantity_and_size.30}}</td>
+                <td>{{item.quantity_and_size.32}}</td>
+                <td>{{item.quantity_and_size.34}}</td>
                 <td>{{item.quantity_and_size.36}}</td>
                 <td>{{item.quantity_and_size.38}}</td>
                 <td>{{item.quantity_and_size.40}}</td>
@@ -206,14 +212,16 @@ Order{% endblock title %} {% block extrastyle %}
                 <td>{{item.quantity_and_size.46}}</td>
                 <td>{{item.quantity_and_size.48}}</td>
                 <td>{{item.quantity_and_size.50}}</td>
-                <td>{{item.quantity_and_size.52}}</td>
-                <td>{{item.quantity_and_size.54}}</td>
                 <td>{{item.quantity_and_size.quantity}}</td>
                 <td>{{item.notes}}</td>
             </tr>
          {% endfor %}
          <tr id="total-row">
           <td colspan="4" class="table-center-box">Total Quantity</td>
+          <td id="total-28" class="table-center-box"></td>
+          <td id="total-30" class="table-center-box"></td>
+          <td id="total-32" class="table-center-box"></td>
+          <td id="total-34" class="table-center-box"></td>
           <td id="total-36" class="table-center-box"></td>
           <td id="total-38" class="table-center-box"></td>
           <td id="total-40" class="table-center-box"></td>
@@ -222,8 +230,6 @@ Order{% endblock title %} {% block extrastyle %}
           <td id="total-46" class="table-center-box"></td>
           <td id="total-48" class="table-center-box"></td>
           <td id="total-50" class="table-center-box"></td>
-          <td id="total-52" class="table-center-box"></td>
-          <td id="total-54" class="table-center-box"></td>
           <td id="total-quantity" class="table-center-box"></td>
       </tr>
       </tbody>
@@ -262,7 +268,8 @@ Order{% endblock title %} {% block extrastyle %}
   function updateTotalQuantity() {
       const tableBody = document.querySelector("#order-items-table tbody");
       const totalCells = {};
-      const sizeColumns = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+      const sizeColumns = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48", "50"];
+
       // Initialize totals
       sizeColumns.forEach(size => {
           totalCells[size] = 0;
@@ -313,10 +320,10 @@ Order{% endblock title %} {% block extrastyle %}
     function updateQuantity(row) {
       const cells = row.cells;
       let sum = 0;
-      for (let i = 4; i <= 13; i++) {
+      for (let i = 4; i <= 15; i++) {
         sum += parseInt(cells[i].textContent.trim()) || 0;
       }
-      cells[14].textContent = sum;
+      cells[16].textContent = sum;
     }
 
     var brand, firstBrand=null;
@@ -418,7 +425,7 @@ Order{% endblock title %} {% block extrastyle %}
         newRow.appendChild(colorCell);
 
         // Create editable cells for sizes
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 14; i++) {
           const sizeCell = document.createElement("td");
           sizeCell.contentEditable = "true";
           sizeCell.textContent = "0";
@@ -473,7 +480,7 @@ Order{% endblock title %} {% block extrastyle %}
         const quantityAndSize = {};
 
         // List of sizes to check
-        const sizes = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+        const sizes = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48", "50"];
 
         sizes.forEach((size, idx) => {
           const value = parseInt(cells[idx + 4].textContent.trim());
@@ -484,7 +491,7 @@ Order{% endblock title %} {% block extrastyle %}
 
         // Add the quantity and remark
         quantityAndSize["quantity"] = parseInt(cells[18].textContent.trim());
-        const note = cells[15].textContent.trim();
+        const note = cells[17].textContent.trim();
         const remarks = cells[1].textContent.trim();
 
         const item = {

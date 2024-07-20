@@ -52,5 +52,19 @@ class BrandListAPIView(generics.ListAPIView):
 
 
 class DepartmentListAPIView(generics.ListAPIView):
-    queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
+
+    def get_queryset(self):
+        queryset = Department.objects.all()
+        department_names = self.request.query_params.get('department_names', None)
+        exclude_names = self.request.query_params.get('exclude', None)
+        
+        if exclude_names:
+            exclude_names_list = exclude_names.split(',')
+            queryset = queryset.exclude(department_name__in=exclude_names_list)
+
+        if department_names:
+            department_names_list = department_names.split(',')
+            queryset = queryset.filter(department_name__in=department_names_list)
+            
+        return queryset

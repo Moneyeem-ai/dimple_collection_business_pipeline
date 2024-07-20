@@ -185,16 +185,19 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">Remark</th>
           <th class="table-center-box">ITEM</th>
           <th class="table-center-box">COLOR</th>
-          <th class="table-center-box">36</th>
-          <th class="table-center-box">38</th>
-          <th class="table-center-box">40</th>
-          <th class="table-center-box">42</th>
-          <th class="table-center-box">44</th>
-          <th class="table-center-box">46</th>
-          <th class="table-center-box">48</th>
-          <th class="table-center-box">50</th>
-          <th class="table-center-box">52</th>
-          <th class="table-center-box">54</th>
+          <th class="table-center-box">1</th>
+          <th class="table-center-box">2</th>
+          <th class="table-center-box">3</th>
+          <th class="table-center-box">4</th>
+          <th class="table-center-box">5</th>
+          <th class="table-center-box">6</th>
+          <th class="table-center-box">7</th>
+          <th class="table-center-box">8</th>
+          <th class="table-center-box">9</th>
+          <th class="table-center-box">10</th>
+          <th class="table-center-box">12</th>
+          <th class="table-center-box">14</th>
+          <th class="table-center-box">16</th>
           <th class="table-center-box">Quantity</th>
           <th class="table-center-box">Notes</th>
         </tr>
@@ -203,16 +206,19 @@ Order{% endblock title %} {% block extrastyle %}
       <tfoot>
         <tr>
           <td colspan="4" class="table-center-box">Total Quantity</td>
-          <td class="table-center-box" id="total-36">0</td>
-          <td class="table-center-box" id="total-38">0</td>
-          <td class="table-center-box" id="total-40">0</td>
-          <td class="table-center-box" id="total-42">0</td>
-          <td class="table-center-box" id="total-44">0</td>
-          <td class="table-center-box" id="total-46">0</td>
-          <td class="table-center-box" id="total-48">0</td>
-          <td class="table-center-box" id="total-50">0</td>
-          <td class="table-center-box" id="total-52">0</td>
-          <td class="table-center-box" id="total-54">0</td>
+          <td class="table-center-box" id="total-1">0</td>
+          <td class="table-center-box" id="total-2">0</td>
+          <td class="table-center-box" id="total-3">0</td>
+          <td class="table-center-box" id="total-4">0</td>
+          <td class="table-center-box" id="total-5">0</td>
+          <td class="table-center-box" id="total-6">0</td>
+          <td class="table-center-box" id="total-7">0</td>
+          <td class="table-center-box" id="total-8">0</td>
+          <td class="table-center-box" id="total-9">0</td>
+          <td class="table-center-box" id="total-10">0</td>
+          <td class="table-center-box" id="total-12">0</td>
+          <td class="table-center-box" id="total-14">0</td>
+          <td class="table-center-box" id="total-16">0</td>
           <td class="table-center-box" id="total-quantity">0</td>
           </tr>
       </tfoot>
@@ -317,16 +323,16 @@ Order{% endblock title %} {% block extrastyle %}
     function updateQuantity(row) {
         const cells = row.cells;
         let sum = 0;
-        for (let i = 4; i <= 13; i++) {
+        for (let i = 4; i <= 16; i++) {
             sum += parseInt(cells[i].textContent.trim()) || 0;
         }
-        cells[14].textContent = sum;
+        cells[17].textContent = sum;
         updateTotalQuantity();
     }
     function updateTotalQuantity() {
         const tableBody = document.querySelector("#order-items-table tbody");
         const totalCells = {};
-        const sizeColumns = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+        const sizeColumns = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "14", "16"];
         
         sizeColumns.forEach(size => {
             totalCells[size] = 0;
@@ -359,7 +365,7 @@ Order{% endblock title %} {% block extrastyle %}
 
         var brand, firstBrand=null;
 
-        fetch('/department/api/department/list/?exclude=KIDS,JEANS,TROUSER')
+    fetch('/department/api/department/list/?department_names=KIDS')
   .then(response => response.json())
   .then(data => {
     const departmentSelect = document.getElementById('department');
@@ -457,7 +463,7 @@ Order{% endblock title %} {% block extrastyle %}
             newRow.appendChild(itemCell);
             newRow.appendChild(colorCell);
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 13; i++) {
                 const sizeCell = document.createElement("td");
                 sizeCell.contentEditable = "true";
                 sizeCell.textContent = "0";
@@ -539,7 +545,7 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
     const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
     const tableRows = document.querySelectorAll("#order-items-table tbody tr");
     const items = [];
-    const type = "REST"
+    const type = "KIDS"
     const poNumber = document.getElementById('po-number').textContent.trim();
     // items.push(dueDate);
     // items.push(vendor);
@@ -550,7 +556,7 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
         const quantityAndSize = {};
 
         // List of sizes to check
-        const sizes = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+        const sizes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "14", "16"];
 
         sizes.forEach((size, idx) => {
           const value = parseInt(cells[idx + 4].textContent.trim());
@@ -560,8 +566,8 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
         });
 
         // Add the quantity and remark
-        quantityAndSize["quantity"] = parseInt(cells[14].textContent.trim());
-        const note = cells[15].textContent.trim();
+        quantityAndSize["quantity"] = parseInt(cells[17].textContent.trim());
+        const note = cells[18].textContent.trim();
         const remarks = cells[1].textContent.trim();
 
         const item = {

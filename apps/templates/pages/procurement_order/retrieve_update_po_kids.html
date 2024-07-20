@@ -178,16 +178,19 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">Remark</th>
           <th class="table-center-box">ITEM</th>
           <th class="table-center-box">COLOR</th>
-          <th class="table-center-box">36</th>
-          <th class="table-center-box">38</th>
-          <th class="table-center-box">40</th>
-          <th class="table-center-box">42</th>
-          <th class="table-center-box">44</th>
-          <th class="table-center-box">46</th>
-          <th class="table-center-box">48</th>
-          <th class="table-center-box">50</th>
-          <th class="table-center-box">52</th>
-          <th class="table-center-box">54</th>
+          <th class="table-center-box">1</th>
+          <th class="table-center-box">2</th>
+          <th class="table-center-box">3</th>
+          <th class="table-center-box">4</th>
+          <th class="table-center-box">5</th>
+          <th class="table-center-box">6</th>
+          <th class="table-center-box">7</th>
+          <th class="table-center-box">8</th>
+          <th class="table-center-box">9</th>
+          <th class="table-center-box">10</th>
+          <th class="table-center-box">12</th>
+          <th class="table-center-box">14</th>
+          <th class="table-center-box">16</th>
           <th class="table-center-box">Quantity</th>
           <th class="table-center-box">Notes</th>
         </tr>
@@ -198,32 +201,38 @@ Order{% endblock title %} {% block extrastyle %}
                 <td>{{item.remarks}}</td>
                 <td>{{item.product.department}}</td>
                 <td>{{item.get_color}}</td>
-                <td>{{item.quantity_and_size.36}}</td>
-                <td>{{item.quantity_and_size.38}}</td>
-                <td>{{item.quantity_and_size.40}}</td>
-                <td>{{item.quantity_and_size.42}}</td>
-                <td>{{item.quantity_and_size.44}}</td>
-                <td>{{item.quantity_and_size.46}}</td>
-                <td>{{item.quantity_and_size.48}}</td>
-                <td>{{item.quantity_and_size.50}}</td>
-                <td>{{item.quantity_and_size.52}}</td>
-                <td>{{item.quantity_and_size.54}}</td>
+                <td>{{item.quantity_and_size.1}}</td>
+                <td>{{item.quantity_and_size.2}}</td>
+                <td>{{item.quantity_and_size.3}}</td>
+                <td>{{item.quantity_and_size.4}}</td>
+                <td>{{item.quantity_and_size.5}}</td>
+                <td>{{item.quantity_and_size.6}}</td>
+                <td>{{item.quantity_and_size.7}}</td>
+                <td>{{item.quantity_and_size.8}}</td>
+                <td>{{item.quantity_and_size.9}}</td>
+                <td>{{item.quantity_and_size.10}}</td>
+                <td>{{item.quantity_and_size.12}}</td>
+                <td>{{item.quantity_and_size.14}}</td>
+                <td>{{item.quantity_and_size.16}}</td>
                 <td>{{item.quantity_and_size.quantity}}</td>
                 <td>{{item.notes}}</td>
             </tr>
          {% endfor %}
          <tr id="total-row">
           <td colspan="4" class="table-center-box">Total Quantity</td>
-          <td id="total-36" class="table-center-box"></td>
-          <td id="total-38" class="table-center-box"></td>
-          <td id="total-40" class="table-center-box"></td>
-          <td id="total-42" class="table-center-box"></td>
-          <td id="total-44" class="table-center-box"></td>
-          <td id="total-46" class="table-center-box"></td>
-          <td id="total-48" class="table-center-box"></td>
-          <td id="total-50" class="table-center-box"></td>
-          <td id="total-52" class="table-center-box"></td>
-          <td id="total-54" class="table-center-box"></td>
+          <td id="total-1" class="table-center-box"></td>
+          <td id="total-2" class="table-center-box"></td>
+          <td id="total-3" class="table-center-box"></td>
+          <td id="total-4" class="table-center-box"></td>
+          <td id="total-5" class="table-center-box"></td>
+          <td id="total-6" class="table-center-box"></td>
+          <td id="total-7" class="table-center-box"></td>
+          <td id="total-8" class="table-center-box"></td>
+          <td id="total-9" class="table-center-box"></td>
+          <td id="total-10" class="table-center-box"></td>
+          <td id="total-12" class="table-center-box"></td>
+          <td id="total-14" class="table-center-box"></td>
+          <td id="total-16" class="table-center-box"></td>
           <td id="total-quantity" class="table-center-box"></td>
       </tr>
       </tbody>
@@ -262,7 +271,8 @@ Order{% endblock title %} {% block extrastyle %}
   function updateTotalQuantity() {
       const tableBody = document.querySelector("#order-items-table tbody");
       const totalCells = {};
-      const sizeColumns = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+      const sizeColumns = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "14", "16"];
+
       // Initialize totals
       sizeColumns.forEach(size => {
           totalCells[size] = 0;
@@ -313,10 +323,10 @@ Order{% endblock title %} {% block extrastyle %}
     function updateQuantity(row) {
       const cells = row.cells;
       let sum = 0;
-      for (let i = 4; i <= 13; i++) {
+      for (let i = 4; i <= 16; i++) {
         sum += parseInt(cells[i].textContent.trim()) || 0;
       }
-      cells[14].textContent = sum;
+      cells[18].textContent = sum;
     }
 
     var brand, firstBrand=null;
@@ -418,7 +428,7 @@ Order{% endblock title %} {% block extrastyle %}
         newRow.appendChild(colorCell);
 
         // Create editable cells for sizes
-        for (let i = 0; i < 10; i++) {
+        for (let i = 0; i < 13; i++) {
           const sizeCell = document.createElement("td");
           sizeCell.contentEditable = "true";
           sizeCell.textContent = "0";
@@ -473,7 +483,7 @@ Order{% endblock title %} {% block extrastyle %}
         const quantityAndSize = {};
 
         // List of sizes to check
-        const sizes = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+        const sizes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "12", "14", "16"];
 
         sizes.forEach((size, idx) => {
           const value = parseInt(cells[idx + 4].textContent.trim());
@@ -484,7 +494,7 @@ Order{% endblock title %} {% block extrastyle %}
 
         // Add the quantity and remark
         quantityAndSize["quantity"] = parseInt(cells[18].textContent.trim());
-        const note = cells[15].textContent.trim();
+        const note = cells[18].textContent.trim();
         const remarks = cells[1].textContent.trim();
 
         const item = {

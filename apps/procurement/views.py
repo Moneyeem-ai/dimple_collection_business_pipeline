@@ -41,6 +41,7 @@ class ProcurementOrderCreateView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["vendors"] = Brand.objects.all()
+        context["segment"] = self.segment
         return context
 
     def post(self, request):
@@ -50,6 +51,7 @@ class ProcurementOrderCreateView(
             vendor_id = data.get("vendor")
             intent_number = data.get("intent_no")
             terms_of_shipment = data.get("tos")
+            type = data.get("type")
             brand = Brand.objects.get(id=vendor_id)
             po = f"DC/{brand.brand_code}/{intent_number}"
             if ProcurementOrder.objects.filter(po=po).exists():
@@ -66,6 +68,7 @@ class ProcurementOrderCreateView(
                 intent_number=intent_number,
                 terms_of_shipment=terms_of_shipment,
                 po=po,
+                type = type,
             )
             for item in items:
                 article_number = item.get("article_number")
@@ -103,20 +106,27 @@ class ProcurementOrderCreateView(
         except Exception as e:
             print(e)
             return JsonResponse({"status": "error", "message": str(e)})
+        
+
+class ProcurementOrderBottomCreateView(ProcurementOrderCreateView):
+    segment = "create_procurement_bottom"
+    template_name = "pages/procurement_order/create_po_bottom.html"
 
 
+class ProcurementOrderKidsCreateView(ProcurementOrderCreateView):
+    segment = "create_procurement_kids"
+    template_name = "pages/procurement_order/create_po_kids.html"
 
 class ProcurementOrderListView(
     SideBarSelectedMixin, LoginRequiredMixin, generic.ListView
 ):
     model = ProcurementOrder
-    template_name = "pages/procurement_order/procurement_order_list.html"
-    login_url = "user:login"
     parent = "procurement"
     segment = "procurement_order_list"
-    paginate_by = 6
+    template_name = "pages/procurement_order/procurement_order_list.html"
     context_object_name = "orders"
     ordering = "-created_at"
+    paginate_by = 6
 
     def get_queryset(self):
         user = self.request.user
@@ -163,7 +173,7 @@ class ProcurementOrderRetrieveUpdateView(
 ):
     model = ProcurementOrder
     parent = "procurement"
-    segment = "retrieve_update_procurement_order"
+    segment = "procurement_order_list"
     template_name = "pages/procurement_order/retrieve_update_procurement_order.html"
     success_url = reverse_lazy("procurment_order_list")
 
@@ -202,7 +212,14 @@ class ProcurementOrderRetrieveUpdateView(
             print(e)
             return JsonResponse({"status": "error", "message": str(e)})
 
+class ProcurementOrderBottomRetrieveUpdateView(ProcurementOrderRetrieveUpdateView):
+    segment = "procurement_order_list"
+    template_name = "pages/procurement_order/retrieve_update_po_bottom.html"
 
+
+class ProcurementOrderKidsRetrieveUpdateView(ProcurementOrderRetrieveUpdateView):
+    segment = "procurement_order_list"
+    template_name = "pages/procurement_order/retrieve_update_po_kids.html"
 # class ProcurementOrderUpdateView(LoginRequiredMixin, UpdateView):
 #     model = ProcurementOrder
 #     form_class = ProcurementOrderForm

@@ -185,6 +185,10 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">Remark</th>
           <th class="table-center-box">ITEM</th>
           <th class="table-center-box">COLOR</th>
+          <th class="table-center-box">28</th>
+          <th class="table-center-box">30</th>
+          <th class="table-center-box">32</th>
+          <th class="table-center-box">34</th>
           <th class="table-center-box">36</th>
           <th class="table-center-box">38</th>
           <th class="table-center-box">40</th>
@@ -193,8 +197,6 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">46</th>
           <th class="table-center-box">48</th>
           <th class="table-center-box">50</th>
-          <th class="table-center-box">52</th>
-          <th class="table-center-box">54</th>
           <th class="table-center-box">Quantity</th>
           <th class="table-center-box">Notes</th>
         </tr>
@@ -203,6 +205,10 @@ Order{% endblock title %} {% block extrastyle %}
       <tfoot>
         <tr>
           <td colspan="4" class="table-center-box">Total Quantity</td>
+          <td class="table-center-box" id="total-28">0</td>
+          <td class="table-center-box" id="total-30">0</td>
+          <td class="table-center-box" id="total-32">0</td>
+          <td class="table-center-box" id="total-34">0</td>
           <td class="table-center-box" id="total-36">0</td>
           <td class="table-center-box" id="total-38">0</td>
           <td class="table-center-box" id="total-40">0</td>
@@ -211,8 +217,6 @@ Order{% endblock title %} {% block extrastyle %}
           <td class="table-center-box" id="total-46">0</td>
           <td class="table-center-box" id="total-48">0</td>
           <td class="table-center-box" id="total-50">0</td>
-          <td class="table-center-box" id="total-52">0</td>
-          <td class="table-center-box" id="total-54">0</td>
           <td class="table-center-box" id="total-quantity">0</td>
           </tr>
       </tfoot>
@@ -317,16 +321,16 @@ Order{% endblock title %} {% block extrastyle %}
     function updateQuantity(row) {
         const cells = row.cells;
         let sum = 0;
-        for (let i = 4; i <= 13; i++) {
+        for (let i = 4; i <= 15; i++) {
             sum += parseInt(cells[i].textContent.trim()) || 0;
         }
-        cells[14].textContent = sum;
+        cells[16].textContent = sum;
         updateTotalQuantity();
     }
     function updateTotalQuantity() {
         const tableBody = document.querySelector("#order-items-table tbody");
         const totalCells = {};
-        const sizeColumns = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+        const sizeColumns = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48", "50"];
         
         sizeColumns.forEach(size => {
             totalCells[size] = 0;
@@ -359,7 +363,7 @@ Order{% endblock title %} {% block extrastyle %}
 
         var brand, firstBrand=null;
 
-        fetch('/department/api/department/list/?exclude=KIDS,JEANS,TROUSER')
+    fetch('/department/api/department/list/?department_names=JEANS,TROUSER')
   .then(response => response.json())
   .then(data => {
     const departmentSelect = document.getElementById('department');
@@ -457,7 +461,7 @@ Order{% endblock title %} {% block extrastyle %}
             newRow.appendChild(itemCell);
             newRow.appendChild(colorCell);
 
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 12; i++) {
                 const sizeCell = document.createElement("td");
                 sizeCell.contentEditable = "true";
                 sizeCell.textContent = "0";
@@ -539,7 +543,7 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
     const csrfToken = document.querySelector('input[name=csrfmiddlewaretoken]').value;
     const tableRows = document.querySelectorAll("#order-items-table tbody tr");
     const items = [];
-    const type = "REST"
+    const type = "BOTTOM"
     const poNumber = document.getElementById('po-number').textContent.trim();
     // items.push(dueDate);
     // items.push(vendor);
@@ -550,7 +554,7 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
         const quantityAndSize = {};
 
         // List of sizes to check
-        const sizes = ["36", "38", "40", "42", "44", "46", "48", "50", "52", "54"];
+        const sizes = ["28", "30", "32", "34", "36", "38", "40", "42", "44", "46", "48", "50"];
 
         sizes.forEach((size, idx) => {
           const value = parseInt(cells[idx + 4].textContent.trim());
@@ -560,8 +564,8 @@ document.querySelectorAll("#order-items-table tbody td[contenteditable=true]").f
         });
 
         // Add the quantity and remark
-        quantityAndSize["quantity"] = parseInt(cells[14].textContent.trim());
-        const note = cells[15].textContent.trim();
+        quantityAndSize["quantity"] = parseInt(cells[16].textContent.trim());
+        const note = cells[17].textContent.trim();
         const remarks = cells[1].textContent.trim();
 
         const item = {
