@@ -39,7 +39,7 @@ def extract_data_from_tag(image_path):
     ]
 
     model = genai.GenerativeModel(
-        model_name="gemini-1.0-pro-vision-latest",
+        model_name="gemini-1.0-pro",
         generation_config=generation_config,
         safety_settings=safety_settings,
     )
