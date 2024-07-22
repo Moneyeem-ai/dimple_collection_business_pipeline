@@ -497,7 +497,7 @@ Order{% endblock title %} {% block extrastyle %}
             
             const actionCell = document.createElement("td");
             const deleteButton = document.createElement("button");
-            deleteButton.classList.add("btn", "btn-danger");
+            deleteButton.classList.add("btn", "btn-danger", "action-delete");
             deleteButton.textContent = "Delete";
             deleteButton.addEventListener("click", function() {
                 newRow.remove();

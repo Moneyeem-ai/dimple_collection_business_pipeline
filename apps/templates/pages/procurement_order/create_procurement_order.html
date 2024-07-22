@@ -95,11 +95,20 @@ Order{% endblock title %} {% block extrastyle %}
     font-weight: bold;
   }
   @media print {
-    .add-item-form, #vendor,#draft-btn,#print-btn {
+    .add-item-form, #vendor,#draft-btn,#print-btn, .action-delete {
       display: none;
     }
     .company-logo img {
       background-color: white !important;
+    }
+    .order-items table {
+      width: 100% !important; /* Highlighted */
+      table-layout: fixed; /* Highlighted */
+    }
+    .order-items th, .order-items td {
+      font-size: 10px; /* Highlighted */
+      padding: 2px !important; /* Highlighted */
+      word-wrap: break-word; /* Highlighted */
     }
   }
   .no-background {
@@ -172,13 +181,13 @@ Order{% endblock title %} {% block extrastyle %}
         <thead>
         <tr>
           <th colspan="4" class="table-center-box">INDENT NO.</th>
-          <th colspan="16" class="table-center-box">TERMS OF SHIPMENT</th>
+          <th colspan="13" class="table-center-box">TERMS OF SHIPMENT</th>
         </tr>
       </thead>
       <tbody>
         <tr>
           <td colspan="4" id="intent_no" contenteditable="true"></td>
-          <td colspan="16" style="color:red;" id="tos" contenteditable="true">Please Send All Good As soon As Possible.</td>
+          <td colspan="13" style="color:red;" id="tos" contenteditable="true">Please Send All Good As soon As Possible.</td>
         </tr>
         <tr >
           <th class="table-center-box">ARTICLE NO</th>
@@ -197,6 +206,7 @@ Order{% endblock title %} {% block extrastyle %}
           <th class="table-center-box">54</th>
           <th class="table-center-box">Quantity</th>
           <th class="table-center-box">Notes</th>
+          <th class="table-center-box action-delete">Actions</th>
         </tr>
         <!-- Existing rows will be here -->
       </tbody>
@@ -214,6 +224,8 @@ Order{% endblock title %} {% block extrastyle %}
           <td class="table-center-box" id="total-52">0</td>
           <td class="table-center-box" id="total-54">0</td>
           <td class="table-center-box" id="total-quantity">0</td>
+          <td></td>
+          <td></td>
           </tr>
       </tfoot>
     </table>
@@ -442,6 +454,7 @@ Order{% endblock title %} {% block extrastyle %}
 
             const articleNoCell = document.createElement("td");
             articleNoCell.textContent = articleNo;
+            articleNoCell.contentEditable = "true";
             const remarkNoCell = document.createElement("td");
             remarkNoCell.contentEditable = "true";
             remarkNoCell.textContent = "";
@@ -450,6 +463,7 @@ Order{% endblock title %} {% block extrastyle %}
             itemCell.setAttribute("data-item-val", itemVal);
             const colorCell = document.createElement("td");
             colorCell.textContent = singleColor;
+            colorCell.contentEditable = "true";
             colorCell.setAttribute("data-is-color-code-val", isColorCode);
 
             newRow.appendChild(articleNoCell);
@@ -475,6 +489,17 @@ Order{% endblock title %} {% block extrastyle %}
             const noteCell = document.createElement("td");
             noteCell.contentEditable = "true";
             newRow.appendChild(noteCell);
+
+            const actionCell = document.createElement("td");
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("btn", "btn-danger", "action-delete");
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", function() {
+                newRow.remove();
+                updateTotalQuantity();
+            });
+            actionCell.appendChild(deleteButton);
+            newRow.appendChild(actionCell);
 
             document.querySelector("#order-items-table tbody").appendChild(newRow);
             updateTotalQuantity();
