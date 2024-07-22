@@ -39,7 +39,7 @@ def extract_data_from_tag(image_path):
     ]
 
     model = genai.GenerativeModel(
-        model_name="gemini-1.0-pro-vision-latest",
+        model_name="gemini-1.5-pro",
         generation_config=generation_config,
         safety_settings=safety_settings,
     )
@@ -64,14 +64,16 @@ def extract_data_from_tag(image_path):
         (
             "Extract the information from this cloth tag. "
             "Map the extracted data to our Product model field, those are - department, brand, color, article_number, size, mrp. "
-            "The value of department can be - 2P SUIT, 5P SUIT, ANARKALI KURTA, BLAZER R NECK, BLAZER V NECK, BOTTOM, COTI, DARK INDO, FOOTWERE, INDO BOX, INDO WESTERN, JEANS, JODHPURI, KURTA COTI, KURTA PAJAMA, KURTA SHRUG H, ONLINE, PATHANI, SAFA STALL SET, SHERWANI, SHIRT, STALL, TIE, TROUSER, T-SHIRT, WAIST COAT SUIT or WOOLEN. "
+            "The value of department can be any one out of these values - 2P SUIT, 5P SUIT, ANARKALI KURTA, BLAZER R NECK, BLAZER V NECK, BOTTOM, COTI, DARK INDO, FOOTWERE, INDO BOX, INDO WESTERN, JEANS, JODHPURI, KURTA COTI, KURTA PAJAMA, KURTA SHRUG H, ONLINE, PATHANI, SAFA STALL SET, SHERWANI, SHIRT, STALL, TIE, TROUSER, T-SHIRT, WAIST COAT SUIT or WOOLEN. "
             "The value of brand will be the manufacturer(MFG), Concept by, or the band name on the tag. "
             "The value of color will be the color of cloth mentioned on tag. "
             "The value of article_number will be the unqine code mentioned on tag. It's name can be mentioned as - sytle, d.no, or article. "
             "The value of mrp will be the price of product mentioned on tag. "
-            "The value of size can be 32, 34, 36, 38, 40, 42, 44"
+            "The value of size can be any one out of these 32, 34, 36, 38, 40, 42, 44"
             "Name of the fields will not be same exactly and you may not find all the fields but map the fields which you feel are best suited. "
             "The output you should give should only be the json, mapping the extracted data with the model Product fields. "
+            "I am giving you the output format you need to follow that: "
+            """{"department": "department_extracted_value", "brand": "brand_extracted_value", "color": "color_extracted_value", "article_number": "article_number_extracted_value", "size": "size_extracted_value", "mrp": "mrp_extracted_value"}"""
         ),
     ]
     response = model.generate_content(prompt_parts)
@@ -80,9 +82,11 @@ def extract_data_from_tag(image_path):
     try:
         json_data = json.loads(response.text)
     except:
-        json_content = response.text.strip("`\n")
-        json_content = json_content[8:]
-        json_data = json.loads(json_content)
+        log_string = response.text
+        cleaned_string = log_string.replace('```json', '').replace('```', '')
+        # json_content = json_content[8:]
+        print(cleaned_string)
+        json_data = json.loads(cleaned_string)
 
     if value := json_data.get("department", None):
         model = genai.GenerativeModel(
