@@ -65,7 +65,9 @@
                                 </div>
                                 {% if request.user.email == "alex@email.com" %}
                                 <div class="col-sm-3" style="flex: 1; margin-right: 5px;">
-                                    <button id="exportForPOButton" class="btn btn-primary btn-block" style="width: 100%;">Export For PO</button>
+                                    <a href="{% url 'product:export_for_po' batch_id %}" style="width: 100%;">
+                                        <button type="button" id="exportForPOButton" class="btn btn-primary btn-block" style="width: 100%;">Export For PO</button>
+                                    </a>
                                 </div>
                                 {% endif %}
                             </div>
@@ -142,26 +144,6 @@
   const userType = "{{ user_type }}";
 </script>
 <script>
-    $(document).ready(function() {
-        $('#exportForPOButton').on('click', function() {
-            const batchId = fetchDataButton.getAttribute('data-batch-id');
-
-            $.ajax({
-                url: '/product/export_po/' + batchId + '/',
-                type: 'GET',
-                success: function(response) {
-                    if (response.success) {
-                        alert(response.message);
-                    } else {
-                        alert('Error: ' + response.message);
-                    }
-                },
-                error: function(xhr) {
-                    alert('An error occurred: ' + xhr.status + ' ' + xhr.statusText);
-                }
-            });
-        });
-    });
     function showOverlay() {
         // Create overlay elements
         var overlayWrapper = document.createElement('div');

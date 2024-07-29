@@ -500,7 +500,7 @@ class BatchListView(SideBarSelectedMixin, ListView):
     ordering = "-created_at"
 
 
-class ExportPTFilesView(View):
+class BaseExportView(View):
     login_url = "users:account_login"
 
     def get(self, request, *args, **kwargs):
@@ -605,8 +605,7 @@ class ExportPTFilesView(View):
         csv_file_path = "data/ptfiles_export.csv"
         df.to_csv(csv_file_path, index=False)
 
-        batch.is_exported = True
-        batch.save()
+        self.update_batch(batch)
 
         queryset = PTFileEntry.objects.filter(id__in=batch.ptfile_entry_ids)
         ptfile_entry = queryset.first()
@@ -625,6 +624,21 @@ class ExportPTFilesView(View):
             response["Content-Disposition"] = f'attachment; filename="{file_name}"'
 
         return response
+    
+    def update_batch(self, batch):
+        raise NotImplementedError("Subclasses must implement this method")
+
+
+class ExportPTFilesView(BaseExportView):
+    def update_batch(self, batch):
+        batch.is_exported = True
+        batch.save()
+
+
+class MarkPOExportedView(BaseExportView):
+    def update_batch(self, batch):
+        batch.is_exported_for_po = True
+        batch.save()
 
 
 class ExportImagesAPIView(View):
@@ -661,20 +675,3 @@ class ExportImagesAPIView(View):
             f"attachment; filename=product_images_batch_{batch_id}.zip"
         )
         return response
-
-
-class MarkPOExportedAPIView(generics.GenericAPIView):
-    def get(self, request, batch_id):
-        try:
-            batch = PTFileBatch.objects.get(id=batch_id)
-            batch.is_exported_for_po = True
-            batch.save()
-            return Response(
-                {"message": "PO Exported marked successfully", "success": True},
-                status=status.HTTP_200_OK,
-            )
-        except PTFileBatch.DoesNotExist:
-            return Response(
-                {"message": "Batch not found", "success": False},
-                status=status.HTTP_404_NOT_FOUND,
-            )
