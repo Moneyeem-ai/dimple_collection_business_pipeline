@@ -76,44 +76,6 @@
             {% endif %}
         </ul>
     </li>
-    {% if request.user.is_authenticated %}
-    <!-- Procurement Order Section -->
-    <li class="nav-item {% if 'procurement' in parent %} menu-open {% endif %}">
-        <a href="#" class="nav-link {% if 'procurement' in parent %} active {% endif %}">
-        <i class="nav-icon fas fa-clipboard-list"></i>
-        <p>
-            Procurement Order
-            <i class="fas fa-angle-left right"></i>
-        </p>
-        </a>
-        <ul class="nav nav-treeview">
-            <li class="nav-item">
-            <a href="{% url 'procurement:procurement_order_list' %}" class="nav-link {% if 'procurement_order_list' in segment %} active {% endif %}">
-                <i class="far fa-list-alt nav-icon"></i>
-                <p>Procurement Order List</p>
-            </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'procurement:create_procurement_order' %}" class="nav-link {% if 'create_procurement_order' in segment %} active {% endif %}">
-                    <i class="far fa-list-alt nav-icon"></i>
-                    <p>Create PO</p>
-                </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{% url 'procurement:create_procurement_order_bottom' %}" class="nav-link {% if 'create_procurement_bottom' in segment %} active {% endif %}">
-                        <i class="far fa-list-alt nav-icon"></i>
-                        <p>Create Bottom PO</p>
-                    </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{% url 'procurement:create_procurement_order_kids' %}" class="nav-link {% if 'create_procurement_kids' in segment %} active {% endif %}">
-                            <i class="far fa-list-alt nav-icon"></i>
-                            <p>Create Kids PO</p>
-                        </a>
-                        </li>
-        </ul>
-    </li>
-    {% endif %}
 
     {% if request.user.user_type != 'FT' and request.user.user_type != 'BT'%}
     <li class="nav-item">

@@ -98,6 +98,7 @@ class PTFileBatch(models.Model):
     ptfile_entry_ids = ArrayField(models.IntegerField(), default=list)
     is_file_uploaded = models.BooleanField(default=False)
     is_exported = models.BooleanField(default=False)
+    is_exported_for_po = models.BooleanField(default=False)
     is_image_exported = models.BooleanField(default=False)
     created_at = models.DateTimeField(null=True, auto_now_add=True)
 

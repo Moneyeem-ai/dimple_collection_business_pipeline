@@ -14,7 +14,8 @@ from .views import (
     PTFileEntryView,
     UploadFileView,
     ExportPTFilesView,
-    ExportImagesAPIView
+    ExportImagesAPIView,
+    MarkPOExportedAPIView,
 )
 
 app_name = "product"
@@ -34,5 +35,6 @@ urlpatterns = [
     path("api/ptfile_entry/", PTFileEntryAPIView.as_view(), name="api_ptfile_entry"),
     path("api/ptfile_update/", PTFileEntryUpdateAPIView.as_view(), name="api_ptfile_update"),
     path("api/ptfile_list/<int:batch_id>/", PTFileEntryListAPIView.as_view(), name="api_ptfile_list"),
-    path("export-batch-to-excel/<int:batch_id>/", ExportPTFilesView.as_view(), name="export_ptfiles")
+    path("export-batch-to-excel/<int:batch_id>/", ExportPTFilesView.as_view(), name="export_ptfiles"),
+    path("export_po/<int:batch_id>/", MarkPOExportedAPIView.as_view(), name="export_for_po"),
 ]

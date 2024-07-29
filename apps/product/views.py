@@ -661,3 +661,20 @@ class ExportImagesAPIView(View):
             f"attachment; filename=product_images_batch_{batch_id}.zip"
         )
         return response
+
+
+class MarkPOExportedAPIView(generics.GenericAPIView):
+    def get(self, request, batch_id):
+        try:
+            batch = PTFileBatch.objects.get(id=batch_id)
+            batch.is_exported_for_po = True
+            batch.save()
+            return Response(
+                {"message": "PO Exported marked successfully", "success": True},
+                status=status.HTTP_200_OK,
+            )
+        except PTFileBatch.DoesNotExist:
+            return Response(
+                {"message": "Batch not found", "success": False},
+                status=status.HTTP_404_NOT_FOUND,
+            )
