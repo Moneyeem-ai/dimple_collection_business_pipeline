@@ -28,4 +28,4 @@ def process_image_data(self, image_data, product_image_id):
         celery_logger.info(f"Product ID: {product}")
     except Exception as e:
         celery_logger.error(f"Error processing image data: {e}")
-        raise self.retry(exc=e, countdown=ONE_MINUTE*4)
+        raise self.retry(exc=e, countdown=10)
