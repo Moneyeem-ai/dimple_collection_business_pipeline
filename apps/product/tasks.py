@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=30)
-def process_image_data(image_data, product_image_id):
+def process_image_data(self, image_data, product_image_id):
     try:
         data = extract_data_from_tag(image_data)
         print(data)
