@@ -15,7 +15,7 @@ from apps.product.models import PTFileEntry
 celery_logger = logging.getLogger('celery')
 
 
-@shared_task(bind=True, max_retries=3, default_retry_delay=30)
+@shared_task(bind=True, max_retries=5, default_retry_delay=60)
 def process_image_data(self, image_data, product_image_id):
     try:
         data = extract_data_from_tag(image_data)
@@ -28,4 +28,4 @@ def process_image_data(self, image_data, product_image_id):
         celery_logger.info(f"Product ID: {product}")
     except Exception as e:
         celery_logger.error(f"Error processing image data: {e}")
-        raise self.retry(exc=e)
+        raise self.retry(exc=e, countdown=60)
