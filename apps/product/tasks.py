@@ -15,9 +15,8 @@ from apps.product.models import PTFileEntry
 logger = logging.getLogger(__name__)
 
 
-@shared_task()
+@shared_task(bind=True, max_retries=3, default_retry_delay=30)
 def process_image_data(image_data, product_image_id):
-    # Task to process image data
     try:
         data = extract_data_from_tag(image_data)
         print(data)
@@ -29,3 +28,4 @@ def process_image_data(image_data, product_image_id):
         logger.info(f"Product ID: {product}")
     except Exception as e:
         logger.error(f"Error processing image data: {e}")
+        raise self.retry(exc=e)
