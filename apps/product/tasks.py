@@ -1,5 +1,5 @@
 from __future__ import absolute_import, unicode_literals
-import os
+
 import logging
 
 from celery import shared_task
@@ -12,7 +12,7 @@ from apps.product.utils import (
 from apps.product.models import PTFileEntry
 
 
-logger = logging.getLogger(__name__)
+celery_logger = logging.getLogger('celery')
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=30)
@@ -24,8 +24,8 @@ def process_image_data(self, image_data, product_image_id):
         print(valid_data)
         product = get_or_create_product(valid_data)
         PTFileEntry.objects.create(product=product)
-        logger.info("Product saved successfully.")
-        logger.info(f"Product ID: {product}")
+        celery_logger.info("Product saved successfully.")
+        celery_logger.info(f"Product ID: {product}")
     except Exception as e:
-        logger.error(f"Error processing image data: {e}")
+        celery_logger.error(f"Error processing image data: {e}")
         raise self.retry(exc=e)
