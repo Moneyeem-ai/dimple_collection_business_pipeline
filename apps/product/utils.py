@@ -39,7 +39,7 @@ def extract_data_from_tag(image_path):
     ]
 
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-1.5-flash",
         generation_config=generation_config,
         safety_settings=safety_settings,
     )
@@ -77,6 +77,7 @@ def extract_data_from_tag(image_path):
         ),
     ]
     response = model.generate_content(prompt_parts)
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
     print(response.text)
 
     try:
@@ -89,6 +90,7 @@ def extract_data_from_tag(image_path):
         json_data = json.loads(cleaned_string)
 
     if value := json_data.get("department", None):
+        genai.configure(api_key="AIzaSyDTSQQxzIkyxVEDvuJ3AzO4RKQyE1MEC5g")
         model = genai.GenerativeModel(
             model_name="gemini-1.0-pro",
             generation_config=generation_config,
@@ -102,6 +104,7 @@ def extract_data_from_tag(image_path):
         prompt = f"Perform text matching. I am providing you a json of list of department_name and there id - {departments_json}. Match the provided list and check if '{value}' is present in department_name, it will not be same exactly, but its meaning should be similar. The output you should give should only be the matching json."
         prompt_parts = [prompt]
         response = model.generate_content(prompt_parts)
+        print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2")
         print(response.text)
         try:
             djson_data = json.loads(response.text)
@@ -130,6 +133,7 @@ def extract_data_from_tag(image_path):
     print("****")
 
     if value := json_data.get("brand", None):
+        genai.configure(api_key="AIzaSyDFybkT9jc_jzxUBqMSv728aaCtDeRpDGs")
         model = genai.GenerativeModel(
             model_name="gemini-1.0-pro",
             generation_config=generation_config,
@@ -143,6 +147,7 @@ def extract_data_from_tag(image_path):
         prompt = f"Perform text matching. I am providing you a json of list of brand_name and there id - {brands_json}. Match the provided list and check if '{value}' is present in brand_name, it will not be same exactly, but its meaning should be similar. The output you should give should only be the matching json."
         prompt_parts = [prompt]
         response = model.generate_content(prompt_parts)
+        print("#######################################3")
         print("!!!!")
         print(response.text)
         try:
@@ -166,6 +171,7 @@ def extract_data_from_tag(image_path):
             json_data["brand_id"] = none_brand.id
 
     if value := json_data.get("size", None):
+        genai.configure(api_key="AIzaSyBzmKf-YPsnXfaKiZ6uA96Iv1GYNtO58Uo")
         model = genai.GenerativeModel(
             model_name="gemini-1.0-pro",
             generation_config=generation_config,
@@ -181,6 +187,7 @@ def extract_data_from_tag(image_path):
         prompt_parts = [prompt]
         response = model.generate_content(prompt_parts)
         print("!!!!")
+        print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$4")
         print(response.text)
         try:
             sjson_data = json.loads(response.text)
@@ -203,6 +210,7 @@ def extract_data_from_tag(image_path):
             json_data["size_id"] = none_size.id
 
     if value := json_data.get("color", None):
+        genai.configure(api_key="AIzaSyBwv2A_G2nPr2Uk-sFIut-jSm3LykY1Bgs")
         model = genai.GenerativeModel(
             model_name="gemini-1.0-pro",
             generation_config=generation_config,
@@ -218,6 +226,7 @@ def extract_data_from_tag(image_path):
         prompt_parts = [prompt]
         response = model.generate_content(prompt_parts)
         print("!!!!")
+        print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%5")
         print(response.text)
         try:
             colorjson_data = json.loads(response.text)
@@ -238,11 +247,14 @@ def extract_data_from_tag(image_path):
             json_data["color_id"] = none_color.id
         except:
             json_data["color_id"] = none_color.id
+    print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6")
     print(json_data)
     return json_data
 
 
 def clean_extracted_data(data, product_image_id):
+
+
     product_images = ProductImage.objects.get(id=product_image_id)
     valid_keys = [
         field.name.replace("department", "department_id").replace("brand", "brand_id").replace("size", "size_id")
@@ -270,6 +282,7 @@ def clean_extracted_data(data, product_image_id):
     valid_data["subcategory"] = SubCategory.objects.get_or_create(
         subcategory_name="None", category=valid_data["category"]
     )[0]
+    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&7")
     print(valid_data)
     if product_images.metadata:
         if artcile_number:=product_images.metadata.get("article_number"):
@@ -278,6 +291,8 @@ def clean_extracted_data(data, product_image_id):
 
 
 def get_or_create_product(valid_data):
+
+
     department = Department.objects.get(id=valid_data.get("department_id"))
     brand = Brand.objects.get(id=valid_data.get("brand_id"))
     article_number = valid_data.get("article_number")
@@ -307,6 +322,8 @@ def get_or_create_product(valid_data):
 
 
 def check_product_is_unique_or_merge(pt_entry_ids):
+
+
     processed_pt_entry = []
     for pt_entry_id in pt_entry_ids:
         if pt_entry_id not in processed_pt_entry:
