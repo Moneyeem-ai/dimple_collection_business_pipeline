@@ -263,7 +263,11 @@ def clean_extracted_data(data, product_image_id):
     valid_data = {key: data[key] for key in valid_keys if key in data}
     if product_images.metadata:
         if color:=product_images.metadata.get("color"):
-            data["color_id"] = Color.objects.filter(color_name__icontains=color).first().id
+            if color:=Color.objects.filter(color_name__icontains=color).first():
+                data["color_id"] = color.id
+            else:
+                color = Color.objects.get_or_create(color_name="None")
+                data["color_id"] = color.id
     valid_data.update(
         {
             "metadata": data,
