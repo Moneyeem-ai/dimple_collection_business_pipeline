@@ -253,8 +253,6 @@ def extract_data_from_tag(image_path):
 
 
 def clean_extracted_data(data, product_image_id):
-
-
     product_images = ProductImage.objects.get(id=product_image_id)
     valid_keys = [
         field.name.replace("department", "department_id").replace("brand", "brand_id").replace("size", "size_id")
@@ -277,8 +275,8 @@ def clean_extracted_data(data, product_image_id):
     department = Department.objects.get_or_create(department_name="None")[0]
     valid_data["article_number"] = (
         valid_data["article_number"].upper()
-        if valid_data["article_number"]
-        else valid_data["article_number"]
+        if valid_data.get("article_number")
+        else ""
     )
     valid_data["category"] = Category.objects.get_or_create(
         category_name="None", department=department
