@@ -235,13 +235,13 @@ LOGGING = {
         "celery_file": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs", f"{env('APILOGGING')}_celery.log"),
+            "filename": os.path.join(BASE_DIR, "logs", f"local_celery.log"),
             "formatter": "verbose",
         },
         "file": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs", f"{env('APILOGGING')}_api_logs.log"),
+            "filename": os.path.join(BASE_DIR, "logs", f"local_api_logs.log"),
             "formatter": "verbose",
         },
     },

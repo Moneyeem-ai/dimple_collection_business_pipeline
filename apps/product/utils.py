@@ -39,7 +39,7 @@ def extract_data_from_tag(image_path):
     ]
 
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name="gemini-2.0-flash",
         generation_config=generation_config,
         safety_settings=safety_settings,
     )
@@ -92,7 +92,7 @@ def extract_data_from_tag(image_path):
     if value := json_data.get("department", None):
         genai.configure(api_key="AIzaSyDTSQQxzIkyxVEDvuJ3AzO4RKQyE1MEC5g")
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.0-flash",
             generation_config=generation_config,
             safety_settings=safety_settings,
         )
@@ -135,7 +135,7 @@ def extract_data_from_tag(image_path):
     if value := json_data.get("brand", None):
         genai.configure(api_key="AIzaSyDFybkT9jc_jzxUBqMSv728aaCtDeRpDGs")
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.0-flash",
             generation_config=generation_config,
             safety_settings=safety_settings,
         )
@@ -173,7 +173,7 @@ def extract_data_from_tag(image_path):
     if value := json_data.get("size", None):
         genai.configure(api_key="AIzaSyBzmKf-YPsnXfaKiZ6uA96Iv1GYNtO58Uo")
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.0-flash",
             generation_config=generation_config,
             safety_settings=safety_settings,
         )
@@ -212,7 +212,7 @@ def extract_data_from_tag(image_path):
     if value := json_data.get("color", None):
         genai.configure(api_key="AIzaSyBwv2A_G2nPr2Uk-sFIut-jSm3LykY1Bgs")
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-pro",
+            model_name="gemini-2.0-flash",
             generation_config=generation_config,
             safety_settings=safety_settings,
         )
