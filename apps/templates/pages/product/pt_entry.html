@@ -189,6 +189,15 @@
                     colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 150, 150 ],
                     colHeaders: true,
                     data: ptfile,
+                    filters: true,
+                    dropdownMenu: {
+                        items: {
+                        // Only keep filtering options
+                        'filter_by_condition': {},
+                        'filter_by_value': {},
+                        'filter_action_bar': {}
+                        }
+                    },
                     columns: [
                         { title: "Id", data: 'id', readOnly: true },
                         { title: "Product ID", data: 'product.id' },

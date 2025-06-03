@@ -63,6 +63,7 @@
                                     </a>
                                     <button id="sumQuantitiesBtn" class="btn btn-primary btn-block" style="width: 100%; display: none;">Update Data</button>
                                 </div>
+                                <!--mail to be added here-->
                                 {% if request.user.email == "dimplecollectiondata@gmail.com" %}
                                 <div class="col-sm-3" style="flex: 1; margin-right: 5px;">
                                     <a href="{% url 'product:export_for_po' batch_id %}" style="width: 100%;">
@@ -351,9 +352,18 @@
                         items: {
                         }
                     },
-                    colWidths: [50, 80, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 130, 150, 150,150,150 ],
+                    colWidths: [50, 120, 130, 150, 150, 150, 180, 130, 130, 130, 130, 130, 130, 150, 150,150,150 ],
                     colHeaders: true,
                     data: ptfile,
+                    filters: true,
+                    dropdownMenu: {
+                        items: {
+                        // Only keep filtering options
+                        'filter_by_condition': {},
+                        'filter_by_value': {},
+                        'filter_action_bar': {}
+                        }
+                    },
                     columns: column_data,
                     minRows: 100,
                     stretchH: "all",
