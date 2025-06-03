@@ -63,8 +63,7 @@
                                     </a>
                                     <button id="sumQuantitiesBtn" class="btn btn-primary btn-block" style="width: 100%; display: none;">Update Data</button>
                                 </div>
-                                <!--mail to be added here-->
-                                {% if request.user.email == "dimplecollectiondata@gmail.com" %}
+                                {% if request.user.email == "dimplecollectiondata@gmail.com" or request.user.email == "admin@dimplecollection.com" %}
                                 <div class="col-sm-3" style="flex: 1; margin-right: 5px;">
                                     <a href="{% url 'product:export_for_po' batch_id %}" style="width: 100%;">
                                         <button type="button" id="exportForPOButton" class="btn btn-primary btn-block" style="width: 100%;">Export For PO</button>
