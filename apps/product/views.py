@@ -17,8 +17,17 @@ from django.db import transaction
 
 from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import Product, ProductImage, ProductBarcode
-from apps.product.forms import ProductForm, UploadFileForm
-from apps.product.utils import extract_data_from_tag
+from apps.product.forms import (
+    ProductForm,
+    UploadFileForm,
+    BrandSelectionForm,
+    ManualFeedingForm,
+)
+from apps.product.utils import (
+    get_or_create_product,
+    check_product_is_unique_or_merge,
+    clean_extracted_data,
+)
 from apps.product.tasks import process_image_data
 
 from rest_framework import generics
@@ -28,8 +37,9 @@ from rest_framework import status
 from openpyxl import load_workbook
 from io import BytesIO
 import pandas as pd
+import json
+import binascii
 
-from apps.utils.utils import SideBarSelectedMixin
 from apps.product.models import (
     Product,
     ProductImage,
@@ -48,12 +58,6 @@ from apps.product.serializers import (
     CategorySerializer,
     ColorSerializer,
     SizeSerializer,
-)
-from apps.product.forms import ProductForm
-from apps.product.utils import (
-    extract_data_from_tag,
-    get_or_create_product,
-    check_product_is_unique_or_merge,
 )
 from apps.product.mappers import (
     pt_entry_to_product_mapper,
@@ -332,27 +336,41 @@ class PTFileEntryAPIView(generics.ListAPIView):
     serializer_class = PTFileEntrySerializer
 
     def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        departments = DepartmentNestedSerializer(
-            Department.objects.all(), many=True
-        ).data
-        categories = CategorySerializer(Category.objects.all(), many=True).data
-        subcategories = SubCategorySerializer(SubCategory.objects.all(), many=True).data
-        sizes = SizeSerializer(Size.objects.all(), many=True).data
-        brands = BrandSerializer(Brand.objects.all(), many=True).data
-        colors = ColorSerializer(Color.objects.all(), many=True).data
-        data = serializer.data
-        result = {
-            "data": data,
-            "departments": departments,
-            "sizes": sizes,
-            "categories": categories,
-            "subcategories": subcategories,
-            "brands": brands,
-            "colors": colors,
-        }
-        return Response(result)
+        try:
+            print(f"PT Entry API called - Request user: {request.user}")
+            queryset = self.filter_queryset(self.get_queryset())
+            print(f"Queryset count: {queryset.count()}")
+
+            serializer = self.get_serializer(queryset, many=True)
+            departments = DepartmentNestedSerializer(
+                Department.objects.all(), many=True
+            ).data
+            categories = CategorySerializer(Category.objects.all(), many=True).data
+            subcategories = SubCategorySerializer(
+                SubCategory.objects.all(), many=True
+            ).data
+            sizes = SizeSerializer(Size.objects.all(), many=True).data
+            brands = BrandSerializer(Brand.objects.all(), many=True).data
+            colors = ColorSerializer(Color.objects.all(), many=True).data
+            data = serializer.data
+            print(f"Serialized data count: {len(data)}")
+
+            result = {
+                "data": data,
+                "departments": departments,
+                "sizes": sizes,
+                "categories": categories,
+                "subcategories": subcategories,
+                "brands": brands,
+                "colors": colors,
+            }
+            return Response(result)
+        except Exception as e:
+            print(f"Error in PTFileEntryAPIView: {e}")
+            import traceback
+
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=500)
 
 
 class PTFileEntryListAPIView(generics.ListAPIView):
@@ -534,7 +552,7 @@ class BaseExportView(View):
             "product__brand__suffix",
             "product__article_number",
             "id",
-            "color_code",   
+            "color_code",
             "color__color_name",
             "size__size_value",
             "product__brand__brand_code",
@@ -624,7 +642,7 @@ class BaseExportView(View):
             response["Content-Disposition"] = f'attachment; filename="{file_name}"'
 
         return response
-    
+
     def update_batch(self, batch):
         raise NotImplementedError("Subclasses must implement this method")
 
@@ -675,3 +693,155 @@ class ExportImagesAPIView(View):
             f"attachment; filename=product_images_batch_{batch_id}.zip"
         )
         return response
+
+
+class ManualFeedingBrandSelectionView(
+    SideBarSelectedMixin, LoginRequiredMixin, generic.FormView
+):
+    template_name = "pages/product/manual_feeding_brand_selection.html"
+    form_class = BrandSelectionForm
+    parent = "product"
+    segment = "manual_feeding"
+
+    def form_valid(self, form):
+        brand_id = form.cleaned_data["brand"].id
+        return redirect("product:manual_feeding_form", brand_id=brand_id)
+
+
+class ManualFeedingFormView(SideBarSelectedMixin, LoginRequiredMixin, generic.FormView):
+    template_name = "pages/product/manual_feeding_form.html"
+    form_class = ManualFeedingForm
+    parent = "product"
+    segment = "manual_feeding"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        brand_id = self.kwargs.get("brand_id")
+        try:
+            brand = Brand.objects.get(id=brand_id)
+            context["brand"] = brand
+        except Brand.DoesNotExist:
+            context["brand"] = None
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """Override post to add debugging"""
+        print("=== MANUAL FEEDING POST REQUEST ===")
+        print(f"Request method: {request.method}")
+        print(f"Request POST data: {request.POST}")
+        print(f"Files: {request.FILES}")
+        print(f"Session data: {dict(request.session.items())}")
+        return super().post(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        print("=== FORM_VALID CALLED ===")
+        brand_id = self.kwargs.get("brand_id")
+        try:
+            brand = Brand.objects.get(id=brand_id)
+        except Brand.DoesNotExist:
+            return redirect("product:manual_feeding_brand_selection")
+
+        department = form.cleaned_data["department"]
+        article = form.cleaned_data["article"]
+        color = form.cleaned_data["color"]
+        number_of_rows = form.cleaned_data["number_of_rows"]
+        photo_data = form.cleaned_data.get("photo_data")
+
+        print("number_of_rows", number_of_rows)
+        print("article", article)
+        print("color", color)
+        print("department", department)
+        print("photo_data length:", len(photo_data) if photo_data else "None")
+
+        try:
+            format, imgstr = photo_data.split(";base64,")
+            ext = format.split("/")[-1]
+            image_file = ContentFile(
+                base64.b64decode(imgstr), name=f"{article}_{uuid.uuid4()}.{ext}"
+            )
+        except Exception as e:
+            form.add_error(None, f"Error processing image: {str(e)}")
+            return self.form_invalid(form)
+
+        try:
+            product_image = ProductImage.objects.create(
+                product_image=image_file,
+                metadata={
+                    "manual_feeding": True,
+                    "article_number": article.upper(),
+                    "color": color.color_name,
+                },
+            )
+            print(f"Created ProductImage: {product_image.id}")
+            extracted_data = {
+                "department_id": department.id,
+                "brand_id": brand.id,
+                "color_id": color.id,
+                "article_number": article.upper(),
+                "mrp": 0,  # Default MRP for manual feeding
+            }
+            print("Extracted data:", extracted_data)
+
+            valid_data = clean_extracted_data(extracted_data, product_image.id)
+            print("Valid data:", valid_data)
+
+            product = get_or_create_product(valid_data)
+            print(f"Product created/retrieved: {product.id} - {product.article_number}")
+
+            pt_entry_ids = []
+            with transaction.atomic():
+                for i in range(number_of_rows):
+                    pt_entry = PTFileEntry.objects.create(product=product)
+                    pt_entry_ids.append(pt_entry.id)
+                    print(f"Created PT Entry: {pt_entry.id}")
+            return redirect(f"/product/manual-feeding/form/{brand_id}/")
+
+        except Exception as e:
+            import traceback
+
+            print("Error in manual feeding:", str(e))
+            print(traceback.format_exc())
+            form.add_error(None, f"Error creating product: {str(e)}")
+            return self.form_invalid(form)
+
+    def form_invalid(self, form):
+        """Handle form validation errors"""
+        print("=== FORM_INVALID CALLED ===")
+        print(f"Form errors: {form.errors}")
+        print(f"Form non-field errors: {form.non_field_errors()}")
+        for field_name, field in form.fields.items():
+            field_value = form.data.get(field_name, "NOT PROVIDED")
+            print(f"Field {field_name}: {field_value}")
+        return super().form_invalid(form)
+
+
+class ArticleAutocompleteAPIView(APIView):
+    """
+    API endpoint for article number autocomplete suggestions.
+    Returns article numbers that match the search term for a specific brand.
+    """
+
+    def get(self, request, brand_id):
+        search_term = request.GET.get("q", "").strip()
+
+        if len(search_term) < 2:  # Only search if user typed at least 2 characters
+            return Response({"suggestions": []})
+
+        try:
+            # Get products for the specific brand that match the search term
+            products = (
+                Product.objects.filter(
+                    brand_id=brand_id, article_number__icontains=search_term
+                )
+                .values_list("article_number", flat=True)
+                .distinct()[:10]
+            )  # Limit to 10 suggestions
+
+            suggestions = list(products)
+
+            return Response({"suggestions": suggestions, "count": len(suggestions)})
+
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

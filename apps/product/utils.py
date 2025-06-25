@@ -293,8 +293,6 @@ def clean_extracted_data(data, product_image_id):
 
 
 def get_or_create_product(valid_data):
-
-
     department = Department.objects.get(id=valid_data.get("department_id"))
     brand = Brand.objects.get(id=valid_data.get("brand_id"))
     article_number = valid_data.get("article_number")
@@ -324,8 +322,6 @@ def get_or_create_product(valid_data):
 
 
 def check_product_is_unique_or_merge(pt_entry_ids):
-
-
     processed_pt_entry = []
     for pt_entry_id in pt_entry_ids:
         if pt_entry_id not in processed_pt_entry:

@@ -1,0 +1,87 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Manual Feeding - Select Brand{% endblock title %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Manual Feeding - Select Brand</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'product:list' %}">Products</a></li>
+                        <li class="breadcrumb-item active">Manual Feeding</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="content">
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="card card-primary">
+                        <div class="card-header">
+                            <h3 class="card-title">Select Brand for Manual Feeding</h3>
+                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="card-body">
+                                <div class="form-group">
+                                    <label for="{{ form.brand.id_for_label }}">Brand</label>
+                                    {{ form.brand }}
+                                    {% if form.brand.errors %}
+                                        <div class="text-danger">
+                                            {{ form.brand.errors }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-arrow-right"></i> Continue
+                                </button>
+                                <a href="{% url 'product:list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
+
+{% block extrastyle %}
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+{% endblock extrastyle %}
+
+{% block extra_scripts %}
+    <!-- Select2 -->
+    <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for searchable dropdowns
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                placeholder: 'Select an option',
+                allowClear: true
+            });
+        });
+    </script>
+{% endblock extra_scripts %} 

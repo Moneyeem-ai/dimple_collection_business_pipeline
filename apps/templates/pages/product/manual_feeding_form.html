@@ -1,0 +1,757 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %}Manual Feeding - Product Details{% endblock title %}
+
+{% block extrastyle %}
+    <!-- Select2 -->
+    <link rel="stylesheet" href="{% static 'plugins/select2/css/select2.min.css' %}">
+    <link rel="stylesheet" href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}">
+    <style>
+        .camera-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        #video, #photo {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            position: relative;
+            background-color: #f8f9fa;
+        }
+        #photo {
+            object-fit: cover;
+        }
+        #canvas {
+            display: none;
+        }
+        .camera-controls {
+            text-align: center;
+            margin-top: 15px;
+        }
+        .camera-controls button {
+            margin: 5px;
+        }
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .photo-captured {
+            border: 3px solid #28a745;
+        }
+        .success-alert {
+            border-left: 4px solid #28a745;
+        }
+
+        /* Autocomplete styles */
+        .autocomplete-container {
+            position: relative;
+        }
+        
+        .autocomplete-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .autocomplete-suggestions.show {
+            display: block;
+        }
+        
+        .autocomplete-suggestion {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .autocomplete-suggestion:hover,
+        .autocomplete-suggestion.highlighted {
+            background-color: #f8f9fa;
+        }
+        
+        .autocomplete-suggestion:last-child {
+            border-bottom: none;
+        }
+        
+        .autocomplete-loading {
+            padding: 10px 15px;
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .autocomplete-no-results {
+            padding: 10px 15px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+    </style>
+{% endblock extrastyle %}
+
+{% block content %}
+    <!-- Content Header (Page header) -->
+    <div class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Manual Feeding - Product Details</h1>
+                    {% if brand %}
+                        <p class="lead">Brand: <strong>{{ brand.brand_name }}</strong></p>
+                    {% endif %}
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'product:list' %}">Products</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'product:manual_feeding_brand_selection' %}">Manual Feeding</a></li>
+                        <li class="breadcrumb-item active">Product Form</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main content -->
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Camera Section -->
+                <div class="col-md-6">
+                    <div class="camera-section">
+                        <h4 class="text-center mb-3">
+                            <i class="fas fa-camera"></i> Capture Product Photo
+                        </h4>
+                        
+                        <div class="video-container">
+                            <video id="video" autoplay playsinline></video>
+                            <img id="photo" alt="Captured photo will appear here" style="display: none;">
+                            <canvas id="canvas"></canvas>
+                            <div id="cameraStatus" class="text-center mt-2" style="display: none;">
+                                <div class="spinner-border spinner-border-sm" role="status">
+                                    <span class="sr-only">Loading...</span>
+                                </div>
+                                <span class="ml-2">Initializing camera...</span>
+                            </div>
+                            <div id="photoSuccessMessage" class="text-center text-success mt-2" style="display: none;">
+                                <i class="fas fa-check-circle"></i> Photo captured successfully!
+                            </div>
+                        </div>
+                        
+                        <div class="camera-controls">
+                            <select id="cameraSelect" class="form-control mb-3" style="max-width: 200px; margin: 0 auto;">
+                                <option value="">Select Camera</option>
+                            </select>
+                            <div>
+                                <button id="requestPermission" class="btn btn-warning" style="display: none;">
+                                    <i class="fas fa-shield-alt"></i> Request Camera Permission
+                                </button>
+                                <button id="startCamera" class="btn btn-info">
+                                    <i class="fas fa-video"></i> Start Camera
+                                </button>
+                                <button id="captureBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-camera"></i> Capture Photo
+                                </button>
+                                <button id="retakeBtn" class="btn btn-warning" style="display: none;">
+                                    <i class="fas fa-redo"></i> Retake
+                                </button>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-info-circle"></i> Camera will start automatically when page loads
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Section -->
+                <div class="col-md-6">
+                    <div class="form-section">
+                        <h4 class="mb-3">
+                            <i class="fas fa-edit"></i> Product Information
+                        </h4>
+                        
+                        <form method="post" id="productForm">
+                            {% csrf_token %}
+                            
+                            <!-- Hidden field for photo data -->
+                            {{ form.photo_data }}
+                            
+                            <div class="form-group">
+                                <label for="id_department">
+                                    <i class="fas fa-building"></i> Department *
+                                </label>
+                                {{ form.department }}
+                                {% if form.department.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.department.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_article">
+                                    <i class="fas fa-tag"></i> Article Number *
+                                </label>
+                                <div class="autocomplete-container">
+                                    {{ form.article }}
+                                    <div id="article-suggestions" class="autocomplete-suggestions">
+                                        <!-- Suggestions will be populated here -->
+                                    </div>
+                                </div>
+                                <small class="form-text text-muted">
+                                    Start typing to see suggestions from existing articles for this brand
+                                </small>
+                                {% if form.article.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.article.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_color">
+                                    <i class="fas fa-palette"></i> Color *
+                                </label>
+                                {{ form.color }}
+                                {% if form.color.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.color.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="id_number_of_rows">
+                                    <i class="fas fa-list-ol"></i> Number of Rows *
+                                </label>
+                                {{ form.number_of_rows }}
+                                <small class="form-text text-muted">
+                                    This will create the specified number of PT entries
+                                </small>
+                                {% if form.number_of_rows.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.number_of_rows.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {% for error in form.non_field_errors %}
+                                        <p>{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            <div class="form-group text-center">
+                                <button type="submit" class="btn btn-success btn-lg" id="submitBtn" disabled>
+                                    <i class="fas fa-save"></i> Save Product & Create PT Entries
+                                </button>
+                            </div>
+                            
+                            <div class="text-center">
+                                <small class="text-muted">
+                                    * All fields are required. Photo must be captured before submitting.
+                                </small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock content %}
+
+{% block extra_scripts %}
+    <!-- Select2 -->
+    <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for searchable dropdowns
+            $('.select2').select2({
+                theme: 'bootstrap4',
+                placeholder: function() {
+                    return $(this).data('placeholder') || 'Select an option';
+                },
+                allowClear: true
+            });
+
+            // Article Autocomplete functionality
+            initArticleAutocomplete();
+        });
+
+        function initArticleAutocomplete() {
+            const articleInput = document.getElementById('id_article');
+            const suggestionsContainer = document.getElementById('article-suggestions');
+            const brandId = {{ brand.id|default:0 }};
+            
+            let currentRequest = null;
+            let selectedIndex = -1;
+            let debounceTimer = null;
+            
+            if (!articleInput || !suggestionsContainer || !brandId) {
+                console.warn('Article autocomplete: Required elements not found');
+                return;
+            }
+
+            // Handle input events
+            articleInput.addEventListener('input', function(e) {
+                const query = e.target.value.trim();
+                
+                // Clear previous timer
+                if (debounceTimer) {
+                    clearTimeout(debounceTimer);
+                }
+                
+                // Debounce the API call
+                debounceTimer = setTimeout(() => {
+                    if (query.length >= 2) {
+                        fetchSuggestions(query);
+                    } else {
+                        hideSuggestions();
+                    }
+                }, 300); // 300ms delay
+            });
+
+            // Handle keyboard navigation
+            articleInput.addEventListener('keydown', function(e) {
+                const suggestions = suggestionsContainer.querySelectorAll('.autocomplete-suggestion');
+                
+                if (suggestions.length === 0) return;
+                
+                switch(e.key) {
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        selectedIndex = Math.min(selectedIndex + 1, suggestions.length - 1);
+                        updateSelection(suggestions);
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        selectedIndex = Math.max(selectedIndex - 1, -1);
+                        updateSelection(suggestions);
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        if (selectedIndex >= 0 && suggestions[selectedIndex]) {
+                            selectSuggestion(suggestions[selectedIndex].textContent);
+                        }
+                        break;
+                    case 'Escape':
+                        hideSuggestions();
+                        break;
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.autocomplete-container')) {
+                    hideSuggestions();
+                }
+            });
+
+            function fetchSuggestions(query) {
+                // Cancel previous request
+                if (currentRequest) {
+                    currentRequest.abort();
+                }
+                
+                showLoading();
+                
+                const url = `/product/api/article-autocomplete/${brandId}/?q=${encodeURIComponent(query)}`;
+                
+                currentRequest = fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    displaySuggestions(data.suggestions || []);
+                })
+                .catch(error => {
+                    if (error.name !== 'AbortError') {
+                        console.error('Error fetching suggestions:', error);
+                        showError();
+                    }
+                })
+                .finally(() => {
+                    currentRequest = null;
+                });
+            }
+
+            function displaySuggestions(suggestions) {
+                selectedIndex = -1;
+                
+                if (suggestions.length === 0) {
+                    showNoResults();
+                    return;
+                }
+                
+                const html = suggestions.map(suggestion => 
+                    `<div class="autocomplete-suggestion" data-value="${suggestion}">${suggestion}</div>`
+                ).join('');
+                
+                suggestionsContainer.innerHTML = html;
+                suggestionsContainer.classList.add('show');
+                
+                // Add click handlers
+                suggestionsContainer.querySelectorAll('.autocomplete-suggestion').forEach(item => {
+                    item.addEventListener('click', function() {
+                        selectSuggestion(this.dataset.value);
+                    });
+                });
+            }
+
+            function selectSuggestion(value) {
+                articleInput.value = value;
+                hideSuggestions();
+                articleInput.focus();
+            }
+
+            function updateSelection(suggestions) {
+                suggestions.forEach((item, index) => {
+                    item.classList.toggle('highlighted', index === selectedIndex);
+                });
+            }
+
+            function showLoading() {
+                suggestionsContainer.innerHTML = '<div class="autocomplete-loading"><i class="fas fa-spinner fa-spin"></i> Loading suggestions...</div>';
+                suggestionsContainer.classList.add('show');
+            }
+
+            function showNoResults() {
+                suggestionsContainer.innerHTML = '<div class="autocomplete-no-results">No matching articles found</div>';
+                suggestionsContainer.classList.add('show');
+            }
+
+            function showError() {
+                suggestionsContainer.innerHTML = '<div class="autocomplete-no-results">Error loading suggestions</div>';
+                suggestionsContainer.classList.add('show');
+            }
+
+            function hideSuggestions() {
+                suggestionsContainer.classList.remove('show');
+                selectedIndex = -1;
+            }
+        }
+
+        // Camera functionality
+        let video = document.getElementById('video');
+        let canvas = document.getElementById('canvas');
+        let photo = document.getElementById('photo');
+        let captureBtn = document.getElementById('captureBtn');
+        let startCamera = document.getElementById('startCamera');
+        let retakeBtn = document.getElementById('retakeBtn');
+        let cameraSelect = document.getElementById('cameraSelect');
+        let submitBtn = document.getElementById('submitBtn');
+        let requestPermissionBtn = document.getElementById('requestPermission');
+        let stream;
+        let photoCaptured = false;
+
+
+
+        // Check if browser supports camera
+        function checkCameraSupport() {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('Camera not supported in this browser. Please use a modern browser like Chrome, Firefox, or Safari.');
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize camera
+        async function initCamera() {
+            if (!checkCameraSupport()) return;
+            
+            const cameraStatus = document.getElementById('cameraStatus');
+            cameraStatus.style.display = 'block';
+            
+                        try {
+                // First request basic camera permission to get device labels
+                const tempStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                tempStream.getTracks().forEach(track => track.stop());
+                
+                // Now enumerate devices with proper labels
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                cameraSelect.innerHTML = '<option value="">Select Camera</option>';
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    option.text = device.label || `Camera ${index + 1}`;
+                    cameraSelect.appendChild(option);
+                });
+
+                if (videoDevices.length > 0) {
+                    cameraSelect.value = videoDevices[0].deviceId;
+                    // Auto-start the first camera
+                    await startCameraStream(videoDevices[0].deviceId);
+                } else {
+                    cameraStatus.style.display = 'none';
+                    alert('No cameras found on this device.');
+                }
+            } catch (err) {
+                console.error('Error initializing camera:', err);
+                cameraStatus.style.display = 'none';
+                
+                let errorMessage = 'Error accessing camera. ';
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Please allow camera permissions and reload the page.';
+                    requestPermissionBtn.style.display = 'inline-block';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'No camera found on this device.';
+                } else if (err.name === 'NotSecureError' || location.protocol !== 'https:') {
+                    errorMessage += 'Camera requires HTTPS. Please use https:// or localhost.';
+                } else {
+                    errorMessage += 'Please check permissions and try again.';
+                    requestPermissionBtn.style.display = 'inline-block';
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        async function startCameraStream(deviceId) {
+            try {
+                // Stop existing stream
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+
+                const constraints = {
+                    video: {
+                        deviceId: deviceId ? { exact: deviceId } : undefined,
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    }
+                };
+
+                console.log('Starting camera with constraints:', constraints);
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                
+                // Wait for video to be ready
+                video.onloadedmetadata = function() {
+                    video.play();
+                    captureBtn.disabled = false;
+                    document.getElementById('cameraStatus').style.display = 'none';
+                    console.log('Video loaded - dimensions:', video.videoWidth, 'x', video.videoHeight);
+                };
+                
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                let errorMessage = 'Error accessing camera. ';
+                
+                if (err.name === 'NotAllowedError') {
+                    errorMessage += 'Please allow camera permissions and reload the page.';
+                } else if (err.name === 'NotFoundError') {
+                    errorMessage += 'No camera found on this device.';
+                } else if (err.name === 'NotReadableError') {
+                    errorMessage += 'Camera is already in use by another application.';
+                } else {
+                    errorMessage += 'Please check permissions and try again.';
+                }
+                
+                alert(errorMessage);
+            }
+        }
+
+        function capturePhoto() {
+            // Ensure video is playing and has content
+            if (video.videoWidth === 0 || video.videoHeight === 0) {
+                alert('Camera not ready. Please wait for the camera to start.');
+                return;
+            }
+
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw the current video frame to canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Get image data from canvas
+            const imageData = canvas.toDataURL('image/png');
+            
+            // Set the captured image to the photo element
+            photo.src = imageData;
+            
+            // Wait for image to load before showing it
+            photo.onload = function() {
+                // Hide video stream
+                video.style.display = 'none';
+                
+                // Show captured photo
+                photo.style.display = 'block';
+                document.getElementById('photoSuccessMessage').style.display = 'block';
+                
+                // Update button states
+                captureBtn.style.display = 'none';
+                retakeBtn.style.display = 'inline-block';
+                startCamera.style.display = 'none';
+                
+                // Add visual feedback
+                photo.classList.add('photo-captured');
+                
+                // Enable submit button
+                photoCaptured = true;
+                updateSubmitButton();
+                
+                console.log('Photo captured and displayed successfully');
+            };
+            
+            // Fallback: if image doesn't load within 1 second, force the display
+            setTimeout(() => {
+                if (photo.src && photo.style.display === 'none') {
+                    video.style.display = 'none';
+                    photo.style.display = 'block';
+                    document.getElementById('photoSuccessMessage').style.display = 'block';
+                    captureBtn.style.display = 'none';
+                    retakeBtn.style.display = 'inline-block';
+                    startCamera.style.display = 'none';
+                    photo.classList.add('photo-captured');
+                    photoCaptured = true;
+                    updateSubmitButton();
+                    console.log('Photo displayed via fallback');
+                }
+            }, 1000);
+            
+            // Store image data in hidden form field
+            const photoDataField = document.getElementById('id_photo_data');
+            if (photoDataField) {
+                photoDataField.value = imageData;
+                console.log('Photo data stored in form field');
+            } else {
+                console.error('Photo data field not found');
+            }
+        }
+
+        function retakePhoto() {
+            // Show video, hide photo
+            video.style.display = 'block';
+            photo.style.display = 'none';
+            document.getElementById('photoSuccessMessage').style.display = 'none';
+            
+            // Update button states
+            captureBtn.style.display = 'inline-block';
+            retakeBtn.style.display = 'none';
+            startCamera.style.display = 'inline-block';
+            
+            // Remove visual feedback
+            photo.classList.remove('photo-captured');
+            
+            // Clear photo src
+            photo.src = '';
+            
+            // Clear photo data from form field
+            const photoDataField = document.getElementById('id_photo_data');
+            if (photoDataField) {
+                photoDataField.value = '';
+                console.log('Photo data cleared from form field');
+            }
+            
+            // Disable submit button
+            photoCaptured = false;
+            updateSubmitButton();
+            
+            // Restart camera stream if it was stopped
+            if (stream && stream.active) {
+                video.srcObject = stream;
+                video.play();
+            } else {
+                // If stream is not active, restart it
+                const deviceId = cameraSelect.value || null;
+                startCameraStream(deviceId);
+            }
+            
+            console.log('Retaking photo - camera restarted');
+        }
+
+        function updateSubmitButton() {
+            submitBtn.disabled = !photoCaptured;
+        }
+
+        // Event listeners
+        startCamera.addEventListener('click', async () => {
+            const deviceId = cameraSelect.value || null;
+            await startCameraStream(deviceId);
+        });
+
+        cameraSelect.addEventListener('change', async (e) => {
+            if (e.target.value) {
+                await startCameraStream(e.target.value);
+            }
+        });
+
+        captureBtn.addEventListener('click', capturePhoto);
+        retakeBtn.addEventListener('click', retakePhoto);
+        
+        requestPermissionBtn.addEventListener('click', async () => {
+            requestPermissionBtn.style.display = 'none';
+            await initCamera();
+        });
+
+        // Form validation
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            if (!photoCaptured) {
+                e.preventDefault();
+                alert('Please capture a photo before submitting.');
+                return false;
+            }
+        });
+
+        // Check if we're on HTTPS or localhost
+        function checkSecureContext() {
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                alert('Camera access requires HTTPS. Please use https:// or localhost for testing.');
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize on page load with delay to ensure DOM is ready
+        setTimeout(() => {
+            if (checkSecureContext()) {
+                initCamera();
+            }
+        }, 500);
+    </script>
+{% endblock extra_scripts %} 
